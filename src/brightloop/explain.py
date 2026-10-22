@@ -10,19 +10,17 @@ from __future__ import annotations
 from datetime import tzinfo
 from typing import Any
 
-from brightloop import competitors, decide, normalize, pipeline, window, write
+from brightloop import change, competitors, decide, normalize, pipeline, window
+from brightloop import select as sel
 from brightloop.normalize import Signal
 
 
 def rules_markdown() -> str:
-    d, n = decide, normalize
+    c, d, n = change, decide, normalize
     out = [
         "# Pipeline rules (generated from the code)",
         "",
-        (
-            "Order: read → normalize → reporting week → relevance to Maya → group → trust → "
-            "write → safety → accounting."
-        ),
+        ("Order: read → normalize → decision tree (select.py) → write → safety → accounting."),
         "",
         "## 1. Read",
         "- Each signal is read on its own; a broken one never stops the run.",
@@ -119,28 +117,127 @@ def rules_markdown() -> str:
         "Software context (cancels collision words):",
         code(n.SOFTWARE_CONTEXT.pattern),
         "",
-        "## 3. Reporting week",
+        "## 3. The decision tree (select.py)",
         (
-            "- `week` (ISO, e.g. `2026-W43`) is computed in the input's `timezone`: Monday 00:00 to "
-            "the next Monday 00:00, local time (so a DST change inside the week is handled)."
-        ),
-        "- Before the week → skipped; on or after the next Monday → skipped.",
-        "- Ads count if they were active at any point during the week.",
-        "- No date → kept (confidence −0.1). No/invalid `week` → no date filter (noted in errors).",
-        "",
-        "## 4. Relevance to Maya (pricing, packaging, homepage messaging)",
-        "Checked in this order:",
-        "1. No text → skipped.",
-        "2. Name collision (domain or words) → skipped.",
-        "3. No competitor named → skipped.",
-        "4. **Pricing score ≥ 2**, or a homepage messaging change from an official source → kept.",
-        (
-            "5. Otherwise skipped, with a reason naming the owner: ads → Daniel; feature launches → "
-            "Noa; mislabeled `pricing` → says so. Ads running 8+ weeks are flagged as worth "
-            "passing to Daniel."
+            'Maya: the competitor\'s own pricing page is "the source of truth"; press or Reddit '
+            '"wouldn\'t make the deck without me verifying it against the actual page".'
         ),
         "",
-        "**Pricing score** (sum of the cues that fire):",
+        "Every signal goes down these branches in order; the first branch that decides, decides:",
+        "",
+        table(
+            ["#", "Branch", "Outcome"],
+            [
+                (
+                    "1",
+                    "Embedded instructions / name collision / no competitor / no text",
+                    "skipped, with the reason",
+                ),
+                ("2", "Dated after the reporting week", "skipped"),
+                (
+                    "2",
+                    "Dated before the reporting week",
+                    "kept only as a **baseline snapshot** of its page; otherwise skipped",
+                ),
+                (
+                    "3",
+                    (
+                        "Not from the competitor itself (press, community, sponsored, anonymous, "
+                        "unknown)"
+                    ),
+                    (
+                        'skipped: "verify on <official pricing page>", or "isn\'t a pricing '
+                        'change", or "same change as item X"'
+                    ),
+                ),
+                (
+                    "4",
+                    "Competitor's **pricing page or homepage**, states a change",
+                    f"item, confidence {sel.CONF_PAGE}",
+                ),
+                (
+                    "4",
+                    "Competitor's pricing page or homepage, states only the current state",
+                    (
+                        f"compared with another snapshot of the same page: different → item, "
+                        f"confidence {sel.CONF_COMPARED}; same or nothing to compare → skipped"
+                    ),
+                ),
+                (
+                    "5",
+                    (
+                        "Competitor's own other channel (blog, changelog, its X account, its ad) "
+                        "with a pricing/packaging change, or its ad naming a price"
+                    ),
+                    f'item, confidence {sel.CONF_ANNOUNCED}, action "check the official page"',
+                ),
+                (
+                    "5",
+                    "Competitor's own other channel, anything else",
+                    "skipped: feature → Noa; ad → Daniel (flagged if running 8+ weeks)",
+                ),
+            ],
+        ),
+        "",
+        (
+            "**Reporting week**: `week` (ISO, e.g. `2026-W43`) is Monday 00:00 to the next Monday "
+            "00:00 in the input's `timezone` (DST inside the week is handled). Ads count if active "
+            "during the week. No date → treated as in the week (−0.1). No/invalid `week` → no filter."
+        ),
+        "",
+        (
+            "**Which page** (from the URL): host must be the competitor's main domain or `www` "
+            '(a subdomain like `status.bolt.new` or `blog.replit.com` is "other"); path '
+            f"`{n.PRICING_PATH.pattern}` → pricing page; `/` → homepage. Without a URL, a source "
+            'naming "pricing page" / "homepage" decides.'
+        ),
+        "",
+        (
+            "**Official** = the competitor's own domain (dictionary above; for an unlisted "
+            'competitor, a domain named after it, e.g. `acmeai.io` for "Acme AI"), its own social '
+            "handle, or its own ad (ad library)."
+        ),
+        "",
+        "## 4. Detecting a change inside a signal (change.py)",
+        (
+            'Domain names are masked first ("Bolt.new" is not the word "new"). Company-finance '
+            "text (funding, valuation, revenue) is never a price change. Then, first match wins:"
+        ),
+        "",
+        table(
+            ["Change", "Pattern"],
+            [
+                ("price (old stated)", f"`{c.PREVIOUSLY.pattern}`"),
+                ("price (from → to)", f"`{c.FROM_TO.pattern}`"),
+                ("wording", f"`{c.QUOTED_PAIR.pattern}`"),
+                ("plan removed", f"`{c.PLAN_REMOVED.pattern}`"),
+                ("renamed", f"`{c.RENAMED.pattern}`"),
+                ("plan added", f"`{c.PLAN_ADDED.pattern}`"),
+                (
+                    "limits",
+                    f"price verb `{c.PRICE_VERB.pattern}` + `{c.LIMITS.pattern}`, no amount",
+                ),
+                ("price (verb)", "price verb + anything"),
+                ("availability", f"`{c.AVAILABILITY.pattern}`"),
+                ("price (new only)", f"change word + an amount: `{c.GENERIC_CHANGE.pattern}`"),
+                ("other", "change word, no amount"),
+            ],
+        ),
+        "",
+        (
+            "**Comparing two snapshots** of the same page (same competitor + same page type): "
+            "plan → price pairs are read with "
+            f"`{c.PLAN_PRICE.pattern}`; changed prices, added and removed plans are reported; "
+            "if no plan prices are readable, the set of amounts is compared; then the visible "
+            "text lines (noise like dates, cookie and copyright lines removed) are compared: "
+            'added and removed lines are the homepage "visual diff".'
+        ),
+        "",
+        "## 5. Is an official announcement about pricing? (decide.py)",
+        (
+            "Only branch 5 and the third-party wording still read the topic. **Pricing score** "
+            "(sum of the cues that fire), relevant at 2+:"
+        ),
         "",
         table(
             ["Cue", "Points", "Pattern"],
@@ -157,66 +254,46 @@ def rules_markdown() -> str:
         ),
         "",
         (
-            "**Company finance cap**: if the text matches the pattern below and has no price with "
-            "a unit, no pricing words and no plan words, the score is capped at 1 (money is not a "
-            "price: funding, valuation, revenue)."
+            "**Company finance cap**: with no price with a unit, no pricing words and no plan "
+            "words, a text matching this is capped at 1 (money is not a price):"
         ),
         code(d.COMPANY_FINANCE.pattern),
         "",
-        "**Homepage messaging** (official sources only):",
-        code(d.MESSAGING.pattern),
-        "",
-        "## 5. Group (same event from several sources)",
-        (
-            f"Two signals are the same event when all hold: same known competitor; within "
-            f"{int(d.SAME_EVENT_WINDOW.total_seconds() // 3600)} hours (if both dated); if both "
-            "name amounts, they share one; and they share an amount, or share 2+ content words "
-            "of which at least one is not generic. Groups are transitive."
-        ),
-        "",
-        (
-            f"Generic words (don't make two reports the same event on their own): "
-            f"{fmt(sorted(d.GENERIC))}"
-        ),
-        "",
-        "## 6. Trust → confidence",
-        "",
-        table(["Best source in the group", "Base"], list(d.BASE_TRUST.items())),
+        "## 6. Confidence",
         "",
         table(
-            ["Adjustment", "Effect"],
+            ["Situation", "Confidence"],
             [
-                ("Each extra independent source (different domain/class)", "+0.10, max +0.15"),
-                ("Absolute claim, no official source", f"−0.20  `{d.HYPE.pattern}`"),
-                ("Every report hedged", f"−0.25  `{d.HEDGE.pattern}`"),
-                ("Amounts contradict the official source this week", "−0.30"),
-                ("No date", "−0.10"),
-                ("No link anywhere in the group (no link, no number)", "capped at 0.40"),
-                ("Instructions aimed at AI systems", "capped at 0.20"),
-                ("Final", "clamped to 0–0.95"),
+                ("We compared two snapshots of the official page", sel.CONF_COMPARED),
+                ("The official page states the change", sel.CONF_PAGE),
+                ("The competitor announced it elsewhere (check the page)", sel.CONF_ANNOUNCED),
+                ('…the page says "changed" but not what', "−0.10"),
+                ("…new price stated, old price not", "−0.05"),
+                ("…no date", "−0.10"),
+                ("Third party", "never an item"),
             ],
         ),
         "",
         (
-            f"**Threshold**: confidence ≥ {d.THRESHOLD} → item; below → every signal in the group "
-            "is skipped with the reasons."
+            "Merging: a page item absorbs the competitor's own announcements of the same change "
+            "(same competitor, ≤72 h, a shared amount, or 2+ shared words incl. one non-generic)."
         ),
         "",
-        "## 7. Write",
+        "## 7. Write (write.py)",
         (
-            "- `action`: `Flag on the <competitor> slide: <first sentence of the best source> "
-            "Check the linked source before the 11:00 meeting.`"
+            "- `action`: `Update the <competitor> <pricing|homepage> slide: <what changed>.` For "
+            "announcements: `Check <official pricing page> before the 11:00 meeting: <competitor> "
+            "announced <…>. Add it to the slide only if the page shows it.`"
         ),
         (
-            "- `why`: who reported it and when (input timezone), which other sources agree, why it "
-            "matters (packaging/messaging), and a note if the link came from a named page."
+            "- `why`: where and when it was seen (input timezone), or which two snapshots were "
+            "compared. Facts only."
         ),
         (
-            "- Extra fields: `competitor`, `kind` (price_change / packaging / messaging), `links`, "
-            "`sources` (id, source, class), `caveats` (why confidence went down), `cta` (only "
-            "when `output.cta_required_per_item` is true: text + the first link)."
+            "- Extra fields: `competitor`, `page` (pricing / home / announcement), `change` "
+            "(old → new when known), `links`, `sources` (id, source, class), `caveats`, `cta` (only "
+            "when `output.cta_required_per_item` is true)."
         ),
-        "- Lead source order: " + fmt(write.TRUST_ORDER),
         "",
         "## 8. Safety",
         (
@@ -280,7 +357,22 @@ def trace_signal(signal: Signal, tz: tzinfo, week: Any, result: str) -> list[str
     cues = decide.pricing_cues(signal.text)
     cue_text = " + ".join(f'{name} ({pts}: "{m}")' for name, (pts, m) in cues.items())
     when = signal.when.astimezone(tz).strftime("%Y-%m-%d %H:%M %Z") if signal.when else "none"
-    week_check = window.window_reason(signal, week) or "inside the week"
+    week_check = {"in": "inside the week", "before": "before the week", "after": "after the week"}[
+        sel.place_in_week(signal, week)
+    ]
+    stated = change.stated_change(signal.text)
+    stated_text = (
+        f'{stated.kind} ("{stated.evidence}"){": " + change.describe(stated) if change.describe(stated) else ""}'
+        if stated
+        else "none (states a fact only)"
+    )
+    origin = (
+        "its own pricing page or homepage"
+        if signal.on_page
+        else "the competitor itself, another channel"
+        if signal.official
+        else "a third party"
+    )
     return [
         f"## `{signal.id}`",
         (
@@ -295,7 +387,9 @@ def trace_signal(signal: Signal, tz: tzinfo, week: Any, result: str) -> list[str
         f'- Text used: "{signal.text[:400]}"',
         f"- Flags: {fmt(signal.flags) if signal.flags else 'none'}",
         f"- Week: {week_check}",
-        f"- Pricing score: **{decide.pricing_score(signal.text)}**"
+        f"- From: **{origin}** · page **{signal.page}**",
+        f"- Change stated: {stated_text}",
+        f"- Pricing score (used for announcements only): **{decide.pricing_score(signal.text)}**"
         + (f" = {cue_text}" if cue_text else ""),
         f"- Result: {result}",
         "",
