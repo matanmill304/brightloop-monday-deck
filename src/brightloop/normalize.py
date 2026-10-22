@@ -263,6 +263,8 @@ def clean_text(value: Any) -> tuple[str, bool]:
     """Strip HTML and hidden comments; report whether instructions to an AI were found."""
     if not isinstance(value, str):
         return "", False
+    # Zero-width and other invisible characters can split words to dodge the patterns.
+    value = re.sub("[\u200b-\u200f\u2060-\u2064\ufeff\u00ad]", "", value)
     injected = bool(INSTRUCTION_PATTERNS.search(value))
     comments = re.findall(r"<!--(.*?)(?:-->|$)", value, flags=re.DOTALL)
     if any(c.strip() for c in comments):
@@ -280,7 +282,13 @@ def _looks_injected(value: Any) -> bool:
     return isinstance(value, str) and ("<!--" in value or bool(INSTRUCTION_PATTERNS.search(value)))
 
 
+WAYBACK = re.compile(r"web\.archive\.org/web/(\d{4,14})\w*/(https?://\S+)", re.IGNORECASE)
+
+
 def find_link(source: str) -> tuple[str, str | None] | None:
+    # An archived copy of a page is that page: read the original URL out of the Wayback link.
+    if archived := WAYBACK.search(source or ""):
+        source = archived.group(2)
     match = DOMAIN.search(source or "")
     if not match:
         return None

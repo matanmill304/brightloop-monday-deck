@@ -36,13 +36,15 @@ def rules_markdown() -> str:
             f"Lists/objects are flattened. Capped at {n.MAX_TEXT:,} characters."
         ),
         (
-            "- HTML tags and `<!-- comments -->` are removed. A sentence matching the "
+            "- Invisible characters (zero-width spaces, soft hyphens, BOM) are removed first. "
+            "HTML tags and `<!-- comments -->` are removed. A sentence matching the "
             "instruction patterns below is removed and the signal is flagged "
             "`embedded_instructions`."
         ),
         (
             f"- **Link** comes from the first of: {fmt(n.SOURCE_FIELDS)}. `.example` domains "
-            "keep their domain but get no link (they can't be opened)."
+            "keep their domain but get no link (they can't be opened). A Wayback Machine link "
+            f"is read as the page it archived: `{n.WAYBACK.pattern}`."
         ),
         (
             f"- **Time** comes from the first parseable of: {fmt(n.TIME_FIELDS)}; ads use "
@@ -208,7 +210,17 @@ def rules_markdown() -> str:
             ["Change", "Pattern"],
             [
                 ("price (old stated)", f"`{c.PREVIOUSLY.pattern}`"),
-                ("price (from → to)", f"`{c.FROM_TO.pattern}`"),
+                (
+                    "number (old stated)",
+                    f"`{c.NUMBER_PREVIOUSLY.pattern}` → limits if a limit word",
+                ),
+                (
+                    "price (from → to)",
+                    (
+                        f"`{c.FROM_TO.pattern}` (every match is reported; the same number on both "
+                        "sides is not a change)"
+                    ),
+                ),
                 ("wording", f"`{c.QUOTED_PAIR.pattern}`"),
                 ("plan removed", f"`{c.PLAN_REMOVED.pattern}`"),
                 ("renamed", f"`{c.RENAMED.pattern}`"),
@@ -232,6 +244,18 @@ def rules_markdown() -> str:
             "text lines (noise like dates, cookie and copyright lines removed) are compared: "
             'added and removed lines are the homepage "visual diff".'
         ),
+        "",
+        "Noise lines ignored when comparing text:",
+        code(c.NOISE_LINE.pattern),
+        "",
+        (
+            "**Failed capture guard**: if the earlier snapshot had amounts and the later one has "
+            "none and at most 2 text lines, it's treated as a failed capture (skipped, \"check the "
+            'page") rather than "every price removed".'
+        ),
+        "",
+        "Domain names are masked before reading change words:",
+        code(c.DOMAIN_LIKE.pattern),
         "",
         "## 5. Is an official announcement about pricing? (decide.py)",
         (

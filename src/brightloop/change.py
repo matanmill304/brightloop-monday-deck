@@ -26,8 +26,13 @@ FROM_TO = re.compile(
 )
 # "(was $20 last week)", "previously $20", "down from $30": the amount after it is the old one.
 PREVIOUSLY = re.compile(
-    rf"\b(was|previously|formerly|down from|up from|instead of|compared to)\s+({AMOUNT}{UNIT})",
+    rf"\b(was|previously|formerly|currently|today|down from|up from|instead of|compared to)"
+    rf"\s+({AMOUNT}{UNIT})",
     re.IGNORECASE,
+)
+# The same with a plain number: "5 messages/day (was 10)", "200 credits (previously 100)".
+NUMBER_PREVIOUSLY = re.compile(
+    r"\b(was|previously|formerly|currently|down from|up from)\s+(\d[\d,.]*)\b", re.IGNORECASE
 )
 PRICE_WITH_UNIT_RE = re.compile(rf"{AMOUNT}{UNIT}", re.IGNORECASE)
 DOMAIN_LIKE = re.compile(
@@ -61,7 +66,7 @@ AVAILABILITY = re.compile(
 )
 GENERIC_CHANGE = re.compile(
     r"\b(now|no longer|changed?|changes|updated?|updates|replaced|switch(es|ed)?|new|introduc\w*"
-    r"|launch(es|ed)?|moved|rewrit\w*|swapped|went from|instead of)\b",
+    r"|launch(es|ed)?|moved|will (be|cost|go|become|change)|starting|effective|rewrit\w*|swapped|went from|instead of)\b",
     re.IGNORECASE,
 )
 QUOTED_PAIR = re.compile(r"""from\s+["'“‘](.+?)["'”’]\s+to\s+["'“‘](.+?)["'”’]""", re.IGNORECASE)
@@ -90,8 +95,13 @@ def stated_change(text: str) -> Change | None:
         others = [clean(a.group(0)) for a in PRICE_WITH_UNIT_RE.finditer(text)]
         new = next((a for a in others if a and a != old and not old.startswith(a)), None)
         return Change("price", old, new, m.group(0), plan=plan_name(text))
+    if m := NUMBER_PREVIOUSLY.search(text):
+        kind = "limits" if LIMITS.search(text) else "other"
+        return Change(kind, old=m.group(2), evidence=m.group(0), plan=plan_name(text))
     m = FROM_TO.search(text)
     if m and not re.search(r"\bup to\s*$", text[: m.start()], re.IGNORECASE):
+        if number(m.group(1)) == number(m.group(2)):
+            return None  # "$25 → $25": the same price on both sides is not a change
         return Change("price", clean(m.group(1)), clean(m.group(2)), m.group(0), plan_name(text))
     if m := QUOTED_PAIR.search(text):
         return Change("wording", m.group(1), m.group(2), m.group(0))
@@ -204,3 +214,26 @@ def clean(value: str | None) -> str | None:
 
 def norm_line(line: str) -> str:
     return re.sub(r"\s+", " ", line).strip().strip(".").lower()[:200]
+
+
+def number(value: str) -> float | None:
+    m = re.search(r"\d[\d,]*(?:\.\d+)?", value or "")
+    return float(m.group(0).replace(",", "")) if m else None
+
+
+def all_price_changes(text: str) -> list[Change]:
+    """Every "old → new" in one signal: "Pro $20 → $25; Business $40 → $50" is two changes."""
+    text = DOMAIN_LIKE.sub(" ", text)
+    changes = []
+    for m in FROM_TO.finditer(text):
+        if number(m.group(1)) != number(m.group(2)):
+            before = text[max(0, m.start() - 30) : m.start()]
+            names = re.findall(r"(?i)\b(" + PLAN_NAMES + r")\b", before)
+            plan = names[-1].title() if names else None  # the nearest plan name before the price
+            changes.append(Change("price", clean(m.group(1)), clean(m.group(2)), m.group(0), plan))
+    return changes
+
+
+def looks_like_failed_capture(old: PageState, new: PageState) -> bool:
+    """A page that suddenly lost all its prices and almost all its text was not captured."""
+    return bool(old.amounts) and not new.amounts and len(new.blocks) <= 2

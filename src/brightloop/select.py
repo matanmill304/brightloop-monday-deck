@@ -23,7 +23,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from brightloop.change import Change, compare, page_state, stated_change
+from brightloop.change import (
+    Change,
+    all_price_changes,
+    compare,
+    looks_like_failed_capture,
+    page_state,
+    stated_change,
+)
 from brightloop.competitors import COMPETITORS
 from brightloop.decide import (
     HEDGE,
@@ -166,7 +173,8 @@ def page_candidate(s: Signal, change: Change) -> Candidate:
     elif change.kind == "price" and not change.old:
         confidence -= 0.05
         caveats.append("previous price not stated: compare with last week's screenshot")
-    return with_penalties(Candidate("page", [s], [change], confidence, caveats))
+    changes = all_price_changes(s.text) if change.kind == "price" and change.old else []
+    return with_penalties(Candidate("page", [s], changes or [change], confidence, caveats))
 
 
 def compare_snapshots(
@@ -193,7 +201,20 @@ def compare_snapshots(
             continue
         if before:
             used.add(before[-1].id)
-        changes = compare(page_state(chain[0].text), page_state(chain[-1].text))
+        old_state, new_state = page_state(chain[0].text), page_state(chain[-1].text)
+        if looks_like_failed_capture(old_state, new_state):
+            result.skipped.extend(
+                (
+                    s,
+                    (
+                        "The latest snapshot lost all prices and almost all text: it looks like a "
+                        "failed capture, not a change. Check the page."
+                    ),
+                )
+                for s in chain
+            )
+            continue
+        changes = compare(old_state, new_state)
         if changes:
             result.candidates.append(
                 with_penalties(Candidate("compared", chain, changes, CONF_COMPARED))
