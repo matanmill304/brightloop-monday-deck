@@ -96,7 +96,7 @@ def select(signals: list[Signal], week: Week | None) -> Selection:
         if not s.official:
             third_party.append(s)
         elif s.on_page:
-            change = stated_change(s.text)
+            change = None if s.is_snapshot else stated_change(s.text)
             if change:
                 result.candidates.append(page_candidate(s, change))
             else:
@@ -153,7 +153,7 @@ def place_in_week(s: Signal, week: Week | None) -> str:
 
 def older_reason(s: Signal, week: Week | None) -> str:
     label = week.label if week else "this week"
-    if s.on_page and stated_change(s.text) is None:
+    if s.on_page and (s.is_snapshot or stated_change(s.text) is None):
         return (
             f"Older than the reporting week ({label}) and no newer snapshot of the same page "
             "to compare it with."
@@ -187,7 +187,7 @@ def compare_snapshots(
         pages.setdefault(page_key(s), []).append(s)
     old_pages: dict[tuple[str, str], list[Signal]] = {}
     for s in baselines:
-        if s.on_page and stated_change(s.text) is None:
+        if s.on_page and (s.is_snapshot or stated_change(s.text) is None):
             old_pages.setdefault(page_key(s), []).append(s)
 
     for key, snaps in pages.items():

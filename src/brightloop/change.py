@@ -143,10 +143,26 @@ NOISE_LINE = re.compile(
 )
 
 
+PLAN_LINE = re.compile(rf"(?i)({PLAN_NAMES})( plan)?")
+UNIT_LINE = re.compile(r"(?i)/ ?(mo|month|year|yr|user|seat|member)(/(mo|month))?")
+
+
 def page_state(text: str) -> PageState:
     prices = {}
     for m in PLAN_PRICE.finditer(text):
         prices.setdefault(m.group(1).title(), clean(m.group(2)))
+    # Captured pages are line-based: a line that is just a plan name, its price a few lines below.
+    lines = [line.strip() for line in text.splitlines()]
+    for i, line in enumerate(lines):
+        if not PLAN_LINE.fullmatch(line):
+            continue
+        for below in lines[i + 1 : i + 5]:
+            if PLAN_LINE.fullmatch(below):
+                break  # the next plan started before a price showed up
+            if amount := re.search(AMOUNT, below):
+                unit = next((u for u in lines[i + 1 : i + 6] if UNIT_LINE.fullmatch(u)), "")
+                prices.setdefault(line.title(), clean(f"{amount.group(0)}{unit}"))
+                break
     amounts = {clean(a) for a in re.findall(AMOUNT, text)}
     lines = re.split(r"(?<=[.!?])\s+|\n+", text)
     blocks = [norm_line(line) for line in lines if line.strip() and not NOISE_LINE.search(line)]

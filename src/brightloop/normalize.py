@@ -106,6 +106,15 @@ class Signal:
         return self.source_class in ("official", "observed", "advertiser")
 
     @property
+    def is_snapshot(self) -> bool:
+        """A captured page (flagged, or many lines of page text): a state, never a statement.
+
+        A full page always contains words like "new" or "now" (badges, buttons), so reading it
+        as a stated change would be wrong; it can only be compared with another snapshot.
+        """
+        return self.raw.get("snapshot") is True or self.text.count("\n") >= 7
+
+    @property
     def on_page(self) -> bool:
         """From one of the two pages Maya treats as the source of truth."""
         return self.source_class in ("official", "observed") and self.page in ("pricing", "home")
@@ -272,10 +281,14 @@ def clean_text(value: Any) -> tuple[str, bool]:
     text = re.sub(r"<!--.*?(?:-->|$)", " ", value, flags=re.DOTALL)
     text = re.sub(r"<[^>]{0,200}>", " ", text)
     text = html.unescape(text)
-    # Drop sentences that address an AI system instead of describing an event.
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    text = " ".join(s for s in sentences if not INSTRUCTION_PATTERNS.search(s))
-    return re.sub(r"\s+", " ", text).strip(), injected
+    # Drop sentences that address an AI system instead of describing an event. Line breaks are
+    # kept: page snapshots are line-based (plan name, then its price on the next line).
+    kept = []
+    for line in text.splitlines():
+        sentences = re.split(r"(?<=[.!?])\s+", line)
+        kept.append(" ".join(s for s in sentences if not INSTRUCTION_PATTERNS.search(s)))
+    lines = [re.sub(r"[ \t\f\v]+", " ", line).strip() for line in kept]
+    return "\n".join(line for line in lines if line), injected
 
 
 def _looks_injected(value: Any) -> bool:
