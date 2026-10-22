@@ -6,7 +6,7 @@ import re
 from datetime import tzinfo
 from typing import Any
 
-from brightloop.decide import PRICE, Verdict
+from brightloop.decide import PRICE, Verdict, is_messaging_change, is_pricing_related
 from brightloop.normalize import Signal
 
 CLASS_LABEL = {
@@ -28,7 +28,12 @@ def build_item(
     item_id: str, group: list[Signal], verdict: Verdict, cta_required: bool, tz: tzinfo
 ) -> dict[str, Any]:
     lead = min(group, key=lambda s: TRUST_ORDER.index(s.source_class))
-    kind = "price_change" if PRICE.search(lead.text) else "packaging"
+    if PRICE.search(lead.text) and is_pricing_related(lead):
+        kind = "price_change"
+    elif is_messaging_change(lead) and not is_pricing_related(lead):
+        kind = "messaging"
+    else:
+        kind = "packaging"
     summary = first_sentence(lead.text)
     links = unique([s.url for s in group if s.url])
 
@@ -67,6 +72,10 @@ def explain(group: list[Signal], lead: Signal, kind: str, tz: tzinfo) -> str:
         parts.append(f"Also reported by {listed}, which agree{'s' if len(others) == 1 else ''}.")
     if kind == "packaging":
         parts.append("It changes what is included in which plan, which is what prospects compare.")
+    elif kind == "messaging":
+        parts.append("It changes how they present themselves to the same prospects we target.")
+    if any("link_from_named_page" in s.flags for s in group):
+        parts.append("The input named the page but gave no URL; the link is that official page.")
     return " ".join(parts)
 
 

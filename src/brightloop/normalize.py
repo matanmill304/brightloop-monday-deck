@@ -18,6 +18,7 @@ from brightloop.competitors import (
     competitor_from_domain,
     is_official_domain,
     is_official_handle,
+    known_page,
 )
 
 TYPE_SYNONYMS = {
@@ -120,6 +121,11 @@ def normalize(raw: dict[str, Any], tz: tzinfo) -> Signal:
     if competitor is None and domain:
         competitor = competitor_from_domain(domain)
     competitor = competitor or "Unknown"
+    if domain is None:
+        page = known_page(competitor, source)
+        if page:
+            domain, url = page
+            flags.append("link_from_named_page")
 
     ts = parse_when(raw.get("ts") or raw.get("date") or raw.get("timestamp"), tz)
     first_seen = parse_when(raw.get("first_seen"), tz)

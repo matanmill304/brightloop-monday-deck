@@ -244,3 +244,52 @@ def test_every_item_has_a_link_and_bounded_confidence():
     for item in out["items"]:
         assert item["links"], item["id"]
         assert 0 <= item["confidence"] <= 0.95
+
+
+# ---- Gaps closed after the end-to-end review ------------------------------------
+
+
+def test_named_official_page_without_url_gets_its_link():
+    out = run(
+        {
+            "id": "p",
+            "type": "pricing",
+            "competitor": "Replit",
+            "source": "Replit pricing page",
+            "ts": "2026-10-23T08:00:00Z",
+            "text": "Core plan now $25/month.",
+        }
+    )
+    kind, item = placement(out)["p"]
+    assert kind == "item"
+    assert item["links"] == ["https://replit.com/pricing"]
+    assert "no URL" in item["why"]
+
+
+def test_homepage_messaging_change_is_in_the_deck():
+    out = run(
+        {
+            "id": "h",
+            "type": "launch",
+            "competitor": "Lovable",
+            "source": "lovable.dev",
+            "ts": "2026-10-23T08:00:00Z",
+            "text": "Homepage headline changed to 'The last piece of software you need'.",
+        }
+    )
+    kind, item = placement(out)["h"]
+    assert kind == "item" and item["kind"] == "messaging"
+
+
+def test_third_party_messaging_claim_is_not():
+    out = run(
+        {
+            "id": "m",
+            "type": "launch",
+            "competitor": "Lovable",
+            "source": "medium.com/@fan",
+            "ts": "2026-10-23T08:00:00Z",
+            "text": "Lovable's new tagline is bold.",
+        }
+    )
+    assert placement(out)["m"][0] == "skip"
