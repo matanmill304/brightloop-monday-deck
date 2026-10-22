@@ -25,11 +25,26 @@ def main(argv: list[str] | None = None) -> int:
     explain_cmd.add_argument("--input", type=Path, help="Cases file to trace")
     explain_cmd.add_argument("--output", required=True, type=Path)
 
+    collect_cmd = sub.add_parser(
+        "collect", help="Capture Maya's competitor pages for a week and run the pipeline on them"
+    )
+    collect_cmd.add_argument("--week", help="ISO week, e.g. 2026-W43 (default: this week)")
+    collect_cmd.add_argument(
+        "--archived", action="store_true", help="Rebuild a past week from the Wayback Machine"
+    )
+    collect_cmd.add_argument("--root", type=Path, default=Path("recordings"))
+
     args = parser.parse_args(argv)
     if args.command == "run":
         return run_file(args.input, args.output)
     if args.command == "explain":
         return explain_file(args.input, args.output)
+    if args.command == "collect":
+        from brightloop.collect.run import collect, current_week
+
+        entry = collect(args.week or current_week(), args.root, archived=args.archived)
+        print(json.dumps(entry, indent=2, ensure_ascii=False))
+        return 0
     return 2
 
 
