@@ -106,7 +106,7 @@ def collect(week: str, root: Path, archived: bool = False) -> dict[str, Any]:
         "skipped": len(result["skipped"]),
         "errors": result["run"]["errors"],
     }
-    with (root / "runlog.jsonl").open("a", encoding="utf-8") as fh:
+    with (root / "runlog.jsonl").open("a", encoding="utf-8", newline="\n") as fh:
         fh.write(json.dumps(run_entry, ensure_ascii=False) + "\n")
     return run_entry
 
@@ -167,4 +167,5 @@ def dedupe(signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def write_json(path: Path, data: Any) -> None:
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    text = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    path.write_text(text, encoding="utf-8", newline="\n")

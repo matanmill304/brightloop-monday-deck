@@ -71,7 +71,8 @@ def run_file(input_path: Path, output_path: Path) -> int:
     else:
         output = run_pipeline(case)
 
-    output_path.write_text(json.dumps(output, indent=2, ensure_ascii=False), encoding="utf-8")
+    text = json.dumps(output, indent=2, ensure_ascii=False) + "\n"
+    output_path.write_text(text, encoding="utf-8", newline="\n")
     placed = sum(len(i["source_ids"]) for i in output["items"]) + len(output["skipped"])
     print(
         f"brightloop: {len(output['items'])} items, {len(output['skipped'])} skipped, "
