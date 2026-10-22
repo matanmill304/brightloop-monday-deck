@@ -35,7 +35,7 @@ VISIBLE_TEXT_JS = """
   while (walker.nextNode()) {
     const node = walker.currentNode;
     const el = node.parentElement;
-    if (!el || ["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE"].includes(el.tagName)) continue;
+    if (!el || el.closest("svg, script, style, noscript, template")) continue;
     const style = getComputedStyle(el);
     if (style.display === "none" || style.visibility === "hidden") continue;
     const text = node.textContent.replace(/\\s+/g, " ").trim();
