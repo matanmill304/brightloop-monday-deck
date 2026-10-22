@@ -1,0 +1,20 @@
+# Private working notes (never in the repo)
+discovery.md
+interviews/
+research/
+
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+build/
+dist/
+
+# Local outputs and secrets
+result.json
+.env
+.env.*
+!.env.example
