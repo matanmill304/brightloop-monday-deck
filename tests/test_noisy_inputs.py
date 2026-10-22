@@ -297,3 +297,16 @@ def test_unknown_competitor_is_skipped():
         ]
     )
     assert "No competitor named" in out["skipped"][0]["reason"]
+
+
+@pytest.mark.parametrize(
+    ("competitor", "text"),
+    [
+        ("Windsurf", "Cognition acquires Windsurf."),
+        ("Windsurf", "Is Windsurf still worth it after the acquisition?"),
+        ("Bolt", "Bolt.new overrides its default template."),
+    ],
+)
+def test_collision_words_match_whole_words_only(competitor, text):
+    out = run([signal("w", "launch", competitor, "news.example", text)])
+    assert "shares the name" not in out["skipped"][0]["reason"]
