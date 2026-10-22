@@ -26,6 +26,24 @@ BLOCK_MARKERS = re.compile(
     r"|performing security verification|enable javascript and cookies|are you a robot)",
     re.IGNORECASE,
 )
+# Each visible text node on its own line: innerText glues inline elements together
+# ("Log in" + "Create account" -> "Log inCreate account"), which looks like a change.
+VISIBLE_TEXT_JS = """
+() => {
+  const out = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const el = node.parentElement;
+    if (!el || ["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE"].includes(el.tagName)) continue;
+    const style = getComputedStyle(el);
+    if (style.display === "none" || style.visibility === "hidden") continue;
+    const text = node.textContent.replace(/\\s+/g, " ").trim();
+    if (text) out.push(text);
+  }
+  return out.join("\\n");
+}
+"""
 HIDE_BANNERS = """
 [id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i],
 [aria-label*="cookie" i], [id*="onetrust" i] { display: none !important; }
@@ -143,7 +161,7 @@ class Capturer:
             self._page.goto(url, wait_until="domcontentloaded", timeout=60000)
             self._page.wait_for_timeout(6000)
             self._page.add_style_tag(content=HIDE_BANNERS)
-            text = self._page.inner_text("body")
+            text = self._page.evaluate(VISIBLE_TEXT_JS)
             h1 = self._page.locator("h1").first
             headline = h1.inner_text(timeout=2000) if self._page.locator("h1").count() else ""
             return condense(text), headline.strip()
