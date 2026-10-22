@@ -14,21 +14,69 @@ from brightloop.normalize import Signal
 
 # ---- What the text says -------------------------------------------------------
 
-PRICE = re.compile(
-    r"([$€£]\s?\d[\d,]*(\.\d+)?|\b\d[\d,]*(\.\d+)?\s?(usd|eur|gbp|dollars?)\b)", re.IGNORECASE
+# A money amount. On its own it is NOT a price: funding rounds and revenue are money too.
+MONEY = (
+    r"(?:[$€£]\s?\d[\d,]*(?:\.\d+)?\s?[kmb]?\b|\b\d[\d,]*(?:\.\d+)?\s?(?:usd|eur|gbp|dollars?)\b)"
 )
-PRICING_TERMS = re.compile(
-    r"\b(price[sd]?|pricing|cost(s|ing)?|/\s?mo(nth)?|per (month|year|seat|user)|monthly|annual(ly)?"
-    r"|seats?|plans?|tiers?|subscriptions?|billing|billed|discount(s|ed)?|trial|free tier|freemium"
-    r"|free plan|credits?|quota|usage[- ]based|pay[- ]as[- ]you[- ]go|paywall|upgrade|downgrade"
-    r"|refund|checkout|rate limits?|limits?)\b",
+PRICE = re.compile(MONEY, re.IGNORECASE)
+# A price: money with a unit ("$25/month", "$3 per million tokens").
+PRICE_WITH_UNIT = re.compile(
+    MONEY + r"\s?(?:/|per|a|an|each)\s?(?:mo(?:nth)?|year|yr|seat|user|member|editor"
+    r"|million tokens|m tokens|1m|request|credit|hour)s?\b",
     re.IGNORECASE,
 )
+# Words that only appear when talking about what customers pay.
+PRICE_WORDS = re.compile(
+    r"\b(pric(e|es|ed|ing)|billing|billed|subscriptions?|pay[- ]as[- ]you[- ]go|usage[- ]based"
+    r"|free (tier|plan)|freemium|paywall(ed)?|credits?|token[- ]based|per[- ]seat|refunds?)\b",
+    re.IGNORECASE,
+)
+PLAN_WORDS = re.compile(
+    r"\b(plans?|tiers?|seats?|trials?|discounts?|(pro|team|teams|business|enterprise|starter"
+    r"|hobby|core|max|plus|premium|free) (plan|tier|users|customers|subscribers))\b",
+    re.IGNORECASE,
+)
+CHANGE_WORDS = re.compile(
+    r"\b(rais(e|es|ed|ing)|cut(s|ting)?|slash(es|ed)?|halv(e|es|ed)|doubl(e|es|ed)|hikes?"
+    r"|increas(e|es|ed)|reduc(e|es|ed)|drops?|lower(s|ed)?|now|new|adds?|introduc(e|es|ed)"
+    r"|launch(es|ed)?|remov(e|es|ed)|ends?|expir(e|es|ed)|brings? back|moves?|changes?"
+    r"|updates?|switch(es|ed)?|shifts?|cheaper|costlier|more expensive)\b",
+    re.IGNORECASE,
+)
+USAGE_LIMITS = re.compile(
+    r"\b((usage|rate|weekly|daily|hourly|monthly|five-hour|session)( [\w-]+){0,2}"
+    r" (limits?|caps?|boost)|quotas?|increased usage|more usage|limits? (on|for|to)"
+    r"|unlimited (access|usage|requests))\b",
+    re.IGNORECASE,
+)
+# A cost change on something customers buy ("cache-read cost by 50%", "half the API cost").
+COST_CHANGE = re.compile(
+    r"(\bcosts?\b.{0,30}\b(cut|slash|reduc|half|halv|lower|drop|by \d+ ?%)"
+    r"|\b(cut|slash|reduc|half|halv|lower|\d+ ?%)\w*\b.{0,30}\bcosts?\b)",
+    re.IGNORECASE,
+)
+# ...and it only counts when the cost is on something customers buy, not an efficiency gain.
+COST_OBJECT = re.compile(
+    r"\b(api|cache|tokens?|input|output|plans?|subscriptions?|seats?)\b", re.IGNORECASE
+)
 PACKAGING = re.compile(
-    r"\b((all|every|each) (plans?|tiers?|paid plans?|users|customers)"
+    r"\b((all|every|each) (plans?|tiers?|paid plans?|users|customers|subscribers)"
     r"|available (on|to|for|in) (free|pro|team|teams|business|enterprise|all|every|paid)"
-    r"|(free|pro|team|teams|business|enterprise|starter|hobby|core) (plan|tier|users|customers)"
-    r"|now (free|included)|included (in|with)|moved (to|behind))\b",
+    r"|(free|pro|team|teams|business|enterprise|starter|hobby|core|max|plus) (plan|tier)s?"
+    r"|now (free|included)|included (in|with)|moved (to|behind)|subscriptions? (with|for))\b",
+    re.IGNORECASE,
+)
+# Company finance: money about the company, not about what customers pay.
+COMPANY_FINANCE = re.compile(
+    r"\b(valuation|valued|funding|raise[sd]?|raising|round|series [a-h]|seed|investors?"
+    r"|backs?|backed|revenue|arr|ipo|acquir(e|es|ed|ing)|acquisition|buys?|bought|profit"
+    r"|earnings|layoffs?|headcount)\b",
+    re.IGNORECASE,
+)
+# A plan name next to an amount ("Pro is $15 now") reads as a price.
+PLAN_PRICE = re.compile(
+    r"\b(pro|team|teams|business|enterprise|starter|hobby|core|max|plus|premium|basic)\b"
+    r"[^.$€£]{0,20}" + MONEY,
     re.IGNORECASE,
 )
 HYPE = re.compile(
@@ -42,67 +90,62 @@ HEDGE = re.compile(
     re.IGNORECASE,
 )
 
-STOPWORDS = {
-    "a",
-    "an",
-    "the",
-    "and",
-    "or",
-    "of",
-    "to",
-    "for",
-    "in",
-    "on",
-    "at",
-    "by",
-    "with",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "been",
-    "it",
-    "its",
-    "this",
-    "that",
-    "now",
-    "new",
-    "just",
-    "has",
-    "have",
-    "had",
-    "will",
-    "can",
-    "our",
-    "their",
-    "from",
-    "as",
-    "all",
-    "every",
-    "each",
-}
-GENERIC = {
-    "plan",
-    "plans",
-    "tier",
-    "tiers",
-    "pricing",
-    "price",
-    "prices",
-    "month",
-    "monthly",
-    "free",
-    "pro",
-    "team",
-    "users",
-}
+STOPWORDS = frozenset(
+    re.findall(
+        r"\w+",
+        "a an the and or of to for in on at by with is are was were be been it its this that "
+        "now new just has have had will can our their from as all every each",
+    )
+)
+GENERIC = frozenset(
+    re.findall(
+        r"\w+", "plan plans tier tiers pricing price prices month monthly free pro team users"
+    )
+)
+
+
+def pricing_score(text: str) -> int:
+    """How strongly the text describes what customers pay or get. 2+ = relevant to Maya.
+
+    Strong cues (2 each): a price with a unit, pricing/billing words, usage limits,
+    packaging phrases. Weak cues (1 each): plan/tier/seat words; a money amount next to a
+    change word. Company finance (funding, valuation, revenue) caps the score at 1 unless
+    customer pricing words are also present: money is not a price.
+    """
+    pricing_words = bool(PRICE_WORDS.search(text))
+    plan_words = bool(PLAN_WORDS.search(text))
+    unit_price = bool(PRICE_WITH_UNIT.search(text))
+    score = 0
+    score += 2 if unit_price else 0
+    score += 2 if pricing_words else 0
+    score += 2 if USAGE_LIMITS.search(text) else 0
+    score += 2 if PACKAGING.search(text) else 0
+    score += 2 if COST_CHANGE.search(text) and COST_OBJECT.search(text) else 0
+    score += 1 if plan_words else 0
+    score += 1 if PLAN_PRICE.search(text) else 0
+    score += 1 if PRICE.search(text) and CHANGE_WORDS.search(text) else 0
+    # "$25/month" is never a funding round, so a unit price overrides the finance check.
+    if COMPANY_FINANCE.search(text) and not (pricing_words or plan_words or unit_price):
+        score = min(score, 1)
+    return score
 
 
 def is_pricing_related(signal: Signal) -> bool:
     """Maya's scope: is this about price, plans or packaging? Judged on content."""
-    text = signal.text
-    return bool(PRICE.search(text) or PRICING_TERMS.search(text) or PACKAGING.search(text))
+    return pricing_score(signal.text) >= 2
+
+
+MESSAGING = re.compile(
+    r"\b(homepage|home page|headline|tagline|hero (text|copy|section)|positioning|slogan"
+    r"|rebrand(s|ed|ing)?|now (calls|describes|positions) itself)\b",
+    re.IGNORECASE,
+)
+
+
+def is_messaging_change(signal: Signal) -> bool:
+    """A change to how a competitor presents itself on its own homepage (in Maya's deck)."""
+    official = signal.source_class in ("official", "observed")
+    return official and bool(MESSAGING.search(signal.text) or MESSAGING.search(signal.source))
 
 
 def prices(text: str) -> set[str]:
@@ -121,7 +164,7 @@ def relevance_reason(signal: Signal) -> str | None:
     """None if the signal belongs in Maya's deck, else why not (naming who owns it)."""
     if "no_text" in signal.flags:
         return with_notes("No text to evaluate.", signal)
-    if is_pricing_related(signal):
+    if is_pricing_related(signal) or is_messaging_change(signal):
         return None
     if signal.type == "ad":
         reason = "Ad creative with no pricing claim: Daniel's area (paid), not Maya's deck."
