@@ -228,7 +228,11 @@ def name_collision(competitor: str, domain: str | None, text: str) -> list[str]:
     if domain and lookalike_domain(competitor, domain):
         flags.append("name_collision_domain")
     words = COLLISION_WORDS.get(competitor)
-    if words and re.search(words, text, re.IGNORECASE) and not SOFTWARE_CONTEXT.search(text):
+    if (
+        words
+        and re.search(rf"\b(?:{words})\b", text, re.IGNORECASE)
+        and not SOFTWARE_CONTEXT.search(text)
+    ):
         flags.append("name_collision_text")
     return flags
 
