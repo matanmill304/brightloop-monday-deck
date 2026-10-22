@@ -1,0 +1,253 @@
+"""Steps 4 to 6: group, trust, and relevance to Maya. The rules-based version.
+
+These are the judgments about meaning. With a Jev key, the same questions can
+be answered by Jev; without keys (the reviewers' runs) these rules are used.
+"""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+from datetime import timedelta
+
+from brightloop.normalize import Signal
+
+# ---- What the text says -------------------------------------------------------
+
+PRICE = re.compile(
+    r"([$€£]\s?\d[\d,]*(\.\d+)?|\b\d[\d,]*(\.\d+)?\s?(usd|eur|gbp|dollars?)\b)", re.IGNORECASE
+)
+PRICING_TERMS = re.compile(
+    r"\b(price[sd]?|pricing|cost(s|ing)?|/\s?mo(nth)?|per (month|year|seat|user)|monthly|annual(ly)?"
+    r"|seats?|plans?|tiers?|subscriptions?|billing|billed|discount(s|ed)?|trial|free tier|freemium"
+    r"|free plan|credits?|quota|usage[- ]based|pay[- ]as[- ]you[- ]go|paywall|upgrade|downgrade"
+    r"|refund|checkout|rate limits?|limits?)\b",
+    re.IGNORECASE,
+)
+PACKAGING = re.compile(
+    r"\b((all|every|each) (plans?|tiers?|paid plans?|users|customers)"
+    r"|available (on|to|for|in) (free|pro|team|teams|business|enterprise|all|every|paid)"
+    r"|(free|pro|team|teams|business|enterprise|starter|hobby|core) (plan|tier|users|customers)"
+    r"|now (free|included)|included (in|with)|moved (to|behind))\b",
+    re.IGNORECASE,
+)
+HYPE = re.compile(
+    r"\b(free forever|forever free|no limits|unlimited|100%|guaranteed|best ever|#1"
+    r"|never pay|completely free|totally free)\b",
+    re.IGNORECASE,
+)
+HEDGE = re.compile(
+    r"(\bheard\b|\brumou?rs?\b|\bapparently\b|\breportedly\b|\ballegedly\b|\bunconfirmed\b"
+    r"|\bmight\b|\bmaybe\b|\bcould be\b|\bsources say\b|\bleak(ed|s)?\b|\?\?|\?\s*$)",
+    re.IGNORECASE,
+)
+
+STOPWORDS = {
+    "a",
+    "an",
+    "the",
+    "and",
+    "or",
+    "of",
+    "to",
+    "for",
+    "in",
+    "on",
+    "at",
+    "by",
+    "with",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "it",
+    "its",
+    "this",
+    "that",
+    "now",
+    "new",
+    "just",
+    "has",
+    "have",
+    "had",
+    "will",
+    "can",
+    "our",
+    "their",
+    "from",
+    "as",
+    "all",
+    "every",
+    "each",
+}
+GENERIC = {
+    "plan",
+    "plans",
+    "tier",
+    "tiers",
+    "pricing",
+    "price",
+    "prices",
+    "month",
+    "monthly",
+    "free",
+    "pro",
+    "team",
+    "users",
+}
+
+
+def is_pricing_related(signal: Signal) -> bool:
+    """Maya's scope: is this about price, plans or packaging? Judged on content."""
+    text = signal.text
+    return bool(PRICE.search(text) or PRICING_TERMS.search(text) or PACKAGING.search(text))
+
+
+def prices(text: str) -> set[str]:
+    return {re.sub(r"\s", "", m.group(0)).lower() for m in PRICE.finditer(text)}
+
+
+def content_words(text: str) -> set[str]:
+    words = re.findall(r"[a-z0-9]+(?:\.[a-z0-9]+)?", text.lower())
+    return {w for w in words if w.isdigit() or (w not in STOPWORDS and len(w) > 1)}
+
+
+# ---- Relevance to Maya --------------------------------------------------------
+
+
+def relevance_reason(signal: Signal) -> str | None:
+    """None if the signal belongs in Maya's deck, else why not (naming who owns it)."""
+    if "no_text" in signal.flags:
+        return with_notes("No text to evaluate.", signal)
+    if is_pricing_related(signal):
+        return None
+    if signal.type == "ad":
+        reason = "Ad creative with no pricing claim: Daniel's area (paid), not Maya's deck."
+        weeks = running_weeks(signal)
+        if weeks is not None and weeks >= 8:
+            reason += f" It has been running about {weeks} weeks, so worth passing to Daniel."
+    elif signal.type == "launch":
+        reason = "Feature launch with no pricing or packaging change: product's area; route to Noa."
+    elif signal.type == "pricing":
+        reason = "Labeled pricing, but the text describes no price, plan or packaging change."
+    else:
+        reason = "Not a pricing or packaging change, which is all Maya's deck covers."
+    return with_notes(reason, signal)
+
+
+def with_notes(reason: str, signal: Signal) -> str:
+    """Add what else is wrong with a skipped signal, so the reason tells the whole story."""
+    notes = []
+    if signal.source_class in ("anonymous", "sponsored", "guest"):
+        notes.append(f"{signal.source_class} source")
+    if HEDGE.search(signal.text):
+        notes.append("unconfirmed rumor wording")
+    if "embedded_instructions" in signal.flags:
+        notes.append("contained instructions aimed at AI systems, which were ignored")
+    return reason + (f" Also: {'; '.join(notes)}." if notes else "")
+
+
+def running_weeks(signal: Signal) -> int | None:
+    if signal.first_seen and signal.last_seen:
+        return max(0, (signal.last_seen - signal.first_seen).days // 7)
+    return None
+
+
+# ---- Grouping -----------------------------------------------------------------
+
+SAME_EVENT_WINDOW = timedelta(hours=72)
+
+
+def same_event(a: Signal, b: Signal) -> bool:
+    if a.competitor != b.competitor or a.competitor == "Unknown":
+        return False
+    if a.when and b.when and abs(a.when - b.when) > SAME_EVENT_WINDOW:
+        return False
+    pa, pb = prices(a.text), prices(b.text)
+    if pa and pb and not (pa & pb):
+        return False  # different numbers: a conflict, not the same report
+    shared = content_words(a.text) & content_words(b.text)
+    distinctive = shared - GENERIC
+    return bool(pa & pb) or (len(shared) >= 2 and bool(distinctive))
+
+
+def group_signals(signals: list[Signal]) -> list[list[Signal]]:
+    parent = list(range(len(signals)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(len(signals)):
+        for j in range(i + 1, len(signals)):
+            if same_event(signals[i], signals[j]):
+                parent[find(j)] = find(i)
+    groups: dict[int, list[Signal]] = {}
+    for i, signal in enumerate(signals):
+        groups.setdefault(find(i), []).append(signal)
+    return list(groups.values())
+
+
+# ---- Trust --------------------------------------------------------------------
+
+BASE_TRUST = {
+    "observed": 0.95,  # captured by our own collector, with a screenshot
+    "official": 0.9,
+    "advertiser": 0.7,
+    "press": 0.7,
+    "media": 0.6,
+    "unknown": 0.5,
+    "community": 0.35,
+    "guest": 0.35,
+    "sponsored": 0.25,
+    "anonymous": 0.2,
+}
+THRESHOLD = 0.5
+
+
+@dataclass
+class Verdict:
+    confidence: float
+    reasons: list[str] = field(default_factory=list)  # why confidence went down
+
+
+def assess(group: list[Signal], official_prices: dict[str, set[str]]) -> Verdict:
+    classes = [s.source_class for s in group]
+    best = max(group, key=lambda s: BASE_TRUST.get(s.source_class, 0.5))
+    score = BASE_TRUST.get(best.source_class, 0.5)
+    reasons: list[str] = []
+
+    independent = {s.domain or s.source_class for s in group}
+    if len(independent) > 1:
+        score += min(0.1 * (len(independent) - 1), 0.15)
+
+    has_official = "official" in classes or "observed" in classes
+    if not has_official and any(HYPE.search(s.text) for s in group):
+        score -= 0.2
+        reasons.append("absolute marketing claim")
+    if all(HEDGE.search(s.text) for s in group):
+        score -= 0.25
+        reasons.append("hedged, unconfirmed wording")
+    if not has_official:
+        known = official_prices.get(best.competitor)
+        claimed = set().union(*(prices(s.text) for s in group))
+        if known and claimed and not (known & claimed):
+            score -= 0.3
+            reasons.append("contradicts the official pricing source this week")
+    if any("no_date" in s.flags for s in group):
+        score -= 0.1
+        reasons.append("no date")
+    if not any(s.url for s in group):
+        score = min(score, 0.4)
+        reasons.append("no link to check (no link, no number)")
+    if any("embedded_instructions" in s.flags for s in group):
+        score = min(score, 0.2)
+        reasons.append("contains instructions aimed at AI systems")
+    if best.source_class in ("sponsored", "anonymous", "guest", "community") and not has_official:
+        reasons.insert(0, f"{best.source_class} source")
+
+    return Verdict(confidence=round(max(0.0, min(score, 0.95)), 2), reasons=reasons)
