@@ -53,7 +53,7 @@ COMPETITORS: dict[str, dict[str, list[str]]] = {
     },
     "Cursor": {
         "aliases": ["cursor", "cursor.com", "anysphere"],
-        "domains": ["cursor.com"],
+        "domains": ["cursor.com", "cursor.sh", "cursor.so"],
         "handles": ["cursor_ai"],
         "pricing_url": ["https://cursor.com/pricing"],
         "home_url": ["https://cursor.com"],
@@ -119,3 +119,11 @@ def known_page(competitor: str, source: str) -> tuple[str, str] | None:
         return None
     url = info["pricing_url"][0] if "pric" in text else info["home_url"][0]
     return info["domains"][0], url
+
+
+def name_roots(competitor: str) -> list[str]:
+    """Bare names a look-alike domain could carry: "bolt", "stackblitz", "lovable"."""
+    info = COMPETITORS.get(competitor)
+    if not info:
+        return []
+    return [a for a in info["aliases"] if re.fullmatch(r"[a-z0-9]+", a)]

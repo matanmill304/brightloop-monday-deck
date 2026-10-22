@@ -19,6 +19,7 @@ from brightloop.competitors import (
     is_official_domain,
     is_official_handle,
     known_page,
+    name_roots,
 )
 
 TYPE_SYNONYMS = {
@@ -102,22 +103,46 @@ class Signal:
         return self.ts or self.last_seen or self.first_seen
 
 
+TEXT_FIELDS = ("text", "title", "headline", "summary", "description", "body", "content", "message")
+SOURCE_FIELDS = ("source", "url", "link", "source_url", "href", "domain")
+TIME_FIELDS = (
+    "ts",
+    "timestamp",
+    "date",
+    "datetime",
+    "time",
+    "published_at",
+    "published",
+    "created_at",
+    "seen_at",
+    "observed_at",
+    "updated_at",
+)
+MAX_TEXT = 5000  # longer text is truncated: keeps every regex fast on hostile input
+
+
 def normalize(raw: dict[str, Any], tz: tzinfo) -> Signal:
     flags: list[str] = []
-    raw_type = str(raw.get("type") or "").strip().lower()
-    sig_type = next((t for t, names in TYPE_SYNONYMS.items() if raw_type in names), "other")
+    raw_type = flatten(raw.get("type") or raw.get("kind") or raw.get("category")).strip().lower()
+    sig_type = normalize_type(raw_type)
 
-    text, injected = clean_text(raw.get("text"))
-    if injected or any(_looks_injected(raw.get(k)) for k in ("source", "competitor", "channel")):
+    raw_text = next((flatten(raw.get(k)) for k in TEXT_FIELDS if flatten(raw.get(k)).strip()), "")
+    text, injected = clean_text(raw_text[:MAX_TEXT])
+    if injected or any(_looks_injected(flatten(raw.get(k))) for k in ("source", "competitor")):
         flags.append("embedded_instructions")
     if not text:
         flags.append("no_text")
 
-    source = raw.get("source") if isinstance(raw.get("source"), str) else ""
-    source = re.sub(r"<!--.*?-->", "", source, flags=re.DOTALL).strip()
-    domain, url = find_link(source) or find_link(str(raw.get("url") or "")) or (None, None)
+    source = flatten(raw.get("source"))[:500]
+    source = re.sub(r"<!--.*?(?:-->|$)", "", source, flags=re.DOTALL).strip()
+    link = None
+    for key in SOURCE_FIELDS:
+        link = find_link(flatten(raw.get(key))[:500])
+        if link:
+            break
+    domain, url = link or (None, None)
 
-    competitor = canonical_competitor(raw.get("competitor"))
+    competitor = canonical_competitor(flatten(raw.get("competitor") or raw.get("company")))
     if competitor is None and domain:
         competitor = competitor_from_domain(domain)
     competitor = competitor or "Unknown"
@@ -126,8 +151,9 @@ def normalize(raw: dict[str, Any], tz: tzinfo) -> Signal:
         if page:
             domain, url = page
             flags.append("link_from_named_page")
+    flags.extend(name_collision(competitor, domain, text))
 
-    ts = parse_when(raw.get("ts") or raw.get("date") or raw.get("timestamp"), tz)
+    ts = next((t for k in TIME_FIELDS if (t := parse_when(raw.get(k), tz))), None)
     first_seen = parse_when(raw.get("first_seen"), tz)
     last_seen = parse_when(raw.get("last_seen"), tz, end_of_day=True)
     if ts is None and first_seen is None and last_seen is None:
@@ -149,6 +175,71 @@ def normalize(raw: dict[str, Any], tz: tzinfo) -> Signal:
         flags=flags,
         raw=raw,
     )
+
+
+def flatten(value: Any, depth: int = 0) -> str:
+    """Any JSON value as text: strings as-is, lists/objects as their string leaves joined."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bool) or value is None or depth > 3:
+        return ""
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, dict):
+        return " ".join(flatten(v, depth + 1) for v in value.values()).strip()
+    if isinstance(value, (list, tuple)):
+        return " ".join(flatten(v, depth + 1) for v in value).strip()
+    return ""
+
+
+def normalize_type(raw_type: str) -> str:
+    """Exact synonyms first ("price"), then words inside labels ("pricing_change", "Ad creative")."""
+    for sig_type, names in TYPE_SYNONYMS.items():
+        if raw_type in names:
+            return sig_type
+    words = set(re.findall(r"[a-z]+", raw_type))
+    for sig_type, names in TYPE_SYNONYMS.items():
+        if words & names:
+            return sig_type
+    return "other"
+
+
+# Things that share a competitor's name. A source domain that carries the name but is not the
+# competitor's own site, or text about scooters under "Bolt", means a different "Bolt".
+COLLISION_WORDS = {
+    "Bolt": r"scooters?|e-scooters?|taxis?|ride-hailing|rides?|fares?|drivers?|fleet"
+    r"|micromobility|couriers?|food delivery|chevy|chevrolet|\bev\b|e-bikes?|bikes?|charging"
+    r"|usain|pistols?|smart locks?|pok[eé]mon",
+    "Cursor": r"mouse|pointer|powertoys|caret|blinking",
+    "Windsurf": r"surf(ing|ers?)?|board|foil|sail(ing)?|waves|beach",
+    "Lovable": r"anime|puppy|kitten|character|neighbou?rhood|bookstore|quirks|lunch(es)?",
+    "v0": r"\bv0\.\d",
+}
+SOFTWARE_CONTEXT = re.compile(
+    r"\b(ai|apps?|code|coding|coders?|developers?|devs?|software|agents?|vibe|builds?|builder"
+    r"|deploy\w*|ide|llms?|models?|prompts?|saas|web\s?apps?|websites?|platform|github"
+    r"|programming|no-code|low-code|full-stack|frontend|backend)\b",
+    re.IGNORECASE,
+)
+
+
+def name_collision(competitor: str, domain: str | None, text: str) -> list[str]:
+    flags = []
+    if domain and lookalike_domain(competitor, domain):
+        flags.append("name_collision_domain")
+    words = COLLISION_WORDS.get(competitor)
+    if words and re.search(words, text, re.IGNORECASE) and not SOFTWARE_CONTEXT.search(text):
+        flags.append("name_collision_text")
+    return flags
+
+
+def lookalike_domain(competitor: str, domain: str) -> bool:
+    """bolt.eu or bolt.com for Bolt (whose site is bolt.new): same name, not the same company."""
+    if is_official_domain(competitor, domain):
+        return False
+    roots = name_roots(competitor)
+    labels = domain.split(".")[:-1]  # drop the TLD
+    return any(label == root or label.startswith(root + "-") for label in labels for root in roots)
 
 
 def clean_text(value: Any) -> tuple[str, bool]:

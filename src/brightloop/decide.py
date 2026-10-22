@@ -164,6 +164,15 @@ def relevance_reason(signal: Signal) -> str | None:
     """None if the signal belongs in Maya's deck, else why not (naming who owns it)."""
     if "no_text" in signal.flags:
         return with_notes("No text to evaluate.", signal)
+    if "name_collision_domain" in signal.flags:
+        return (
+            f"Probably a different company named like {signal.competitor}: "
+            f"{signal.domain} is not {signal.competitor}'s site."
+        )
+    if "name_collision_text" in signal.flags:
+        return f"About something else that shares the name {signal.competitor}, not the competitor."
+    if signal.competitor == "Unknown":
+        return with_notes("No competitor named, so it can't go on a competitor slide.", signal)
     if is_pricing_related(signal) or is_messaging_change(signal):
         return None
     if signal.type == "ad":
