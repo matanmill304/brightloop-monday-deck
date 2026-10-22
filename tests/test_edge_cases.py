@@ -13,33 +13,34 @@ OUT = run_pipeline(CASE)
 ITEMS = {sid: item for item in OUT["items"] for sid in item["source_ids"]}
 SKIPS = {s["id"]: s["reason"] for s in OUT["skipped"]}
 
+# Official pages (and the competitor's own announcements) only; see select.py.
 EXPECTED_ITEMS = {
-    "real-price",
-    "same-event-press",
-    "real-tier",
-    "real-limits",
-    "named-page",
-    "messaging",
-    "dst-sunday-late",
-    "odd-shapes",
-    "secret",
-    "ad-offer",
+    "real-price",  # stated on Lovable's pricing page
+    "real-tier",  # new tier stated on Bolt's pricing page
+    "named-page",  # "Replit pricing page" with no URL: linked to the official page
+    "messaging",  # homepage headline change on lovable.dev
+    "dst-sunday-late",  # Sunday 23:30 local, still inside the week across the DST change
+    "odd-shapes",  # other field names, nested source and title, epoch time
+    "secret",  # a real change; the leaked key is redacted
+    "real-limits",  # Replit's own X account: announced, "check the page"
+    "ad-offer",  # Bolt's own ad with a price: announced, "check the page"
 }
 EXPECTED_SKIPS = {
-    "funding": "Not a pricing",
+    "same-event-press": "same change as the item from real-price",
+    "funding": "isn't a pricing",
     "feature": "Noa",
-    "mislabeled": "Labeled pricing",
-    "collision-domain": "not Bolt's site",
+    "mislabeled": "Noa",
+    "collision-domain": "is not its site",
     "collision-words": "shares the name",
     "rumor": "rumor",
     "no-competitor": "No competitor",
     "before-week": "before the reporting week",
     "after-week": "after the reporting week",
     "no-text": "No text",
-    "contradiction": "contradicts the official",
+    "contradiction": "verify on https://lovable.dev/pricing",
     "sponsored": "sponsored",
     "injection": "instructions aimed at AI",
-    "no-link": "no link",
+    "no-link": "verify on https://bolt.new/pricing",
 }
 
 
@@ -52,8 +53,8 @@ def test_each_skip_has_the_expected_reason():
         assert words in SKIPS[sid], (sid, SKIPS[sid])
 
 
-def test_same_event_from_two_sources_is_one_item():
-    assert ITEMS["real-price"] is ITEMS["same-event-press"]
+def test_price_change_without_old_value_says_so():
+    assert any("previous price not stated" in c for c in ITEMS["named-page"].get("caveats", []))
 
 
 def test_input_problems_are_reported_not_hidden():
