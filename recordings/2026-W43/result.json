@@ -1,0 +1,43 @@
+{
+  "built_for": "maya",
+  "items": [],
+  "skipped": [
+    {
+      "id": "lovable-pricing-202610200211",
+      "reason": "Snapshot of this page; the later snapshot shows no change."
+    },
+    {
+      "id": "lovable-pricing-202610222225",
+      "reason": "Same as the snapshot `lovable-pricing-202610200211` of this page: nothing changed."
+    },
+    {
+      "id": "replit-pricing-202610181520",
+      "reason": "Snapshot of this page; the later snapshot shows no change."
+    },
+    {
+      "id": "replit-pricing-202610212043",
+      "reason": "Same as the snapshot `replit-pricing-202610181520` of this page: nothing changed."
+    },
+    {
+      "id": "replit-home-202610221426",
+      "reason": "Current state only, not a change: no earlier snapshot of this page."
+    },
+    {
+      "id": "bolt-pricing-202610200335",
+      "reason": "Snapshot of this page; the later snapshot shows no change."
+    },
+    {
+      "id": "bolt-pricing-202610222228",
+      "reason": "Same as the snapshot `bolt-pricing-202610200335` of this page: nothing changed."
+    },
+    {
+      "id": "bolt-home-202610222228",
+      "reason": "Current state only, not a change: no earlier snapshot of this page."
+    }
+  ],
+  "run": {
+    "started_at": "2026-10-22T22:28:25+00:00",
+    "cost_usd": 0.0,
+    "errors": []
+  }
+}
