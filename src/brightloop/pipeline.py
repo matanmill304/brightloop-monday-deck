@@ -51,7 +51,7 @@ def run_pipeline(case: Any) -> dict[str, Any]:
 
     official_prices: dict[str, set[str]] = {}
     for s in candidates:
-        if s.source_class in ("official", "observed"):
+        if s.source_class in ("official", "observed") and "embedded_instructions" not in s.flags:
             official_prices.setdefault(s.competitor, set()).update(prices(s.text))
 
     items: list[dict[str, Any]] = []

@@ -62,7 +62,6 @@ COST_OBJECT = re.compile(
 PACKAGING = re.compile(
     r"\b((all|every|each) (plans?|tiers?|paid plans?|users|customers|subscribers)"
     r"|available (on|to|for|in) (free|pro|team|teams|business|enterprise|all|every|paid)"
-    r"|(free|pro|team|teams|business|enterprise|starter|hobby|core|max|plus) (plan|tier)s?"
     r"|now (free|included)|included (in|with)|moved (to|behind)|subscriptions? (with|for))\b",
     re.IGNORECASE,
 )
@@ -112,22 +111,40 @@ def pricing_score(text: str) -> int:
     change word. Company finance (funding, valuation, revenue) caps the score at 1 unless
     customer pricing words are also present: money is not a price.
     """
-    pricing_words = bool(PRICE_WORDS.search(text))
-    plan_words = bool(PLAN_WORDS.search(text))
-    unit_price = bool(PRICE_WITH_UNIT.search(text))
-    score = 0
-    score += 2 if unit_price else 0
-    score += 2 if pricing_words else 0
-    score += 2 if USAGE_LIMITS.search(text) else 0
-    score += 2 if PACKAGING.search(text) else 0
-    score += 2 if COST_CHANGE.search(text) and COST_OBJECT.search(text) else 0
-    score += 1 if plan_words else 0
-    score += 1 if PLAN_PRICE.search(text) else 0
-    score += 1 if PRICE.search(text) and CHANGE_WORDS.search(text) else 0
-    # "$25/month" is never a funding round, so a unit price overrides the finance check.
-    if COMPANY_FINANCE.search(text) and not (pricing_words or plan_words or unit_price):
+    cues = pricing_cues(text)
+    score = sum(points for name, (points, _) in cues.items() if name != "company finance")
+    if "company finance" in cues:
         score = min(score, 1)
     return score
+
+
+def pricing_cues(text: str) -> dict[str, tuple[int, str]]:
+    """Which relevance cues fired, with their points and the words that matched."""
+
+    def hit(pattern: re.Pattern[str]) -> str | None:
+        match = pattern.search(text)
+        return match.group(0) if match else None
+
+    cues: dict[str, tuple[int, str]] = {}
+    checks = [
+        ("price with a unit", 2, hit(PRICE_WITH_UNIT)),
+        ("pricing words", 2, hit(PRICE_WORDS)),
+        ("usage limits", 2, hit(USAGE_LIMITS)),
+        ("packaging phrase", 2, hit(PACKAGING)),
+        ("cost change", 2, hit(COST_CHANGE) if COST_OBJECT.search(text) else None),
+        ("plan words", 1, hit(PLAN_WORDS)),
+        ("plan name next to an amount", 1, hit(PLAN_PRICE)),
+        ("amount + change word", 1, hit(PRICE) if CHANGE_WORDS.search(text) else None),
+    ]
+    for name, points, matched in checks:
+        if matched:
+            cues[name] = (points, matched)
+    # "$25/month" is never a funding round, so customer-pricing cues override the finance check.
+    finance = hit(COMPANY_FINANCE)
+    customer = {"price with a unit", "pricing words", "plan words"} & cues.keys()
+    if finance and not customer:
+        cues["company finance"] = (0, finance)
+    return cues
 
 
 def is_pricing_related(signal: Signal) -> bool:
@@ -278,13 +295,16 @@ def assess(group: list[Signal], official_prices: dict[str, set[str]]) -> Verdict
         score += min(0.1 * (len(independent) - 1), 0.15)
 
     has_official = "official" in classes or "observed" in classes
+    # The competitor's own ad is its own word: a different price there is a promo, not a lie.
+    own_word = has_official or "advertiser" in classes
     if not has_official and any(HYPE.search(s.text) for s in group):
         score -= 0.2
         reasons.append("absolute marketing claim")
-    if all(HEDGE.search(s.text) for s in group):
+    # Official pages say "prices may change"; hedging only matters from third parties.
+    if not has_official and all(HEDGE.search(s.text) for s in group):
         score -= 0.25
         reasons.append("hedged, unconfirmed wording")
-    if not has_official:
+    if not own_word:
         known = official_prices.get(best.competitor)
         claimed = set().union(*(prices(s.text) for s in group))
         if known and claimed and not (known & claimed):
