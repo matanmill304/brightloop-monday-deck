@@ -15,6 +15,12 @@ from brightloop.window import resolve_timezone, resolve_week, window_reason
 from brightloop.write import build_item, skip_reason_for_trust
 
 SECRET_KEY = re.compile(r"(key|token|secret|password|passwd|credential|auth)", re.IGNORECASE)
+# Well-known credential formats, redacted wherever they appear (even inside signal text).
+SECRET_PATTERNS = re.compile(
+    r"(sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}"
+    r"|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}"
+    r"|-----BEGIN [A-Z ]*PRIVATE KEY-----)"
+)
 
 
 def run_pipeline(case: Any) -> dict[str, Any]:
@@ -26,7 +32,7 @@ def run_pipeline(case: Any) -> dict[str, Any]:
     tz = resolve_timezone(case.get("timezone"), errors)
     week = resolve_week(case.get("week"), tz, errors)
     output_cfg = case.get("output") if isinstance(case.get("output"), dict) else {}
-    cta_required = bool(output_cfg.get("cta_required_per_item", False))
+    cta_required = truthy(output_cfg.get("cta_required_per_item", False))
 
     skipped: list[dict[str, Any]] = []
     candidates: list[Signal] = []
@@ -106,10 +112,20 @@ def read_signals(case: Any, errors: list[str]) -> tuple[list[dict[str, Any]], li
 # ---- Safety: what must never appear in the output ------------------------------
 
 
+def truthy(value: Any) -> bool:
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "yes", "1", "y")
+    return bool(value)
+
+
 def banned_words(case: dict[str, Any]) -> list[str]:
     brand = case.get("brand") if isinstance(case.get("brand"), dict) else {}
-    words = brand.get("banned_words") if isinstance(brand.get("banned_words"), list) else []
-    return [w for w in words if isinstance(w, str) and w.strip()]
+    words = brand.get("banned_words")
+    if isinstance(words, str):
+        words = words.split(",")
+    if not isinstance(words, list):
+        return []
+    return [w.strip() for w in words if isinstance(w, str) and w.strip()]
 
 
 def secret_values(case: dict[str, Any]) -> list[str]:
@@ -138,6 +154,9 @@ def scrub(node: Any, banned: list[str], secrets: list[str], errors: list[str]) -
             if secret in text:
                 text = text.replace(secret, "[redacted]")
                 errors.append("safety: removed a config secret from the output")
+        if SECRET_PATTERNS.search(text):
+            text = SECRET_PATTERNS.sub("[redacted]", text)
+            errors.append("safety: removed a credential-like string from the output")
         for pattern in patterns:
             if pattern.search(text):
                 text = pattern.sub("", text)
