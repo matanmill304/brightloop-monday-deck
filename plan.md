@@ -61,7 +61,7 @@
 
 | # | Phase | Hours | Done when | Status |
 |---|---|---|---|---|
-| 0 | Repo, skeleton, CI, output contract | 1 | `run --input --output` returns valid output | ⏳ |
+| 0 | Repo, skeleton, CI, output contract | 1 | `run --input --output` returns valid output | ✅ |
 | 1 | Core pipeline + tests | 4–5 | Sample + adversarial suite pass; randomized tests hold | |
 | 2 | Live collector (captures, prices, diff, Wayback baseline) + recordings | 3 | A real run produces real changes; replays without keys | |
 | 3 | Web app (upload/download, latest deck, run log) on Vercel; HTML deck + .pptx | 2–3 | Live URL works end to end | |
