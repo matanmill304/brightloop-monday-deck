@@ -189,6 +189,34 @@ def last_complete_week() -> str:
 
 
 def build_week(week: str, root: Path) -> dict[str, Any]:
+    """The Monday roll-up: compute the week, write its files and deck, log the run."""
+    started = now_iso()
+    case, result, run = assemble_week(week, root)
+    run["started_at"] = started
+    folder = root / "weeks" / week
+    folder.mkdir(parents=True, exist_ok=True)
+    write_json(folder / "cases.json", case)
+    write_json(folder / "result.json", result)
+    write_json(folder / "run.json", run)
+    write_deck(folder, assets_root=root)
+    summary = {
+        "run": "weekly",
+        "week": week,
+        "started_at": started,
+        "finished_at": run["finished_at"],
+        "pages": {f"{p['competitor']} {p['page']}": p["status"] for p in run["pages"]},
+        "signals": len(case["signals"]),
+        "items": len(result["items"]),
+        "skipped": len(result["skipped"]),
+        "errors": result["run"]["errors"],
+    }
+    append_log(root, summary)
+    return summary
+
+
+def assemble_week(week: str, root: Path) -> tuple[dict, dict, dict]:
+    """(cases, result, run) for a week from its days' captures. Writes nothing, so the web
+    app can rebuild a week on demand."""
     started = now_iso()
     start, _end = week_bounds(week)
     days = [(start + timedelta(days=n)).date() for n in range(7)]
@@ -236,26 +264,8 @@ def build_week(week: str, root: Path) -> dict[str, Any]:
                 "days_captured": len(captured),
             }
         )
-    folder = root / "weeks" / week
-    folder.mkdir(parents=True, exist_ok=True)
     run = {"week": week, "started_at": started, "finished_at": now_iso(), "pages": pages}
-    write_json(folder / "cases.json", case)
-    write_json(folder / "result.json", result)
-    write_json(folder / "run.json", run)
-    write_deck(folder, assets_root=root)
-    summary = {
-        "run": "weekly",
-        "week": week,
-        "started_at": started,
-        "finished_at": run["finished_at"],
-        "pages": {f"{p['competitor']} {p['page']}": p["status"] for p in pages},
-        "signals": len(signals),
-        "items": len(result["items"]),
-        "skipped": len(result["skipped"]),
-        "errors": result["run"]["errors"],
-    }
-    append_log(root, summary)
-    return summary
+    return case, result, run
 
 
 # ---- Files -------------------------------------------------------------------------------------

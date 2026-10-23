@@ -6,6 +6,10 @@
     "api/run.py": {
       "includeFiles": "src/**",
       "maxDuration": 30
+    },
+    "api/deck.py": {
+      "includeFiles": "{src/**,recordings/days/**}",
+      "maxDuration": 30
     }
   }
 }

@@ -1,138 +1,137 @@
-"""Build the static web app in public/ from recordings/.
+"""Build the web app in public/ from recordings/.
 
     python scripts/build_site.py
 
 public/
-  index.html               this week's deck, earlier weeks, run log, links
-  upload.html              upload a cases.json -> download result.json (calls /api/run)
-  weeks/<week>/            deck.html, deck.pptx, cases.json, result.json, run.json, snapshots/
+  index.html               the app (site/app.html + this data): Deck, Test, Setup
+  weeks/<week>/            deck.html (print view / PDF), deck.pptx, cases.json, result.json, run.json
+  days/<date>/*.jpg        the screenshots the decks show
+  runlog.jsonl             every daily and weekly run (the brief's run log)
+
+The Test page calls /api/run and "Rebuild" calls /api/deck (Vercel Python functions in api/).
 """
 
 from __future__ import annotations
 
-import html
 import json
 import shutil
+import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from brightloop.collect.run import TZ, targets, week_bounds
+from brightloop.deck import build_slides, week_label
+
 RECORDINGS = ROOT / "recordings"
 PUBLIC = ROOT / "public"
+TEMPLATE = ROOT / "site" / "app.html"
 REPO = "https://github.com/matanmill304/brightloop-monday-deck"
-RUN_NOW = f"{REPO}/actions/workflows/daily.yml"
-
-STYLE = """
-:root{--ink:#14181f;--soft:#5b6472;--line:#dfe3e8;--bg:#f4f5f7;--card:#fff;--accent:#2a46c9}
-@media (prefers-color-scheme:dark){:root{--ink:#e8ebef;--soft:#9aa3ae;--line:#2c333c;--bg:#11151a;--card:#181d24;--accent:#8ea2ff}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}
-main{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-h1{margin:8px 0 0;font-size:28px}h2{margin:0 0 8px;font-size:19px}p{margin:0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
-a{color:var(--accent)}.soft{color:var(--soft);font-size:14px}
-table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-.links{display:flex;gap:12px;flex-wrap:wrap}.links a{font-weight:600}
-iframe{width:100%;height:80vh;border:1px solid var(--line);border-radius:8px;background:var(--card)}
-button{font:inherit;padding:8px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
-pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow:auto;max-height:50vh;font-size:13px}
-"""
-
-
-def page(title: str, body: str) -> str:
-    return (
-        f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
-        f'<meta name="viewport" content="width=device-width, initial-scale=1">'
-        f"<title>{html.escape(title)}</title><style>{STYLE}</style></head>"
-        f"<body><main>{body}</main></body></html>\n"
-    )
+BRIEF_SAMPLE = ROOT / "tests" / "fixtures" / "brief_sample.json"
 
 
 def build() -> None:
     if PUBLIC.exists():
         shutil.rmtree(PUBLIC)
-    weeks = sorted((p.parent for p in RECORDINGS.glob("*-W*/run.json")), reverse=True)
-    for folder in weeks:
-        target = PUBLIC / "weeks" / folder.name
-        shutil.copytree(folder, target)
-    (PUBLIC / "index.html").write_text(index_page(weeks), encoding="utf-8", newline="\n")
-    (PUBLIC / "upload.html").write_text(upload_page(), encoding="utf-8", newline="\n")
+    PUBLIC.mkdir()
+    weeks = [week_data(f) for f in sorted(RECORDINGS.glob("weeks/*/run.json"), reverse=True)]
+    for week in weeks:
+        shutil.copytree(RECORDINGS / "weeks" / week["week"], PUBLIC / "weeks" / week["week"])
+        for shot in week.pop("shots"):
+            (PUBLIC / shot).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(RECORDINGS / shot, PUBLIC / shot)
+    runs = read_runlog()
+    shutil.copy2(RECORDINGS / "runlog.jsonl", PUBLIC / "runlog.jsonl")
+    data = {
+        "weeks": weeks,
+        "health": health(runs),
+        "tracked": tracked(),
+        "samples": samples(weeks),
+        "repo": REPO,
+    }
+    embedded = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    html = TEMPLATE.read_text(encoding="utf-8").replace("__DATA__", embedded)
+    (PUBLIC / "index.html").write_text(html, encoding="utf-8", newline="\n")
     print(f"built public/ with {len(weeks)} week(s)")
 
 
-def index_page(weeks: list[Path]) -> str:
-    runs = []
-    log = RECORDINGS / "runlog.jsonl"
-    if log.exists():
-        runs = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines() if line]
-    latest = weeks[0].name if weeks else None
-    deck = (
-        f'<iframe src="weeks/{latest}/deck.html" title="Deck {latest}"></iframe>'
-        if latest
-        else "<p>No run recorded yet.</p>"
+def week_data(run_file: Path) -> dict:
+    folder = run_file.parent
+    case, result, run = (
+        json.loads((folder / name).read_text(encoding="utf-8"))
+        for name in ("cases.json", "result.json", "run.json")
     )
-    week_rows = "".join(
-        f"<tr><td>{w.name}</td><td><a href='weeks/{w.name}/deck.html'>deck</a> · "
-        f"<a href='weeks/{w.name}/deck.pptx'>.pptx</a> · <a href='weeks/{w.name}/cases.json'>"
-        f"signals</a> · <a href='weeks/{w.name}/result.json'>result</a></td></tr>"
-        for w in weeks
-    )
-    run_rows = "".join(
-        f"<tr><td>{html.escape(r['started_at'])}</td><td>{r['week']}</td><td>{r['mode']}</td>"
-        f"<td>{html.escape(', '.join(f'{k}: {v}' for k, v in r['pages'].items()))}</td>"
-        f"<td>{r['signals']}</td><td>{r['items']}</td><td>{html.escape('; '.join(r['errors'])) or '-'}</td></tr>"
-        for r in reversed(runs)
-    )
-    return page(
-        "Competitor pages: Monday deck",
-        f"""
-<h1>Competitor pages: Monday deck</h1>
-<p class="soft">For Maya, Head of Growth. Every Monday at 07:30 (Israel time) the pricing pages and
-homepages of Lovable, Replit and Bolt are captured, compared with last week, and turned into this deck.
-Only the competitors' own pages count; every change links to its source.</p>
-<div class="links"><a href="weeks/{latest}/deck.pptx">Download this week's .pptx</a>
-<a href="upload.html">Test with your own cases.json</a><a href="{RUN_NOW}">Run now (GitHub Actions)</a>
-<a href="{REPO}">Code</a></div>
-<section class="card"><h2>This week: {latest or "-"}</h2>{deck}</section>
-<section class="card"><h2>All weeks</h2><table><tr><th>Week</th><th>Files</th></tr>{week_rows}</table></section>
-<section class="card"><h2>Run log</h2><table><tr><th>Started (UTC)</th><th>Week</th><th>Mode</th>
-<th>Pages</th><th>Signals</th><th>Items</th><th>Errors</th></tr>{run_rows}</table></section>
-""",
-    )
+    slides = [vars(s) for s in build_slides(case, result, run)]
+    refs = [p.get(k) for p in run["pages"] for k in ("current", "previous")]
+    _start, end = week_bounds(folder.name)
+    return {
+        "week": folder.name,
+        "label": week_label(folder.name),
+        "built_at": run["finished_at"],
+        "partial": datetime.fromisoformat(run["finished_at"]) < end,
+        "slides": slides,
+        "changed": sum(s["status"] == "changed" for s in slides),
+        "shots": sorted({r["screenshot"] for r in refs if r and r.get("screenshot")}),
+    }
 
 
-def upload_page() -> str:
-    return page(
-        "Test with your own cases.json",
-        """
-<h1>Test with your own cases.json</h1>
-<p class="soft">Upload a file in the input format; the same pipeline that builds the deck returns
-<code>result.json</code>. No keys, nothing stored.</p>
-<section class="card"><input type="file" id="file" accept=".json,application/json">
-<button id="go" type="button">Run</button> <a id="download" hidden download="result.json">Download result.json</a>
-<p id="status" class="soft"></p><pre id="out" hidden></pre></section>
-<p><a href="index.html">Back to the deck</a></p>
-<script>
-const $ = (id) => document.getElementById(id);
-$("go").addEventListener("click", async () => {
-  const file = $("file").files[0];
-  if (!file) { $("status").textContent = "Choose a cases.json file first."; return; }
-  $("status").textContent = "Running…";
-  try {
-    const response = await fetch("/api/run", { method: "POST", body: await file.text(),
-      headers: { "Content-Type": "application/json" } });
-    const text = await response.text();
-    if (!response.ok) throw new Error(text);
-    const result = JSON.parse(text);
-    $("status").textContent = `${result.items.length} items, ${result.skipped.length} skipped, ${result.run.errors.length} errors.`;
-    $("out").textContent = JSON.stringify(result, null, 2); $("out").hidden = false;
-    const link = $("download");
-    link.href = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }));
-    link.hidden = false;
-  } catch (error) { $("status").textContent = "Failed: " + error.message; }
-});
-</script>
-""",
-    )
+def read_runlog() -> list[dict]:
+    path = RECORDINGS / "runlog.jsonl"
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    return [json.loads(line) for line in lines if line]
+
+
+def health(runs: list[dict]) -> dict:
+    daily = [r for r in runs if r["run"] == "daily"]
+    last = max(daily, key=lambda r: r["started_at"]) if daily else None
+    now = datetime.now(TZ)
+    monday = (now + timedelta(days=(7 - now.weekday()) % 7 or 7)).date()
+    fresh = bool(last) and now - datetime.fromisoformat(last["started_at"]) < timedelta(days=2)
+    return {
+        "ok": fresh,
+        "last_run": max(r["started_at"] for r in runs) if runs else None,
+        "last_capture": last["started_at"] if last else None,
+        "next_deck": f"{monday:%a}, {monday:%b} {monday.day}",
+    }
+
+
+def tracked() -> list[dict]:
+    latest: dict[tuple[str, str], dict] = {}
+    for day in sorted(RECORDINGS.glob("days/*/day.json")):
+        for page in json.loads(day.read_text(encoding="utf-8"))["pages"]:
+            if page.get("current"):
+                latest[(page["competitor"], page["page"])] = page["current"]
+    out: dict[str, dict] = {}
+    for competitor, page, url in targets():
+        row = out.setdefault(competitor, {"name": competitor, "last": None, "live": False})
+        row["pricing" if page == "pricing" else "home"] = url
+        current = latest.get((competitor, page))
+        if current and (row["last"] is None or current["captured_at"] > row["last"]):
+            row["last"], row["live"] = current["captured_at"], current["method"] == "live"
+    return list(out.values())
+
+
+def samples(weeks: list[dict]) -> list[dict]:
+    out = []
+    if BRIEF_SAMPLE.exists():
+        out.append(
+            {
+                "name": "The brief's sample",
+                "cases": json.loads(BRIEF_SAMPLE.read_text(encoding="utf-8")),
+            }
+        )
+    for week in weeks:
+        cases = json.loads(
+            (RECORDINGS / "weeks" / week["week"] / "cases.json").read_text(encoding="utf-8")
+        )
+        if cases["signals"]:
+            out.append({"name": f"Our {week['label'].lower()}", "cases": cases})
+            break
+    return out
 
 
 if __name__ == "__main__":
     build()
+    print(f"at {datetime.now(UTC):%Y-%m-%d %H:%M} UTC")
