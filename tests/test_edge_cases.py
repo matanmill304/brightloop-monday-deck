@@ -1,6 +1,6 @@
 """tests/fixtures/edge_cases.json: one signal per tricky situation, with its expected fate.
 
-The same file is traced signal by signal in the review pack (`brightloop explain`).
+The same file can be traced signal by signal with `brightloop explain`.
 """
 
 import json

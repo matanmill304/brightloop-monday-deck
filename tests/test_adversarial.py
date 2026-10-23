@@ -1,7 +1,7 @@
 """Run the adversarial cases. Known weaknesses must still fail the way we documented.
 
 If a weak case starts passing, the test fails too: then it's no longer a weakness and
-the list (and the review pack) must be updated.
+the list must be updated.
 """
 
 import pytest

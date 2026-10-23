@@ -5,7 +5,7 @@
 For each <name>.json next to a <name>.expected.json: run the same pipeline as `./run`, check
 the output contract (every id placed exactly once, no secrets, no banned words), and compare
 each id with what was expected: item or skipped, and which ids belong in the same item.
-Writes each output to review/adversarial/<name>.result.json and prints the mismatches.
+Writes each output to out/adversarial/<name>.result.json and prints the mismatches.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from brightloop.contract import check_contract
 from brightloop.pipeline import run_pipeline, secret_values
 
-OUT = ROOT / "review" / "adversarial"
+OUT = ROOT / "out" / "adversarial"
 
 
 def input_ids(case: dict) -> list:

@@ -96,8 +96,8 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 | 6.3 | Plans reordered, cookie banner or footer year changed | No change | `test_adversarial` |
 | 6.4 | Pricing page vs homepage | Never compared | `test_adversarial` |
 | 6.5 | Half-loaded capture ("Loading…") | "Failed capture, check the page", not "all prices removed" | `test_adversarial` |
-| 6.6 | Archived render vs live render | Prices only, and only if both show them | first live run (`review/7`) |
-| 6.7 | Menus, buttons, inline-SVG CSS, glued words between renders | Ignored; text compared word by word (97% same = no change) | first live run |
+| 6.6 | Archived copy vs live capture | Not compared: the first live capture starts a new baseline | `test_real_captures::test_archived_yearly_view_vs_live_monthly_view_is_not_a_price_change` |
+| 6.7 | Menus, FAQ prose, inline-SVG CSS between renders | Not compared: only prices, plans, lines with a price/%/limit and the top of the homepage are | `test_real_captures` |
 | 6.8 | Homepage with rotating testimonials | Item carries "check the screenshots" caveat | `select.homepage_caveat` |
 
 ## 7. Safety
