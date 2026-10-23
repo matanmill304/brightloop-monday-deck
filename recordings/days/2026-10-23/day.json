@@ -6,7 +6,7 @@
       "page": "pricing",
       "url": "https://lovable.dev/pricing",
       "current": {
-        "captured_at": "2026-10-23T09:07:06+00:00",
+        "captured_at": "2026-10-23T14:44:22+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/lovable-pricing.json",
         "screenshot": "days/2026-10-23/lovable-pricing.jpg",
@@ -27,7 +27,7 @@
       "page": "home",
       "url": "https://lovable.dev",
       "current": {
-        "captured_at": "2026-10-23T09:07:14+00:00",
+        "captured_at": "2026-10-23T14:44:30+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/lovable-home.json",
         "screenshot": "days/2026-10-23/lovable-home.jpg",
@@ -48,7 +48,7 @@
       "page": "pricing",
       "url": "https://replit.com/pricing",
       "current": {
-        "captured_at": "2026-10-23T09:07:24+00:00",
+        "captured_at": "2026-10-23T14:44:41+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/replit-pricing.json",
         "screenshot": "days/2026-10-23/replit-pricing.jpg",
@@ -69,7 +69,7 @@
       "page": "home",
       "url": "https://replit.com",
       "current": {
-        "captured_at": "2026-10-23T09:07:34+00:00",
+        "captured_at": "2026-10-23T14:44:51+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/replit-home.json",
         "screenshot": "days/2026-10-23/replit-home.jpg",
@@ -90,7 +90,7 @@
       "page": "pricing",
       "url": "https://bolt.new/pricing",
       "current": {
-        "captured_at": "2026-10-23T09:07:44+00:00",
+        "captured_at": "2026-10-23T14:45:01+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/bolt-pricing.json",
         "screenshot": "days/2026-10-23/bolt-pricing.jpg",
@@ -111,7 +111,7 @@
       "page": "home",
       "url": "https://bolt.new",
       "current": {
-        "captured_at": "2026-10-23T09:07:53+00:00",
+        "captured_at": "2026-10-23T14:45:11+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/bolt-home.json",
         "screenshot": "days/2026-10-23/bolt-home.jpg",
