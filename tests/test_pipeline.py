@@ -398,3 +398,13 @@ def test_packaging_means_something_moved_between_plans():
     where = placement(out)
     assert where["live"][0] == "skip" and "Noa" in where["live"][1]
     assert where["free"][0] == "item" and where["tier"][0] == "item"
+
+
+def test_a_plan_being_retired_is_a_plan_removed():
+    out = run(
+        page(
+            "a", "The Starter plan is being retired; existing users move to Pro.", "Bolt", "/blog"
+        ),
+        page("b", "The Hobby tier will be discontinued next month.", "Replit", "/blog"),
+    )
+    assert placement(out)["a"][0] == "item" and placement(out)["b"][0] == "item"
