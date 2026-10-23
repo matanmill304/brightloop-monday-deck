@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RECORDINGS = ROOT / "recordings"
 PUBLIC = ROOT / "public"
 REPO = "https://github.com/matanmill304/brightloop-monday-deck"
-RUN_NOW = f"{REPO}/actions/workflows/weekly.yml"
+RUN_NOW = f"{REPO}/actions/workflows/daily.yml"
 
 STYLE = """
 :root{--ink:#14181f;--soft:#5b6472;--line:#dfe3e8;--bg:#f4f5f7;--card:#fff;--accent:#2a46c9}

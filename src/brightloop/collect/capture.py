@@ -128,7 +128,12 @@ class Capturer:
 
         self.out_dir = out_dir
         self._pw = sync_playwright().start()
-        self._browser = self._pw.chromium.launch()
+        # Real Chrome in a window, not headless: Cloudflare blocks headless Chrome on Lovable's
+        # homepage and on Replit. On a server, run under a virtual screen (xvfb-run).
+        # The window opens off-screen so a daily run on a desktop doesn't get in the way.
+        self._browser = self._pw.chromium.launch(
+            channel="chrome", headless=False, args=["--window-position=-2400,-2400"]
+        )
         self._page = self._browser.new_page(
             viewport={"width": 1440, "height": 1000}, user_agent=None
         )
