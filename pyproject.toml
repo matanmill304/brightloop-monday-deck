@@ -15,6 +15,10 @@ dependencies = [
 [project.optional-dependencies]
 collect = [
     "playwright>=1.45",
+    "python-pptx>=1.0",
+]
+deck = [
+    "python-pptx>=1.0",
 ]
 dev = [
     "pytest>=8",

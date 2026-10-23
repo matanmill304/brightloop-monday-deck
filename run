@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# The brief's test command, from a fresh clone, no install and no keys:
+#   ./run --input cases.json --output result.json
+cd "$(dirname "$0")" && PYTHONPATH=src exec python3 -m brightloop run "$@"

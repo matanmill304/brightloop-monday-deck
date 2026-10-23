@@ -26,24 +26,46 @@ def main(argv: list[str] | None = None) -> int:
     explain_cmd.add_argument("--output", required=True, type=Path)
 
     collect_cmd = sub.add_parser(
-        "collect", help="Capture Maya's competitor pages for a week and run the pipeline on them"
+        "collect", help="Daily: capture Maya's 6 competitor pages, compare with the last snapshot"
     )
-    collect_cmd.add_argument("--week", help="ISO week, e.g. 2026-W43 (default: this week)")
+    collect_cmd.add_argument("--date", help="YYYY-MM-DD (default: today in Israel)")
     collect_cmd.add_argument(
-        "--archived", action="store_true", help="Rebuild a past week from the Wayback Machine"
+        "--archived", action="store_true", help="Use that day's Wayback Machine copies (backfill)"
     )
     collect_cmd.add_argument("--root", type=Path, default=Path("recordings"))
+
+    week_cmd = sub.add_parser(
+        "week", help="Weekly: the week's signals -> pipeline -> result.json and the deck"
+    )
+    week_cmd.add_argument("--week", help="ISO week, e.g. 2026-W43 (default: last complete week)")
+    week_cmd.add_argument("--root", type=Path, default=Path("recordings"))
+
+    deck_cmd = sub.add_parser("deck", help="Build deck.html and deck.pptx for a recorded week")
+    deck_cmd.add_argument("folder", type=Path, help="e.g. recordings/2026-W43")
 
     args = parser.parse_args(argv)
     if args.command == "run":
         return run_file(args.input, args.output)
     if args.command == "explain":
         return explain_file(args.input, args.output)
-    if args.command == "collect":
-        from brightloop.collect.run import collect, current_week
+    if args.command == "deck":
+        from brightloop.deck import write_deck
 
-        entry = collect(args.week or current_week(), args.root, archived=args.archived)
-        print(json.dumps(entry, indent=2, ensure_ascii=False))
+        for path in write_deck(args.folder):
+            print(f"brightloop: wrote {path}", file=sys.stderr)
+        return 0
+    if args.command == "collect":
+        from datetime import date, datetime
+
+        from brightloop.collect.run import TZ, collect_day
+
+        day = date.fromisoformat(args.date) if args.date else datetime.now(TZ).date()
+        print(json.dumps(collect_day(day, args.root, archived=args.archived), indent=2))
+        return 0
+    if args.command == "week":
+        from brightloop.collect.run import build_week, last_complete_week
+
+        print(json.dumps(build_week(args.week or last_complete_week(), args.root), indent=2))
         return 0
     return 2
 
