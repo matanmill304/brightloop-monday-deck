@@ -53,7 +53,8 @@ PLAN_ADDED = re.compile(
 PLAN_REMOVED = re.compile(
     r"\b(remov\w*|drop(s|ped)?|discontinu\w*|sunset\w*|retir\w*|kill(s|ed)?|eliminat\w*"
     r"|no longer (offers?|available))\b[^.]{0,40}\b(plans?|tiers?)\b"
-    r"|\b(plans?|tiers?)\b[^.]{0,30}\b(is|are) (gone|discontinued|retired|no longer)\b"
+    r"|\b(plans?|tiers?)\b[^.]{0,30}\b(is|are|will be|has been|have been)( being)?"
+    r" (gone|discontinued|retired|removed|sunset|dropped|no longer)\b"
     r"|\b(plans?|tiers?)\s+(\([^)]*\)\s+)?(removed|discontinued|retired|dropped)\b",
     re.IGNORECASE,
 )
