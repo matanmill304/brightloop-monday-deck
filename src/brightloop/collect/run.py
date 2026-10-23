@@ -1,10 +1,19 @@
 """One collection run for one reporting week.
 
-  brightloop collect                      # this week: live captures, last week as baseline
-  brightloop collect --week 2026-W40 --archived   # a past week, rebuilt from the Wayback Machine
+  brightloop collect                              # this week, live (Wayback when blocked)
+  brightloop collect --week 2026-W40 --archived   # a past week, from the Wayback Machine
 
-Writes recordings/<week>/: cases.json (same format as the reviewers' file), result.json
-(the same pipeline's output), screenshots, and appends one line to recordings/runlog.jsonl.
+For each of Maya's pages (Lovable, Replit, Bolt × pricing page, homepage):
+  1. capture now (live; the latest Wayback copy inside the week if blocked);
+  2. baseline = our latest earlier snapshot, else the latest Wayback copy before the week;
+  3. compare; each change becomes one short event signal in the brief's input shape.
+
+Writes recordings/<week>/:
+  snapshots/*.json + *.jpg  page text + screenshots (evidence; never in the input)
+  cases.json                the week's event signals, same shape as the reviewers' file
+  result.json               the pipeline's output on cases.json (same pipeline as file mode)
+  run.json                  per page: status, snapshots, screenshots, signal ids (for the deck)
+and appends one line to recordings/runlog.jsonl.
 """
 
 from __future__ import annotations
@@ -17,11 +26,14 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from brightloop.collect.capture import Capturer, Snapshot, now_iso, slug
+from brightloop.collect.events import page_events
 from brightloop.competitors import COMPETITORS
+from brightloop.deck import write_deck
 from brightloop.pipeline import run_pipeline
 
 TIMEZONE = "Asia/Jerusalem"
 MAYA_COMPETITORS = ("Lovable", "Replit", "Bolt")  # the ones in her Monday deck
+BASELINE_LOOKBACK = timedelta(days=60)
 BRAND = {
     "name": "Brightloop",
     "voice": "plain, confident, no hype",
@@ -39,8 +51,7 @@ def targets(competitors: tuple[str, ...] = MAYA_COMPETITORS) -> list[tuple[str, 
 
 def week_bounds(label: str) -> tuple[datetime, datetime]:
     year, number = (int(x) for x in re.fullmatch(r"(\d{4})-W(\d{1,2})", label).groups())
-    tz = ZoneInfo(TIMEZONE)
-    start = datetime.combine(date.fromisocalendar(year, number, 1), time.min, tz)
+    start = datetime.combine(date.fromisocalendar(year, number, 1), time.min, ZoneInfo(TIMEZONE))
     return start, start + timedelta(days=7)
 
 
@@ -50,40 +61,49 @@ def current_week() -> str:
 
 
 def collect(week: str, root: Path, archived: bool = False) -> dict[str, Any]:
-    """Capture every page for `week` plus a baseline from the week before; run the pipeline."""
     started = now_iso()
+    tz = ZoneInfo(TIMEZONE)
     start, end = week_bounds(week)
+    now = datetime.now(UTC)
     out_dir = root / week
-    out_dir.mkdir(parents=True, exist_ok=True)
-    log: list[dict[str, Any]] = []
+    (out_dir / "snapshots").mkdir(parents=True, exist_ok=True)
+    pages: list[dict[str, Any]] = []
     signals: list[dict[str, Any]] = []
+    counters = {"pricing": 0, "home": 0}
 
-    capturer = Capturer(out_dir)
+    capturer = Capturer(out_dir / "snapshots")
     try:
         for competitor, page, url in targets():
             entry: dict[str, Any] = {"competitor": competitor, "page": page, "url": url}
-            current = None
-            if not archived:
-                current = capturer.live(competitor, page, url)
-                if current is None:
-                    entry["live"] = "blocked or empty: used the Wayback Machine (not bypassed)"
+            current = None if archived else capturer.live(competitor, page, url)
             if current is None:
-                moment = min(end - timedelta(minutes=1), datetime.now(UTC))
-                current = capturer.archived(competitor, page, url, moment)
-            baseline = previous_snapshot(root, week, competitor, page) or capturer.archived(
-                competitor, page, url, start - timedelta(minutes=1)
+                if not archived:
+                    entry["note"] = (
+                        "live page blocked or empty: used the Wayback Machine (not bypassed)"
+                    )
+                current = capturer.archived(competitor, page, url, start, min(end, now))
+            previous = earlier_snapshot(root, week, competitor, page, start) or capturer.archived(
+                competitor, page, url, start - BASELINE_LOOKBACK, start
             )
-            for label, snap in (("baseline", baseline), ("current", current)):
-                if snap is None:
-                    entry[label] = "not available"
-                    continue
-                entry[label] = f"{snap.method} {snap.captured_at}"
-                signals.append(to_signal(snap))
-            log.append(entry)
+            entry["current"] = save(current, out_dir)
+            entry["previous"] = save(previous, out_dir)
+
+            if current is None:
+                entry["status"] = "not-captured"
+            elif previous is None:
+                entry["status"] = "first-snapshot"
+            else:
+                entry["status"], sentences = page_events(previous, current, tz)
+                entry["signal_ids"] = []
+                for text in sentences:
+                    counters[page] += 1
+                    signal = to_signal(current, text, week, counters[page])
+                    signals.append(signal)
+                    entry["signal_ids"].append(signal["id"])
+            pages.append(entry)
     finally:
         capturer.close()
 
-    signals = dedupe(signals)
     case = {
         "week": week,
         "timezone": TIMEZONE,
@@ -92,78 +112,80 @@ def collect(week: str, root: Path, archived: bool = False) -> dict[str, Any]:
         "output": {"cta_required_per_item": True},
         "signals": signals,
     }
-    write_json(out_dir / "cases.json", case)
     result = run_pipeline(case)
-    write_json(out_dir / "result.json", result)
-    run_entry = {
+    run = {
+        "week": week,
         "started_at": started,
         "finished_at": now_iso(),
-        "week": week,
         "mode": "archived" if archived else "live",
-        "pages": log,
+        "pages": pages,
+    }
+    write_json(out_dir / "cases.json", case)
+    write_json(out_dir / "result.json", result)
+    write_json(out_dir / "run.json", run)
+    write_deck(out_dir)
+    summary = {
+        **{k: run[k] for k in ("week", "started_at", "finished_at", "mode")},
+        "pages": {f"{p['competitor']} {p['page']}": p["status"] for p in pages},
         "signals": len(signals),
         "items": len(result["items"]),
         "skipped": len(result["skipped"]),
         "errors": result["run"]["errors"],
     }
     with (root / "runlog.jsonl").open("a", encoding="utf-8", newline="\n") as fh:
-        fh.write(json.dumps(run_entry, ensure_ascii=False) + "\n")
-    return run_entry
+        fh.write(json.dumps(summary, ensure_ascii=False) + "\n")
+    return summary
 
 
-def to_signal(snap: Snapshot) -> dict[str, Any]:
-    stamp = re.sub(r"\D", "", snap.captured_at)[:12]
+def to_signal(snap: Snapshot, text: str, week: str, n: int) -> dict[str, Any]:
+    """The brief's input shape and nothing more: id, type, competitor, source, ts, text."""
+    prefix, kind = ("pr", "pricing") if snap.page == "pricing" else ("sg", "launch")
     return {
-        "id": f"{slug(snap.competitor)}-{snap.page}-{stamp}",
-        "type": "pricing" if snap.page == "pricing" else "launch",
+        "id": f"{prefix}-{int(week[-2:])}{n:02d}",
+        "type": kind,
         "competitor": snap.competitor,
-        "source": snap.url,
-        "ts": snap.captured_at,
-        "text": snap.text,
-        "snapshot": True,  # a captured page: a state to compare, never a statement of a change
-        "headline": snap.headline,
-        "capture": snap.method,
-        "archive_url": snap.archive_url,
-        "screenshot": snap.screenshot,
-        "notes": snap.notes,
+        "source": re.sub(r"^https?://(www\.)?", "", snap.url).rstrip("/"),
+        "ts": snap.captured_at.replace("+00:00", "Z"),
+        "text": text,
     }
 
 
-def previous_snapshot(root: Path, week: str, competitor: str, page: str) -> Snapshot | None:
-    """The latest snapshot of this page from an earlier recorded week, if we have one."""
-    earlier = sorted(p for p in root.glob("*-W*/cases.json") if p.parent.name < week)
-    for path in reversed(earlier):
-        case = json.loads(path.read_text(encoding="utf-8"))
-        mine = [
-            s
-            for s in case["signals"]
-            if s.get("competitor") == competitor
-            and s.get("id", "").startswith(f"{slug(competitor)}-{page}-")
-        ]
-        if mine:
-            s = max(mine, key=lambda s: s["ts"])
-            return Snapshot(
-                competitor,
-                page,
-                s["source"],
-                s["ts"],
-                s.get("capture", "live"),
-                s["text"],
-                s.get("headline", ""),
-                None,
-                s.get("archive_url"),
-                [f"baseline from the {path.parent.name} run"],
-            )
-    return None
+def save(snap: Snapshot | None, out_dir: Path) -> dict[str, Any] | None:
+    """Write a snapshot's JSON next to its screenshot; return what run.json records about it."""
+    if snap is None:
+        return None
+    stamp = re.sub(r"\D", "", snap.captured_at)[:12]
+    name = f"{slug(snap.competitor)}-{snap.page}-{stamp}"
+    path = out_dir / "snapshots" / f"{name}.json"
+    if not path.exists():
+        write_json(path, snap.to_json())
+    return {
+        "captured_at": snap.captured_at,
+        "method": snap.method,
+        "snapshot": f"snapshots/{path.name}",
+        "screenshot": f"snapshots/{snap.screenshot}" if snap.screenshot else None,
+        "archive_url": snap.archive_url,
+    }
 
 
-def dedupe(signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    seen, out = set(), []
-    for s in signals:
-        if s["id"] not in seen:
-            seen.add(s["id"])
-            out.append(s)
-    return out
+def earlier_snapshot(
+    root: Path, week: str, competitor: str, page: str, before: datetime
+) -> Snapshot | None:
+    """Our own latest snapshot of this page from before the week (no Wayback needed)."""
+    candidates = []
+    for path in root.glob(f"*-W*/snapshots/{slug(competitor)}-{page}-*.json"):
+        if path.parent.parent.name >= week:
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if datetime.fromisoformat(data["captured_at"]) < before:
+            candidates.append((data["captured_at"], path, data))
+    if not candidates:
+        return None
+    _, path, data = max(candidates)
+    snap = Snapshot(**data)
+    if snap.screenshot and not snap.screenshot.startswith("../"):
+        snap.screenshot = f"../../{path.parent.parent.name}/snapshots/{snap.screenshot}"
+    return snap
 
 
 def write_json(path: Path, data: Any) -> None:

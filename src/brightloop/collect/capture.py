@@ -16,7 +16,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 USER_AGENT = "BrightloopMondayDeck/0.1 (competitor pricing snapshots; weekly)"
@@ -67,14 +67,28 @@ class Snapshot:
         return asdict(self)
 
 
-def wayback_closest(url: str, when: datetime) -> tuple[str, str] | None:
-    """(timestamp, archived URL) of the Wayback copy closest to `when`, or None."""
-    query = urllib.parse.urlencode({"url": url, "timestamp": when.strftime("%Y%m%d%H%M%S")})
-    data = fetch_json(f"https://archive.org/wayback/available?{query}")
-    closest = (data or {}).get("archived_snapshots", {}).get("closest")
-    if not closest or not closest.get("available"):
+def wayback_latest(url: str, after: datetime, before: datetime) -> tuple[str, str] | None:
+    """(timestamp, archived URL) of the latest Wayback copy in [after, before), or None.
+
+    A window, not "closest": the baseline must come from before the week and the current
+    copy from inside it.
+    """
+    query = urllib.parse.urlencode(
+        {
+            "url": url,
+            "from": after.astimezone(UTC).strftime("%Y%m%d%H%M%S"),
+            "to": (before - timedelta(seconds=1)).astimezone(UTC).strftime("%Y%m%d%H%M%S"),
+            "output": "json",
+            "fl": "timestamp",
+            "filter": "statuscode:200",
+            "limit": "-1",  # the last one in the window
+        }
+    )
+    rows = fetch_json(f"https://web.archive.org/cdx/search/cdx?{query}")
+    if not rows or len(rows) < 2:
         return None
-    return closest["timestamp"], closest["url"].replace("http://", "https://", 1)
+    timestamp = rows[-1][0]
+    return timestamp, f"https://web.archive.org/web/{timestamp}/{url}"
 
 
 _CACHE: dict[str, dict | None] = {}
@@ -131,9 +145,11 @@ class Capturer:
         shot = self._screenshot(competitor, page, "live")
         return Snapshot(competitor, page, url, now_iso(), "live", text, headline, shot)
 
-    def archived(self, competitor: str, page: str, url: str, when: datetime) -> Snapshot | None:
-        """The Wayback copy closest to `when`, rendered without the archive toolbar."""
-        found = wayback_closest(url, when)
+    def archived(
+        self, competitor: str, page: str, url: str, after: datetime, before: datetime
+    ) -> Snapshot | None:
+        """The latest Wayback copy in [after, before), rendered without the archive toolbar."""
+        found = wayback_latest(url, after, before)
         if not found:
             return None
         timestamp, archive_url = found
@@ -160,6 +176,7 @@ class Capturer:
         try:
             self._page.goto(url, wait_until="domcontentloaded", timeout=60000)
             self._page.wait_for_timeout(6000)
+            self._show_monthly_prices()
             self._page.add_style_tag(content=HIDE_BANNERS)
             text = self._page.evaluate(VISIBLE_TEXT_JS)
             h1 = self._page.locator("h1").first
@@ -169,6 +186,17 @@ class Capturer:
             return None, ""
         finally:
             time.sleep(PAUSE_SECONDS)
+
+    def _show_monthly_prices(self) -> None:
+        """Pricing pages with a Monthly/Yearly toggle: always capture the monthly view, so two
+        weeks are compared in the same view (a normal click on the page's own toggle)."""
+        try:
+            toggle = self._page.get_by_text(re.compile(r"^\s*Monthly\s*$", re.IGNORECASE)).first
+            if toggle.count() and toggle.is_visible():
+                toggle.click(timeout=3000)
+                self._page.wait_for_timeout(1500)
+        except Exception:  # noqa: BLE001, S110 - no toggle or not clickable: keep the default view
+            pass
 
     def _screenshot(self, competitor: str, page: str, label: str) -> str:
         name = f"{slug(competitor)}-{page}-{label}.jpg"
