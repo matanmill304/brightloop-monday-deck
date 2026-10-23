@@ -4,7 +4,7 @@ Every Monday at 08:30, Maya (Head of Growth at Brightloop) used to rebuild the s
 
 This app does it for her. Every Monday at 07:30 (Israel time) it captures those six pages, compares them with last week, turns each change into a signal, decides what belongs in the deck, and builds the deck: a screenshot per page, what changed (old → new), and a link to the competitor's own page. Her rule, applied throughout: **the competitor's own pricing page is the source of truth**; press, Reddit and ads are never shown as fact.
 
-- **Live app:** _URL added at deploy_
+- **Live app:** [_URL added at deploy_](https://brightloop-monday-deck.vercel.app/)
 - **Why Maya:** [docs/why-maya.md](docs/why-maya.md) · **Decisions:** [decisions.md](decisions.md) · **Traps we found:** [SPOTTED.md](SPOTTED.md)
 
 ## Prove it works (fresh clone, zero keys, no install)
