@@ -140,3 +140,21 @@ def test_deck_without_run_shows_items_only():
     slides = build_slides(case, run_pipeline(case))
     assert [(s.title, s.status) for s in slides] == [("Lovable pricing", "changed")]
     assert slides[0].rows[0][0] == "Oct 23"
+
+
+def test_the_daily_refresh_adds_no_run_log_line(tmp_path, monkeypatch):
+    import shutil
+    from pathlib import Path
+
+    from brightloop.collect.run import build_week
+
+    days = Path(__file__).resolve().parents[1] / "recordings" / "days"
+    for day in ("2026-09-29", "2026-09-30", "2026-10-01"):
+        shutil.copytree(days / day, tmp_path / "days" / day)
+    monkeypatch.setenv("GITHUB_EVENT_NAME", "schedule")
+    log = tmp_path / "runlog.jsonl"
+    build_week("2026-W40", tmp_path, final=False)
+    assert not log.exists()
+    summary = build_week("2026-W40", tmp_path)
+    assert log.read_text().count("\n") == 1 and summary["trigger"] == "scheduled"
+    assert summary["items"] == 2  # Bolt Lite appeared on Sep 30 and was gone on Oct 1

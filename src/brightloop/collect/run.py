@@ -22,6 +22,7 @@ recordings/
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -125,11 +126,28 @@ def collect_day(day: date, root: Path, archived: bool = False) -> dict[str, Any]
         "started_at": started,
         "finished_at": now_iso(),
         "mode": "live" if live else "archived",
+        **trigger(),
         "pages": {f"{p['competitor']} {p['page']}": p["status"] for p in pages},
         "signals": len(signals),
+        "notes": [f"{p['competitor']} {p['page']}: {p['note']}" for p in pages if p.get("note")],
+        "errors": [
+            f"{p['competitor']} {p['page']}: {p['status']}"
+            for p in pages
+            if p["status"] in ("not-captured", "failed-capture")
+        ],
     }
     append_log(root, summary)
     return summary
+
+
+def trigger() -> dict[str, Any]:
+    """What started this run: the schedule, a manual run, or someone's own machine."""
+    event = os.environ.get("GITHUB_EVENT_NAME", "")
+    names = {"schedule": "scheduled", "workflow_dispatch": "manual"}
+    out: dict[str, Any] = {"trigger": names.get(event, "local" if not event else event)}
+    if os.environ.get("GITHUB_RUN_ID"):
+        out["github_run"] = os.environ["GITHUB_RUN_ID"]
+    return out
 
 
 def to_signal(snap: Snapshot, text: str, day: date, n: int) -> dict[str, Any]:
@@ -195,8 +213,10 @@ def last_complete_week() -> str:
     return f"{year}-W{number:02d}"
 
 
-def build_week(week: str, root: Path) -> dict[str, Any]:
-    """The Monday roll-up: compute the week, write its files and deck, log the run."""
+def build_week(week: str, root: Path, final: bool = True) -> dict[str, Any]:
+    """Compute the week, write its files and deck. The Monday deck (final) is logged as a
+    weekly run; the daily refresh of the week in progress is part of that day's run, so it
+    adds no line to the run log."""
     started = now_iso()
     case, result, run = assemble_week(week, root)
     run["started_at"] = started
@@ -209,6 +229,7 @@ def build_week(week: str, root: Path) -> dict[str, Any]:
     summary = {
         "run": "weekly",
         "week": week,
+        **trigger(),
         "started_at": started,
         "finished_at": run["finished_at"],
         "pages": {f"{p['competitor']} {p['page']}": p["status"] for p in run["pages"]},
@@ -217,7 +238,8 @@ def build_week(week: str, root: Path) -> dict[str, Any]:
         "skipped": len(result["skipped"]),
         "errors": result["run"]["errors"],
     }
-    append_log(root, summary)
+    if final:
+        append_log(root, summary)
     return summary
 
 
