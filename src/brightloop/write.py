@@ -26,7 +26,7 @@ def build_item(item_id: str, c: Candidate, cta_required: bool, tz: tzinfo) -> di
     if c.track == "announced":
         page = check or f"{lead.competitor}'s pricing page"
         action = (
-            f"Check {page} before the 11:00 meeting: {lead.competitor} announced {what}. "
+            f'Check {page} before the 11:00 meeting: {lead.competitor} announced "{what}". '
             f"Add it to the {lead.competitor} pricing slide only if the page shows it."
         )
     else:
@@ -34,16 +34,19 @@ def build_item(item_id: str, c: Candidate, cta_required: bool, tz: tzinfo) -> di
 
     item: dict[str, Any] = {
         "id": item_id,
-        "source_ids": [s.id for s in c.signals],
+        "source_ids": [s.id for s in c.signals + c.corroboration],
         "confidence": c.confidence,
         "action": action,
         "why": explain(c, tz),
         "competitor": lead.competitor,
         "page": lead.page if c.track != "announced" else "announcement",
-        "change": [describe(ch) or ch.kind for ch in c.changes],
+        "change": unique(
+            [describe(ch) or first_sentence(lead.text) for ch in most_specific(c.changes)]
+        ),
         "links": links,
         "sources": [
-            {"id": s.id, "source": s.source or None, "class": s.source_class} for s in c.signals
+            {"id": s.id, "source": s.source or None, "class": s.source_class}
+            for s in c.signals + c.corroboration
         ],
     }
     if c.caveats:
@@ -59,13 +62,18 @@ def build_item(item_id: str, c: Candidate, cta_required: bool, tz: tzinfo) -> di
     return item
 
 
+def most_specific(changes: list) -> list:
+    """Old → new beats a new price alone: several reports of one change show it once."""
+    return [ch for ch in changes if ch.old and ch.new] or changes[:1]
+
+
 def change_text(c: Candidate) -> str:
     """The change in one line: old → new when we have both, else the source's own words."""
     described = [describe(ch) for ch in c.changes if describe(ch)]
     if c.track == "compared" and described:
         return "; ".join(described[:3])
     first = c.changes[0]
-    if first.old and first.new:
+    if (first.old and first.new) or first.kind.startswith("line_") or first.kind == "headline":
         return describe(first)
     return first_sentence(c.lead.text)
 
@@ -87,9 +95,13 @@ def explain(c: Candidate, tz: tzinfo) -> str:
         text = (
             f"Announced by {lead.competitor} itself ({where}) on {when}, not on its pricing page."
         )
-    others = [s for s in c.signals if s is not lead and c.track != "compared"]
-    if others:
-        text += " Also stated by " + ", ".join(s.source or str(s.id) for s in others) + "."
+    others = unique([s.source or str(s.id) for s in c.signals if s is not lead])
+    others = [o for o in others if o != (lead.source or str(lead.id))]
+    if others and c.track != "compared":
+        text += " Also stated by " + ", ".join(others) + "."
+    if c.corroboration:
+        reports = unique([f"{s.source or s.id} ({s.source_class})" for s in c.corroboration])
+        text += " Also reported by " + ", ".join(reports) + "."
     return text
 
 

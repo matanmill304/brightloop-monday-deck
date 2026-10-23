@@ -34,7 +34,8 @@
         "screenshot": "days/2026-10-14/lovable-home.jpg",
         "archive_url": "https://web.archive.org/web/20261014040227/https://lovable.dev"
       },
-      "status": "not-captured"
+      "status": "not-captured",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
@@ -98,7 +99,10 @@
       },
       "status": "changed",
       "signal_ids": [
-        "pr-102001"
+        "pr-102001",
+        "pr-102002",
+        "pr-102003",
+        "pr-102004"
       ]
     },
     {
@@ -113,7 +117,8 @@
         "screenshot": "days/2026-10-14/bolt-home.jpg",
         "archive_url": "https://web.archive.org/web/20261014010730/https://bolt.new"
       },
-      "status": "not-captured"
+      "status": "not-captured",
+      "signal_ids": []
     }
   ]
 }

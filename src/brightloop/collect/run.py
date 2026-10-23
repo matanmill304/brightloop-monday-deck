@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from brightloop.change import page_state
 from brightloop.collect.capture import Capturer, Snapshot, now_iso, slug
 from brightloop.collect.events import page_events
 from brightloop.competitors import COMPETITORS
@@ -165,6 +166,8 @@ def latest_snapshot(root: Path, key: str, before: datetime):
     for path in (root / "days").glob(f"*/{key}.json"):
         data = json.loads(path.read_text(encoding="utf-8"))
         captured = datetime.fromisoformat(data["captured_at"])
+        if page_state(data["text"]).error_page:
+            continue  # the archive's error page is not a snapshot of the page
         if captured < before and (best is None or captured > best[0]):
             best = (captured, path, data)
     if best is None:

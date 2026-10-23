@@ -13,7 +13,8 @@
         "screenshot": "days/2026-10-15/lovable-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20261015204154/https://lovable.dev/pricing"
       },
-      "status": "not-captured"
+      "status": "not-captured",
+      "signal_ids": []
     },
     {
       "competitor": "Lovable",
@@ -27,7 +28,8 @@
         "screenshot": "days/2026-10-14/lovable-home.jpg",
         "archive_url": "https://web.archive.org/web/20261014040227/https://lovable.dev"
       },
-      "status": "not-captured"
+      "status": "not-captured",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
@@ -47,10 +49,8 @@
         "screenshot": "days/2026-10-15/replit-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20261015175251/https://replit.com/pricing"
       },
-      "status": "changed",
-      "signal_ids": [
-        "pr-101601"
-      ]
+      "status": "unchanged",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
@@ -106,7 +106,8 @@
         "screenshot": "days/2026-10-14/bolt-home.jpg",
         "archive_url": "https://web.archive.org/web/20261014010730/https://bolt.new"
       },
-      "status": "not-captured"
+      "status": "not-captured",
+      "signal_ids": []
     }
   ]
 }

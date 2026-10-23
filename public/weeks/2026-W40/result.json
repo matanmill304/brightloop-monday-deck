@@ -4,56 +4,25 @@
     {
       "id": "maya-bolt-1",
       "source_ids": [
-        "pr-092901",
-        "pr-093001",
-        "pr-093002",
-        "pr-100101",
-        "pr-100102"
+        "pr-093001"
       ],
       "confidence": 0.9,
-      "action": "Update the Bolt pricing slide: Pricing page text changed since Sep 30: no longer says \"bolt lite $9/month, invite only during the research preview is powered by bolt forge and is the only….",
-      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 01, 2026. Also stated by bolt.new/pricing, bolt.new/pricing, bolt.new/pricing, bolt.new/pricing.",
+      "action": "Update the Bolt pricing slide: new on the page: \"Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Sep 30, 2026.",
       "competitor": "Bolt",
       "page": "pricing",
       "change": [
-        "$0",
-        "$30 → $0,",
-        "$9/month",
-        "$9 → $0,",
-        "$9/month"
+        "new on the page: \"Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.\""
       ],
       "links": [
         "https://bolt.new/pricing"
       ],
       "sources": [
         {
-          "id": "pr-092901",
-          "source": "bolt.new/pricing",
-          "class": "official"
-        },
-        {
           "id": "pr-093001",
           "source": "bolt.new/pricing",
           "class": "official"
-        },
-        {
-          "id": "pr-093002",
-          "source": "bolt.new/pricing",
-          "class": "official"
-        },
-        {
-          "id": "pr-100101",
-          "source": "bolt.new/pricing",
-          "class": "official"
-        },
-        {
-          "id": "pr-100102",
-          "source": "bolt.new/pricing",
-          "class": "official"
         }
-      ],
-      "caveats": [
-        "previous price not stated: compare with last week's screenshot"
       ],
       "cta": {
         "text": "Open Bolt's pricing page",
@@ -61,102 +30,37 @@
       }
     },
     {
-      "id": "maya-lovable-1",
+      "id": "maya-bolt-2",
       "source_ids": [
-        "pr-092801"
+        "pr-100101"
       ],
-      "confidence": 0.8,
-      "action": "Update the Lovable pricing slide: Pricing page text changed since Sep 25: now says \"start for free upgrade to get the capacity that exactly matches your team s needs frequently asked questions….",
-      "why": "Stated on Lovable's own pricing page (https://lovable.dev/pricing) on Sep 28, 2026.",
-      "competitor": "Lovable",
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: no longer on the page: \"Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 01, 2026.",
+      "competitor": "Bolt",
       "page": "pricing",
       "change": [
-        "other"
+        "no longer on the page: \"Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.\""
       ],
       "links": [
-        "https://lovable.dev/pricing"
+        "https://bolt.new/pricing"
       ],
       "sources": [
         {
-          "id": "pr-092801",
-          "source": "lovable.dev/pricing",
+          "id": "pr-100101",
+          "source": "bolt.new/pricing",
           "class": "official"
         }
       ],
-      "caveats": [
-        "the page says something changed but not exactly what"
-      ],
       "cta": {
-        "text": "Open Lovable's pricing page",
-        "url": "https://lovable.dev/pricing"
-      }
-    },
-    {
-      "id": "maya-replit-1",
-      "source_ids": [
-        "pr-100201"
-      ],
-      "confidence": 0.8,
-      "action": "Update the Replit pricing slide: Pricing page text changed since Sep 29: now says \"replit is the ai platform that helps you turn your ideas into real outcomes describe what you want; natural….",
-      "why": "Stated on Replit's own pricing page (https://replit.com/pricing) on Oct 02, 2026.",
-      "competitor": "Replit",
-      "page": "pricing",
-      "change": [
-        "other"
-      ],
-      "links": [
-        "https://replit.com/pricing"
-      ],
-      "sources": [
-        {
-          "id": "pr-100201",
-          "source": "replit.com/pricing",
-          "class": "official"
-        }
-      ],
-      "caveats": [
-        "the page says something changed but not exactly what"
-      ],
-      "cta": {
-        "text": "Open Replit's pricing page",
-        "url": "https://replit.com/pricing"
-      }
-    },
-    {
-      "id": "maya-replit-2",
-      "source_ids": [
-        "sg-100201"
-      ],
-      "confidence": 0.8,
-      "action": "Update the Replit homepage slide: Homepage text changed since Sep 27: now says \"replit is the ai platform that helps you turn your ideas into real outcomes describe what you want in natural….",
-      "why": "Stated on Replit's own homepage page (https://replit.com) on Oct 02, 2026.",
-      "competitor": "Replit",
-      "page": "home",
-      "change": [
-        "other"
-      ],
-      "links": [
-        "https://replit.com"
-      ],
-      "sources": [
-        {
-          "id": "sg-100201",
-          "source": "replit.com",
-          "class": "official"
-        }
-      ],
-      "caveats": [
-        "the page says something changed but not exactly what"
-      ],
-      "cta": {
-        "text": "Open Replit's homepage page",
-        "url": "https://replit.com"
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
       }
     }
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-23T08:56:22+00:00",
+    "started_at": "2026-10-23T13:20:27+00:00",
     "cost_usd": 0.0,
     "errors": []
   }

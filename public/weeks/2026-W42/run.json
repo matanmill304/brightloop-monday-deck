@@ -1,7 +1,7 @@
 {
   "week": "2026-W42",
-  "started_at": "2026-10-23T08:56:22+00:00",
-  "finished_at": "2026-10-23T08:56:22+00:00",
+  "started_at": "2026-10-23T13:20:31+00:00",
+  "finished_at": "2026-10-23T13:20:31+00:00",
   "pages": [
     {
       "competitor": "Lovable",
@@ -51,10 +51,8 @@
       "competitor": "Replit",
       "page": "pricing",
       "url": "https://replit.com/pricing",
-      "status": "changed",
-      "signal_ids": [
-        "pr-101601"
-      ],
+      "status": "unchanged",
+      "signal_ids": [],
       "current": {
         "captured_at": "2026-10-18T15:20:41+00:00",
         "method": "archived",

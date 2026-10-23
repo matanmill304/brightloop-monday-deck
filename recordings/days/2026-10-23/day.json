@@ -19,7 +19,7 @@
         "screenshot": "days/2026-10-22/lovable-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20261022120709/https://lovable.dev/pricing"
       },
-      "status": "unchanged",
+      "status": "first-snapshot",
       "signal_ids": []
     },
     {
@@ -40,7 +40,7 @@
         "screenshot": "days/2026-10-14/lovable-home.jpg",
         "archive_url": "https://web.archive.org/web/20261014040227/https://lovable.dev"
       },
-      "status": "unchanged",
+      "status": "first-snapshot",
       "signal_ids": []
     },
     {
@@ -61,10 +61,8 @@
         "screenshot": "days/2026-10-21/replit-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20261021204340/https://replit.com/pricing"
       },
-      "status": "changed",
-      "signal_ids": [
-        "pr-102301"
-      ]
+      "status": "first-snapshot",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
@@ -84,10 +82,8 @@
         "screenshot": "days/2026-10-21/replit-home.jpg",
         "archive_url": "https://web.archive.org/web/20261021204440/https://replit.com"
       },
-      "status": "changed",
-      "signal_ids": [
-        "sg-102301"
-      ]
+      "status": "first-snapshot",
+      "signal_ids": []
     },
     {
       "competitor": "Bolt",
@@ -107,7 +103,7 @@
         "screenshot": "days/2026-10-22/bolt-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20261022120646/https://bolt.new/pricing"
       },
-      "status": "unchanged",
+      "status": "first-snapshot",
       "signal_ids": []
     },
     {
@@ -128,7 +124,7 @@
         "screenshot": "days/2026-10-14/bolt-home.jpg",
         "archive_url": "https://web.archive.org/web/20261014010730/https://bolt.new"
       },
-      "status": "unchanged",
+      "status": "first-snapshot",
       "signal_ids": []
     }
   ]

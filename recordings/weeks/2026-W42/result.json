@@ -1,41 +1,9 @@
 {
   "built_for": "maya",
-  "items": [
-    {
-      "id": "maya-replit-1",
-      "source_ids": [
-        "pr-101601"
-      ],
-      "confidence": 0.8,
-      "action": "Update the Replit pricing slide: Pricing page text changed since Oct 15: now says \"sso, scim audit logs centralized security management; private networking options dedicated premium support\";….",
-      "why": "Stated on Replit's own pricing page (https://replit.com/pricing) on Oct 16, 2026.",
-      "competitor": "Replit",
-      "page": "pricing",
-      "change": [
-        "other"
-      ],
-      "links": [
-        "https://replit.com/pricing"
-      ],
-      "sources": [
-        {
-          "id": "pr-101601",
-          "source": "replit.com/pricing",
-          "class": "official"
-        }
-      ],
-      "caveats": [
-        "the page says something changed but not exactly what"
-      ],
-      "cta": {
-        "text": "Open Replit's pricing page",
-        "url": "https://replit.com/pricing"
-      }
-    }
-  ],
+  "items": [],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-23T08:56:22+00:00",
+    "started_at": "2026-10-23T13:20:31+00:00",
     "cost_usd": 0.0,
     "errors": []
   }

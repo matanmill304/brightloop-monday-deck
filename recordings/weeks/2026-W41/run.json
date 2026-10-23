@@ -1,7 +1,7 @@
 {
   "week": "2026-W41",
-  "started_at": "2026-10-23T08:56:22+00:00",
-  "finished_at": "2026-10-23T08:56:22+00:00",
+  "started_at": "2026-10-23T13:20:31+00:00",
+  "finished_at": "2026-10-23T13:20:31+00:00",
   "pages": [
     {
       "competitor": "Lovable",
@@ -51,8 +51,10 @@
       "competitor": "Replit",
       "page": "pricing",
       "url": "https://replit.com/pricing",
-      "status": "unchanged",
-      "signal_ids": [],
+      "status": "changed",
+      "signal_ids": [
+        "pr-100701"
+      ],
       "current": {
         "captured_at": "2026-10-11T17:11:04+00:00",
         "method": "archived",
@@ -73,8 +75,10 @@
       "competitor": "Replit",
       "page": "home",
       "url": "https://replit.com",
-      "status": "unchanged",
-      "signal_ids": [],
+      "status": "changed",
+      "signal_ids": [
+        "sg-100701"
+      ],
       "current": {
         "captured_at": "2026-10-11T17:11:00+00:00",
         "method": "archived",

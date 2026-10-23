@@ -70,7 +70,10 @@ def test_brief_sample():
     assert kind == "item" and item["confidence"] == 0.9 and "$20 → $25" in item["action"]
     kind, item = where["sg-301"]
     assert kind == "item" and item["confidence"] == 0.7 and "replit.com/pricing" in item["action"]
-    assert "same change as the item from sg-301" in where["sg-302"][1]
+    # One launch, two sources, two time formats: one item built from both ids.
+    assert item["source_ids"] == ["sg-301", "sg-302"] and where["sg-302"][1] is item
+    assert "Also reported by techblog.example" in item["why"]
+    assert item["change"] == ["Agent 4 is live for every plan"]
     assert "verify on https://bolt.new/pricing" in where["pr-402"][1]
     assert "rumor" in where["sg-304"][1]
     assert "instructions aimed at AI" in where["sg-303"][1]
@@ -100,7 +103,7 @@ def test_two_snapshots_that_differ_make_one_item():
     where = placement(out)
     kind, item = where["new"]
     assert kind == "item" and where["old"][1] is item, "the baseline is part of the item"
-    assert item["confidence"] == 0.95 and "Pro $25/month → Pro $30/month" in item["change"]
+    assert item["confidence"] == 0.95 and "Pro: $25/month → $30/month" in item["change"]
 
 
 def test_two_identical_snapshots_are_both_skipped():
@@ -125,7 +128,7 @@ def test_homepage_snapshots_compare_the_words():
         page("new", "The AI engineer for your team. Start for free.", path="/"),
     )
     kind, item = placement(out)["new"]
-    assert kind == "item" and "the ai engineer for your team" in item["change"][0]
+    assert kind == "item" and "The AI engineer for your team." in item["change"][0]
 
 
 def test_named_official_page_without_url_gets_its_link():
@@ -172,12 +175,15 @@ def test_third_party_is_never_an_item_even_from_good_press():
     assert kind == "skip" and "verify on https://lovable.dev/pricing" in reason
 
 
-def test_third_party_matching_an_official_item_points_to_it():
+def test_third_party_report_of_the_same_change_joins_the_official_item():
     out = run(
         page("off", "Pro plan now $30/month (was $25)."),
         other("tc", "techcrunch.com/lovable-pro", "Lovable raises Pro to $30/month."),
     )
-    assert "same change as the item from off" in placement(out)["tc"][1]
+    kind, item = placement(out)["tc"]
+    assert kind == "item" and item["source_ids"] == ["off", "tc"]
+    assert item["links"] == ["https://lovable.dev/pricing"], "the link stays the official page"
+    assert "Also reported by techcrunch.com/lovable-pro (press)" in item["why"]
 
 
 def test_contradicting_claim_from_reddit_is_skipped():
@@ -319,4 +325,61 @@ def test_two_captured_pages_compare_line_by_line():
     old = {**page("old", PAGE_TEXT, ts="2026-10-16T08:00:00Z"), "snapshot": True}
     new = {**page("new", PAGE_TEXT.replace("$25", "$30")), "snapshot": True}
     kind, item = placement(run(old, new))["new"]
-    assert kind == "item" and "Pro $25/ month → Pro $30/ month" in item["change"]
+    assert kind == "item" and "Pro: $25/ month → $30/ month" in item["change"]
+
+
+# ---- Grouping: one item per change, whatever the wording ------------------------------
+
+
+def test_same_change_in_other_words_is_one_item():
+    out = run(
+        page("off", "Pro plan now costs $30 per month, up from $25."),
+        other("verge", "theverge.com/2026/10/23/lovable", "Lovable raises Pro plan to $30/month"),
+    )
+    kind, item = placement(out)["verge"]
+    assert kind == "item" and item["source_ids"] == ["off", "verge"]
+    assert item["change"] == ["Pro: $25 → $30 per month"]
+
+
+def test_three_wordings_of_one_price_change_are_one_item():
+    out = run(
+        page("a", "Core plan bumped to $25/mo.", competitor="Replit"),
+        page("b", "Core now $25/month (was $20).", competitor="Replit"),
+        other("c", "replit.com/blog/pricing", "Starting Nov 1, Core moves to $25/month.", "Replit"),
+    )
+    items = {tuple(i["source_ids"]) for i in out["items"]}
+    assert len(items) == 1 and set(next(iter(items))) == {"a", "b", "c"}
+    assert out["items"][0]["change"] == ["Core: $20 → $25/month"]
+
+
+def test_different_changes_on_one_page_stay_separate_items():
+    lite = '"Bolt Lite ($9/month, invite only during the research preview)"'
+    out = run(
+        page("on", f"New on the pricing page: {lite}", "Bolt", ts="2026-10-20T08:00:00Z"),
+        page("off", f"No longer on the pricing page: {lite}", "Bolt", ts="2026-10-21T08:00:00Z"),
+    )
+    where = placement(out)
+    assert where["on"][0] == where["off"][0] == "item" and where["on"][1] is not where["off"][1]
+
+
+def test_a_specific_change_never_groups_with_a_vague_one_over_common_words():
+    out = run(
+        page(
+            "h",
+            'Headline changed from "Build something Lovable" to "Ship your startup today".',
+            path="/",
+        ),
+        other(
+            "ad",
+            "facebook.com/ads/library",
+            "Pro is now just $15/month for your first months.",
+            kind="ad",
+        ),
+    )
+    where = placement(out)
+    assert where["h"][1] is not where["ad"][1]
+
+
+def test_plan_removed_and_bumped_are_read_as_changes():
+    out = run(page("rm", "Business plan removed."), page("up", "Pro plan bumped to $30/mo."))
+    assert placement(out)["rm"][0] == "item" and placement(out)["up"][0] == "item"

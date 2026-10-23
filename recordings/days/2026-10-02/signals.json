@@ -1,18 +1,1 @@
-[
-  {
-    "id": "pr-100201",
-    "type": "pricing",
-    "competitor": "Replit",
-    "source": "replit.com/pricing",
-    "ts": "2026-10-02T13:25:01Z",
-    "text": "Pricing page text changed since Sep 29: now says \"replit is the ai platform that helps you turn your ideas into real outcomes describe what you want; natural language, then create, launch, and grow apps, sites, tools, and businesses in one place replit on x replit on youtube replit on linkedin replit on insta; data processing agreement\"; no longer says \"sunny california how to guides\"."
-  },
-  {
-    "id": "sg-100201",
-    "type": "launch",
-    "competitor": "Replit",
-    "source": "replit.com",
-    "ts": "2026-10-02T05:23:48Z",
-    "text": "Homepage text changed since Sep 27: now says \"replit is the ai platform that helps you turn your ideas into real outcomes describe what you want in natural language, then create, launch, and grow apps, site; data processing agreement\"; no longer says \"vibe coding 101 how to guides import from github; made in sunny california\"."
-  }
-]
+[]
