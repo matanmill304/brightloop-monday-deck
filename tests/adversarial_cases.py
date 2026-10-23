@@ -2,7 +2,7 @@
 
 Each case: the signals, what *should* happen to one id, and why it's hard. Cases we
 currently get wrong are marked `weak=True` with what we do instead. They're kept, not
-hidden: they are the list of known weaknesses (see the review pack, file 6).
+hidden: they are the list of known weaknesses.
 """
 
 TS = "2026-10-23T08:00:00Z"

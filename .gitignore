@@ -15,6 +15,7 @@ dist/
 
 # Local outputs and secrets
 /result.json
+/out/
 .env
 .env.*
 !.env.example

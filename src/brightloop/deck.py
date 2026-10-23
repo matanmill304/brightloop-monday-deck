@@ -6,7 +6,7 @@ one status line and, when the analysis kept something, one dated line per item (
 stay in result.json. Wrong content on a slide is a problem in an earlier step, not here.
 
 Rendered as HTML (the web app) and .pptx (opens in Google Slides via File → Import), from the
-same slide data. Design reference: review/deck-mock/slide-v3.html.
+same slide data.
 """
 
 from __future__ import annotations
