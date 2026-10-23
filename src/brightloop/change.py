@@ -134,6 +134,20 @@ class PageState:
     prices: dict[str, str] = field(default_factory=dict)  # plan -> price, when readable
     amounts: set[str] = field(default_factory=set)
     blocks: list[str] = field(default_factory=list)  # visible text lines, normalized
+    billing: str | None = None  # monthly | yearly: which view of a toggle page was captured
+
+
+BILLED_YEARLY = re.compile(
+    r"\bbilled (annually|yearly)\b|\bper year\b|/\s?(year|yr)\b", re.IGNORECASE
+)
+BILLED_MONTHLY = re.compile(r"\bbilled monthly\b", re.IGNORECASE)
+
+
+def billing_view(text: str) -> str | None:
+    yearly, monthly = bool(BILLED_YEARLY.search(text)), bool(BILLED_MONTHLY.search(text))
+    if yearly == monthly:
+        return None  # no toggle, or both shown: nothing to tell apart
+    return "yearly" if yearly else "monthly"
 
 
 PLAN_PRICE = re.compile(rf"\b({PLAN_NAMES})\b[^$€£.\n]{{0,25}}?({AMOUNT}{UNIT})", re.IGNORECASE)
@@ -178,7 +192,9 @@ def page_state(text: str) -> PageState:
         and not NOISE_LINE.search(line.strip())
         and not (SHORT_LINE.fullmatch(line.strip()) and not re.search(AMOUNT, line))
     ]
-    return PageState(prices=prices, amounts=amounts, blocks=[b for b in blocks if b])
+    return PageState(
+        prices=prices, amounts=amounts, blocks=[b for b in blocks if b], billing=billing_view(text)
+    )
 
 
 def compare(old: PageState, new: PageState, same_method: bool = True) -> list[Change]:
@@ -189,8 +205,11 @@ def compare(old: PageState, new: PageState, same_method: bool = True) -> list[Ch
     prices are compared, and only when both sides show them.
     """
     changes: list[Change] = []
+    if old.billing and new.billing and old.billing != new.billing:
+        # Monthly view vs annual view of the same toggle: prices aren't comparable; text is.
+        old, new = without_prices(old), without_prices(new)
     for plan in sorted(old.prices.keys() & new.prices.keys()):
-        if old.prices[plan] != new.prices[plan]:
+        if number(old.prices[plan]) != number(new.prices[plan]):
             changes.append(
                 Change("price", f"{plan} {old.prices[plan]}", f"{plan} {new.prices[plan]}")
             )
@@ -202,7 +221,9 @@ def compare(old: PageState, new: PageState, same_method: bool = True) -> list[Ch
             changes.append(Change("plan_removed", old=f"{plan} {old.prices[plan]}"))
     # Amounts on only one side mean that side wasn't readable (e.g. prices drawn by a script
     # that didn't run in the archive), not that every price appeared or vanished.
-    if not changes and old.amounts and new.amounts and old.amounts != new.amounts:
+    old_numbers = {number(a) for a in old.amounts}
+    new_numbers = {number(a) for a in new.amounts}
+    if not changes and old_numbers and new_numbers and old_numbers != new_numbers:
         changes.append(
             Change("price", ", ".join(sorted(old.amounts)), ", ".join(sorted(new.amounts)))
         )
@@ -297,3 +318,9 @@ def all_price_changes(text: str) -> list[Change]:
 def looks_like_failed_capture(old: PageState, new: PageState) -> bool:
     """A page that suddenly lost all its prices and almost all its text was not captured."""
     return bool(old.amounts) and not new.amounts and len(new.blocks) <= 2
+
+
+def without_prices(state: PageState) -> PageState:
+    """The same page state with prices removed (and lines that are only amounts)."""
+    blocks = [b for b in state.blocks if not re.fullmatch(rf"[\s{re.escape('$€£')}\d.,/a-z]*", b)]
+    return PageState(prices={}, amounts=set(), blocks=blocks, billing=state.billing)
