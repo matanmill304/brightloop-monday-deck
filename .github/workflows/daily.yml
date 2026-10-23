@@ -1,0 +1,62 @@
+name: daily
+
+# Every day: capture Maya's pages and compare them with the day before.
+# Mondays: also roll last week's signals into cases.json, result.json and the deck.
+# 04:30 UTC = 06:30 in Israel's winter time (UTC+2), 07:30 in summer time (UTC+3):
+# the deck is ready before Maya starts at 08:30 all year round.
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Day to collect, e.g. 2026-10-23 (empty = today; a past day uses Wayback copies)"
+        required: false
+      week:
+        description: "Also build this ISO week's deck, e.g. 2026-W43 (empty = only on Mondays, last week)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ".[collect]"
+      - run: python -m playwright install --with-deps chromium
+      - name: Capture today's pages and compare with the day before
+        run: |
+          if [ -n "${{ inputs.date }}" ]; then
+            brightloop collect --date "${{ inputs.date }}" --archived
+          else
+            brightloop collect
+          fi
+      - name: Monday (Israel time), or a week asked for, build the week's deck
+        run: |
+          if [ -n "${{ inputs.week }}" ]; then
+            brightloop week --week "${{ inputs.week }}"
+          elif [ "$(TZ=Asia/Jerusalem date +%u)" = "1" ]; then
+            brightloop week
+          else
+            echo "not Monday: no deck today"
+          fi
+      - name: Build the web app
+        run: python scripts/build_site.py
+      - name: Commit the recording (Vercel redeploys from the repo)
+        run: |
+          git config user.name "brightloop-bot"
+          git config user.email "brightloop-bot@users.noreply.github.com"
+          git add recordings public
+          git diff --cached --quiet && echo "nothing new" && exit 0
+          git commit -m "Daily run $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push

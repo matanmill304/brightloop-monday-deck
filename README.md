@@ -23,16 +23,16 @@ It replays every recorded real run in `recordings/` (the result must match the r
 ./run --input cases.json --output result.json
 ```
 
-Or upload `cases.json` on the live app's **Test** page and download `result.json`. Both run the same pipeline as the weekly job; only the source of the signals differs.
+Or upload `cases.json` on the live app's **Test** page and download `result.json`. Both run the same pipeline as the scheduled job; only the source of the signals differs.
 
 ## How it works
 
 ```
-weekly (GitHub Actions, Mon 05:30 UTC)                 test (./run or the upload page)
+daily (GitHub Actions, 04:30 UTC)                      test (./run or the upload page)
   capture 6 pages (live; Wayback copy if blocked)        your cases.json
-  compare with last week's snapshots                           │
+  compare with the day before                                  │
   each change -> one signal (the brief's input shape)          │
-           └────────────── cases.json ─────────────────────────┤
+Mondays: last week's signals -> cases.json ────────────────────┤
                                                                ▼
                       the pipeline (src/brightloop/select.py, no keys)
                       read → normalize → decision tree → write → safety → accounting
@@ -85,8 +85,9 @@ Confidence: 0.95 two snapshots of the official page compared · 0.9 stated on th
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev,collect]" && python -m playwright install chromium
 pytest
-brightloop collect                 # capture this week (needs network)
-brightloop deck recordings/2026-W43
+brightloop collect                 # capture today's pages, compare with the day before (needs network)
+brightloop week --week 2026-W43    # the week's signals -> cases.json, result.json, deck
+python scripts/backfill.py --weeks 3   # one-time history from the Wayback Machine (slow)
 python scripts/build_site.py       # the web app in public/
 ```
 
@@ -96,5 +97,6 @@ python scripts/build_site.py       # the web app in public/
 | `src/brightloop/collect/` | Page capture and event signals |
 | `src/brightloop/deck.py` | The deck (HTML + .pptx) |
 | `api/run.py`, `scripts/build_site.py` | The web app (Vercel) |
-| `recordings/<week>/` | Each real run: signals, result, snapshots, screenshots, deck |
-| `.github/workflows/weekly.yml` | The Monday schedule (and "run now") |
+| `recordings/days/<date>/` | Each day: snapshots, screenshots, that day's signals |
+| `recordings/weeks/<week>/` | Each Monday: the week's `cases.json`, `result.json`, deck |
+| `.github/workflows/daily.yml` | The daily capture, Monday's deck (and "run now") |
