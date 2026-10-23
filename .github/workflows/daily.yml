@@ -35,24 +35,29 @@ jobs:
       - run: pip install ".[collect]"
       # Real Chrome on a virtual screen: Cloudflare blocks headless Chrome on some pages.
       - run: python -m playwright install --with-deps chrome
+      # Inputs reach the shell as environment variables, never pasted into the script.
       - name: Capture today's pages and compare with the day before
+        env:
+          DATE: ${{ inputs.date }}
         run: |
-          if [ -n "${{ inputs.date }}" ]; then
-            xvfb-run -a brightloop collect --date "${{ inputs.date }}" --archived
+          if [ -n "$DATE" ]; then
+            xvfb-run -a brightloop collect --date "$DATE" --archived
           else
             xvfb-run -a brightloop collect
           fi
       - name: Monday (Israel time), or a week asked for, build the week's deck
+        env:
+          WEEK: ${{ inputs.week }}
         run: |
-          if [ -n "${{ inputs.week }}" ]; then
-            brightloop week --week "${{ inputs.week }}"
+          if [ -n "$WEEK" ]; then
+            brightloop week --week "$WEEK"
           elif [ "$(TZ=Asia/Jerusalem date +%u)" = "1" ]; then
             brightloop week
           else
             echo "not Monday: no final deck today"
           fi
       - name: Refresh this week's deck so far (the app shows the week in progress)
-        run: brightloop week --week "$(TZ=Asia/Jerusalem date +%G-W%V)"
+        run: brightloop week --refresh --week "$(TZ=Asia/Jerusalem date +%G-W%V)"
       - name: Build the web app (public/)
         run: python scripts/build_site.py
       - name: Commit the recording and the app (Vercel redeploys from the repo)
@@ -62,4 +67,4 @@ jobs:
           git add recordings public
           git diff --cached --quiet && echo "nothing new" && exit 0
           git commit -m "Daily run $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push
+          git pull --rebase --autostash && git push

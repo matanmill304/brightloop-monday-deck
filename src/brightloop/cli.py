@@ -40,6 +40,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     week_cmd.add_argument("--week", help="ISO week, e.g. 2026-W43 (default: last complete week)")
     week_cmd.add_argument("--root", type=Path, default=Path("recordings"))
+    week_cmd.add_argument(
+        "--refresh", action="store_true", help="Update the week in progress; no run-log line"
+    )
 
     deck_cmd = sub.add_parser("deck", help="Build deck.html and deck.pptx for a recorded week")
     deck_cmd.add_argument("folder", type=Path, help="e.g. recordings/2026-W43")
@@ -66,7 +69,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "week":
         from brightloop.collect.run import build_week, last_complete_week
 
-        print(json.dumps(build_week(args.week or last_complete_week(), args.root), indent=2))
+        week = args.week or last_complete_week()
+        print(json.dumps(build_week(week, args.root, final=not args.refresh), indent=2))
         return 0
     return 2
 
