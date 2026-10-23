@@ -2,7 +2,7 @@
 
 Used where the decision tree (select.py) still needs to read meaning: is an official
 announcement about pricing, and is an amount company finance rather than a price.
-With a Jev key these questions could be answered by Jev instead (see decisions).
+No model answers them instead: the same rules run live and on the reviewers' files (D26).
 """
 
 from __future__ import annotations

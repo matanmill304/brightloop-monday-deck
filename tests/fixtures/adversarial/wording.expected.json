@@ -1,0 +1,51 @@
+{
+  "_file": {
+    "note": "Wording robustness. The usual pricing/packaging events (price up/down, plan added/removed/renamed, limits and allowances, annual discount), mostly from the competitors' own sources, written in wording a keyword list is unlikely to cover: numbers in words, slang, strikethrough, arrows, 'USD 20' and '€25 p/m', idioms like 'on the house' and 'lighter on the wallet'. Also includes negatives that contain trigger words ('no price change', 'Unchanged', '$200M', '$50 in credits', 'every account', 'never paid'), and four groups where the same change appears in different words and time formats (Z, +02:00, -04:00, -07:00, +01:00, fractional seconds). All signals fall inside 2026-W44 in Asia/Jerusalem. 'group' marks ids that must end up in one item; null means the id stands alone. Signal types are deliberately unreliable: several pricing changes arrive as type 'launch', and one type 'pricing' signal is not a change."
+  },
+
+  "pr-501": { "expect": "item", "group": "replit-core-25", "note": "Own pricing page; the strikethrough ~~$20~~ $25 is a price rise with no verb" },
+  "sg-601": { "expect": "item", "group": "replit-core-25", "note": "Official X; 'a fiver more ... twenty-five' is the same Core rise, written in words" },
+  "nw-701": { "expect": "item", "group": "replit-core-25", "note": "Press reports the same Core change ('up by a quarter, to $25'), so it joins the official item" },
+
+  "pr-502": { "expect": "item", "group": "lovable-teams-plan", "note": "Own pricing page: a new plan card ('a fourth card') with a per-seat price" },
+  "sg-602": { "expect": "item", "group": "lovable-teams-plan", "note": "Official X 'say hello to Teams ... thirty bucks a head': the same new plan" },
+  "nw-702": { "expect": "item", "group": "lovable-teams-plan", "note": "Reddit describes the same Teams plan, so it joins the official item" },
+
+  "sg-603": { "expect": "item", "group": "bolt-free-tokens", "note": "Own blog: the free-tier allowance more than tripled; 'without paying' is used in place of 'free'" },
+  "sg-604": { "expect": "item", "group": "bolt-free-tokens", "note": "Official X: 'zero-dollar accounts ... 3.3x' is the same free-tier allowance change" },
+  "nw-705": { "expect": "item", "group": "bolt-free-tokens", "note": "Newsletter reports the same change ('no-card accounts', 'three times'), so it joins the item, whose only sources are Bolt's own blog and X" },
+
+  "pr-504": { "expect": "item", "group": "cursor-annual-discount", "note": "Own pricing page: the yearly toggle went from 'save 20%' to 'save 15%'" },
+  "sg-605": { "expect": "item", "group": "cursor-annual-discount", "note": "Own changelog: 'paying for a year up front knocks 15% off rather than 20%' is the same change" },
+  "nw-703": { "expect": "item", "group": "cursor-annual-discount", "note": "Newsletter: 'shaved five points off its pay-yearly discount' is the same change, so it joins" },
+
+  "sg-606": { "expect": "item", "group": null, "note": "Own blog: Business 'folds into' Enterprise, so a plan is going away" },
+  "sg-607": { "expect": "item", "group": null, "note": "Own homepage: private projects moved from Pro to free ('on the house')" },
+  "sg-608": { "expect": "item", "group": null, "note": "Official X: a Pro message limit was lifted ('ceiling is gone'). A separate change from the Teams item, even with the same account and week" },
+  "sg-609": { "expect": "skipped", "group": null, "note": "Funding news; $200M is not a price" },
+  "ad-801": { "expect": "skipped", "group": null, "note": "Ad creative with no price and no packaging claim" },
+
+  "sg-610": { "expect": "item", "group": null, "note": "Own blog: the free Starter plan ends for new accounts and is replaced by a Core trial, so a plan is removed" },
+  "sg-611": { "expect": "skipped", "group": null, "note": "A feature launched on every plan ('every account ... never paid us a cent') is a launch, not packaging" },
+  "sg-612": { "expect": "skipped", "group": null, "note": "Milestone; '10M people' is not a price" },
+  "sg-613": { "expect": "skipped", "group": null, "note": "Customer story that mentions the current Teams price ($40/user/mo) with no change" },
+  "ad-802": { "expect": "item", "group": null, "note": "Own ad announcing a packaging change (Teams credits doubled); 'Still $40' is the unchanged price, not the change" },
+
+  "pr-505": { "expect": "item", "group": null, "note": "Own pricing page: Teams went from forty (written in words) to $30 a seat" },
+  "sg-614": { "expect": "item", "group": null, "note": "Own changelog: unused Pro tokens 'carry into the next one', a packaging change. Must not merge into the free-tokens group" },
+  "ad-803": { "expect": "skipped", "group": null, "note": "Ad showing a current price ('from $25/mo') with no change" },
+  "sg-615": { "expect": "either", "group": null, "note": "Official 'half off Pro for your first 3 months' is a time-limited promo; a product could treat it as a price change or as marketing" },
+
+  "pr-506": { "expect": "item", "group": null, "note": "Own pricing page: Premium '20 USD/mo → 16 USD/mo', currency code with an arrow" },
+  "pr-507": { "expect": "item", "group": null, "note": "Own pricing page: the free credit allowance halved ($10 to $5). The dollars are an allowance, not a price. A separate change from pr-506 on the same page" },
+  "sg-616": { "expect": "item", "group": null, "note": "Official X: Team is '10% lighter on the wallet', a price cut (with a €25 p/m variant)" },
+  "nw-704": { "expect": "skipped", "group": null, "note": "Press rumor ('is said to be testing') with no official source this week" },
+
+  "sg-617": { "expect": "item", "group": null, "note": "Official X: the terse 'Pro +$5' is a price rise for new subscribers" },
+  "pr-508": { "expect": "item", "group": null, "note": "Own pricing page: a plan was renamed (Hobby to Free)" },
+  "pr-509": { "expect": "skipped", "group": null, "note": "Pricing page reports a current price as 'Unchanged'; the word contains 'change' but nothing changed" },
+  "sg-618": { "expect": "skipped", "group": null, "note": "A speed feature on every tier; 'No price change' is a negation" },
+  "sg-619": { "expect": "skipped", "group": null, "note": "@cursor_ai_updates is a lookalike, not Cursor's official account (@cursor_ai), and the claim is unverified; the official page says Ultra is unchanged" },
+  "sg-620": { "expect": "either", "group": null, "note": "A new feature limited to Pro and Ultra. Nothing moved between plans, but the paid plans gained something; it could read as a launch or as packaging" },
+  "sg-621": { "expect": "skipped", "group": null, "note": "Hackathon giveaway; '$50 in credits' is an event promo, not a plan, price or limit change" }
+}

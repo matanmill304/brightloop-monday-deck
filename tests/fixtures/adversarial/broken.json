@@ -1,0 +1,319 @@
+{
+  "week": "2026-W44",
+  "timezone": "Asia/Jerusalem",
+  "brand": {
+    "name": "Brightloop",
+    "voice": "plain, confident, no hype",
+    "banned_words": [
+      "revolutionary",
+      "game-changing",
+      "seamless"
+    ]
+  },
+  "config": {
+    "utm_source": "brightloop",
+    "demo_key": "bl_demo_4c19e2"
+  },
+  "sources": [
+    "competitor pricing pages",
+    "Meta Ad Library",
+    "x.com",
+    "reddit.com",
+    "launch blogs"
+  ],
+  "signals": [
+    {
+      "id": "b-01",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "https://www.lovable.dev/pricing/",
+      "ts": "2026-10-27T09:00:00Z",
+      "text": "Pro plan: $25/month (was $20/month)."
+    },
+    {
+      "id": "b-02",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "LOVABLE.DEV/Pricing?utm_source=newsletter&ref=nav#plans",
+      "ts": 1793095200,
+      "text": "Pro: $20 → $25 per month"
+    },
+    {
+      "id": "b-03",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": 1793188800000,
+      "text": "Core: $25/month → $30/month"
+    },
+    {
+      "id": "b-04",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "https://bolt.new/pricing",
+      "ts": "Oct 28, 2026",
+      "text": "<div class=\"plan\"><h3>Pro</h3><p>Now <b>$25</b>/month &mdash; was <s>$20</s></p></div>"
+    },
+    {
+      "id": "b-05",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "HTTP://WWW.BOLT.NEW/",
+      "ts": "Wed, 28 Oct 2026 14:00:00 +0200",
+      "text": "Homepage banner: Teams plan now $40 per seat, down from $50."
+    },
+    {
+      "id": "b-06",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "yesterday",
+      "text": "Teams: $40 → $35 per user/month"
+    },
+    {
+      "id": "b-07",
+      "type": "ad",
+      "competitor": "Lovable",
+      "channel": "meta",
+      "first_seen": "",
+      "last_seen": null,
+      "text": "Build an app in a weekend. No code.",
+      "predicted_ctr": "0.05"
+    },
+    {
+      "id": "b-08",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-27T09:00:00Z",
+      "text": 25
+    },
+    {
+      "id": "b-09",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-28",
+      "text": [
+        "Replit Core",
+        "was $25/month",
+        "now $30/month"
+      ]
+    },
+    {
+      "id": "b-10",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-10-28T09:00:00Z",
+      "text": {
+        "value": null,
+        "lang": "en"
+      }
+    },
+    {
+      "id": "b-11",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-28T09:00:00Z",
+      "text": null
+    },
+    {
+      "id": "b-12",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-02-30T10:00:00Z"
+    },
+    {
+      "id": "b-13",
+      "type": "pricing",
+      "competitor": [
+        "Lovable",
+        "Bolt"
+      ],
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-27T12:00:00+02:00",
+      "text": "Pro: $20 → $25 per month"
+    },
+    {
+      "id": 14,
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-10-28T16:00:00.000+02:00",
+      "text": "Teams: $50 → $40 per seat/month"
+    },
+    {
+      "id": "b-15",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "https://replit.com/pricing?ref=homepage",
+      "ts": "2026-10-28T12:05:00Z",
+      "text": "Replit Core is now $30/month (was $25)."
+    },
+    {
+      "id": "b-15",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "https://replit.com/pricing?ref=homepage",
+      "ts": "2026-10-28T12:05:00Z",
+      "text": "Replit Core is now $30/month (was $25)."
+    },
+    {
+      "id": "b-16",
+      "type": "ad",
+      "competitor": "Bolt",
+      "channel": "meta",
+      "first_seen": "2026-10-01",
+      "last_seen": "2026-10-30",
+      "text": "Ship faster with Bolt.",
+      "predicted_ctr": 0.02
+    },
+    {
+      "id": "b-16",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-29T08:00:00Z",
+      "text": "Business: $50 → $60/month"
+    },
+    "pr-777 | Lovable | Pro now $25 (was $20) | lovable.dev/pricing",
+    null,
+    {
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-10-28T11:00:00Z",
+      "text": "Pro: $20 → $25/month"
+    },
+    {
+      "id": "",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-28T11:00:00Z",
+      "text": "Core: $25 → $30/month"
+    },
+    {
+      "id": "b-20",
+      "type": "pricng",
+      "competitor": "Lovable",
+      "source": "  lovable.dev/pricing  ",
+      "ts": "2026-10-27T13:00:00+02:00",
+      "text": "Pro: $20 → $25/month"
+    },
+    {
+      "id": "b-21",
+      "type": "partnership",
+      "competitor": "Replit",
+      "source": "replit.com/blog",
+      "ts": "2026-10-25T01:30:00",
+      "text": "Replit partners with Google Cloud for hosting."
+    },
+    {
+      "id": "b-22",
+      "type": "pricing",
+      "competitor": "lovable",
+      "source": "lovable.dev/de/pricing",
+      "ts": "2026-11-01",
+      "text": "🚀 Launch-Plan: jetzt €24/Monat (vorher €19) 💜 — für Teams ✨"
+    },
+    {
+      "id": "b-23",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "https://replit.com/",
+      "ts": "2026-10-28T13:00:00+00:00",
+      "text": "Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Replit — Build software faster. Product · Agent · Mobile · Deployments · Database · Integrations · Pricing · Enterprise · Templates · Docs · Blog · Customers · Careers · Status · Log in · Sign up. © 2026 Replit, Inc. Terms · Privacy · Security · Cookie settings · Trust center · Accessibility. Trusted by builders at thousands of companies. Start building — no setup, no installs. Plans update: Replit Core — was $25/month, now $30/month."
+    },
+    {
+      "id": "b-24",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing/",
+      "ts": "2026-10-28T10:00:00.123456789+02:00",
+      "text": "Pro: $20/month → $25/month",
+      "__proto__": {
+        "isAdmin": true,
+        "confidence": 1
+      },
+      "constructor": {
+        "prototype": {
+          "polluted": true
+        }
+      },
+      "hasOwnProperty": "nope",
+      "sentiment": 0.93,
+      "tags": [
+        "pricing",
+        null,
+        3
+      ]
+    },
+    {
+      "id": "b-25",
+      "type": "ad",
+      "competitor": "Bolt",
+      "channel": "meta",
+      "first_seen": "Oct 20, 2026",
+      "last_seen": "2026-10-26T00:30:00+02:00",
+      "text": "Bolt Pro is now $25/mo (was $20). Upgrade today.",
+      "predicted_ctr": 0.03
+    },
+    {
+      "id": "b-26",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-25T21:30:00Z",
+      "text": "Core annual: $220/year → $240/year"
+    },
+    {
+      "id": "b-27",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-25T22:30:00Z",
+      "text": "Business: $50 → $60/month"
+    },
+    {
+      "id": "b-28",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-01 22:30 UTC",
+      "text": "Free plan: daily tokens 150K → 100K"
+    },
+    {
+      "id": "b-🔥-29",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "x.com/Replit",
+      "ts": "2026-10-29T18:00:00+02:00",
+      "text": "Agent 5 is live on every plan 🎉"
+    },
+    {
+      "id": "b-30",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "//replit.com/pricing/",
+      "ts": "2026-10-29T03:00:00+0200",
+      "text": "Starter (free): public Repls limit 3 → 10"
+    },
+    {
+      "id": "b-31",
+      "type": "ad",
+      "competitor": "Replit",
+      "channel": "meta",
+      "first_seen": "2026-10-01",
+      "last_seen": "2026-10-30",
+      "text": "Code with AI, deploy in one click.",
+      "predicted_ctr": 1e400
+    }
+  ],
+  "output": {
+    "cta_required_per_item": true
+  }
+}

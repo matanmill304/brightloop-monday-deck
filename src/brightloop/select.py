@@ -23,6 +23,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from functools import lru_cache
 
 from brightloop.change import (
     PLAN_NAMES,
@@ -392,7 +393,13 @@ def same_event(a: Signal, b: Signal) -> bool:
 
 def change_key(s: Signal) -> tuple | None:
     """What exactly changed, comparable across wordings; None when it isn't that specific."""
-    change = stated_change(s.text)
+    return text_key(s.text)
+
+
+@lru_cache(maxsize=65536)
+def text_key(text: str) -> tuple | None:
+    """change_key for one text, computed once: grouping compares every pair of signals."""
+    change = stated_change(text)
     if change is None:
         return None
     if change.kind == "price" and change.new:
@@ -430,13 +437,18 @@ COMMON_WORDS = frozenset(
 def anchors(s: Signal) -> set[str]:
     """Distinctive words two reports of one event share: not numbers, plan names, the
     competitor's own name, or change verbs."""
-    own = {*name_roots(s.competitor), s.competitor.lower()}
-    words = content_words(s.text) - GENERIC_WORDS - CHANGE_VERBS - COMMON_WORDS - own
-    return {
+    return text_anchors(s.text, s.competitor)
+
+
+@lru_cache(maxsize=65536)
+def text_anchors(text: str, competitor: str) -> frozenset[str]:
+    own = {*name_roots(competitor), competitor.lower()}
+    words = content_words(text) - GENERIC_WORDS - CHANGE_VERBS - COMMON_WORDS - own
+    return frozenset(
         w
         for w in words
         if len(w) >= 3 and not w.replace(".", "").isdigit() and not re.fullmatch(PLAN_NAMES, w)
-    }
+    )
 
 
 GENERIC_WORDS = frozenset(

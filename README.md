@@ -75,7 +75,7 @@ Confidence: 0.95 two snapshots of the official page compared · 0.9 stated on th
 
 ## Known limits
 
-- Without keys, reading is rule-based: unusual wording can be missed (it's skipped with a reason, never shown as fact). An LLM/Jev pass is planned for the live app only.
+- Without keys, reading is rule-based: unusual wording can be missed (it's skipped with a reason, never shown as fact). There is no LLM by design: the live app and a keyless clone run the same rules (decisions D26).
 - English pages; US-style dates (`10/23/2026`) are read as "no date".
 - Replit's pages and Lovable's homepage block automated access. We never bypass that: those come from the Wayback Machine's latest copy, labeled with its date, which can be days old or missing.
 
