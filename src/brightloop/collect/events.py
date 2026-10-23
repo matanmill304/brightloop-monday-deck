@@ -29,8 +29,27 @@ def page_events(previous: Snapshot, current: Snapshot, tz: ZoneInfo) -> tuple[st
     sentences = []
     if headline_changed(previous.headline, current.headline):
         sentences.append(f'Headline changed from "{previous.headline}" to "{current.headline}".')
+    sentences += hero_changes(previous.hero, current.hero)
     sentences += [s for s in (sentence(c, current.page, then) for c in compare(old, new)) if s]
     return ("changed" if sentences else "unchanged"), sentences
+
+
+def hero_changes(old: dict | None, new: dict | None) -> list[str]:
+    """The line under the headline and the buttons next to it, compared as whole lines.
+    Only between two captures that both read the top of the page (captures from Oct 24 on)."""
+    if not old or not new:
+        return []
+    out = []
+    before, after = (old.get("subheadline") or "").strip(), (new.get("subheadline") or "").strip()
+    if before and after and before.lower() != after.lower():
+        out.append(f'Subheadline changed from "{before}" to "{after}".')
+    was, now = list(old.get("buttons") or []), list(new.get("buttons") or [])
+    added = [b for b in now if b not in was]
+    removed = [b for b in was if b not in now]
+    if was and now and (added or removed):
+        parts = [f'now "{b}"' for b in added] + [f'no longer "{b}"' for b in removed]
+        out.append("Top-of-page buttons changed: " + "; ".join(parts) + ".")
+    return out
 
 
 def headline_changed(old: str, new: str) -> bool:

@@ -440,8 +440,8 @@ def text_key(text: str) -> tuple | None:
         return (change.kind, change.plan)
     if change.kind in ("line_added", "line_removed", "line_changed"):
         return (change.kind, (change.new or change.old or "").lower())
-    if change.kind == "headline":
-        return ("headline", (change.new or "").lower())
+    if change.kind in ("headline", "subheadline", "buttons"):
+        return (change.kind, (change.new or "").lower())
     if change.kind == "limits" and change.new:
         return ("limits", change.plan, number(change.new))
     return None

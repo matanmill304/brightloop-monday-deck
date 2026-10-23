@@ -61,6 +61,8 @@ PLAN_REMOVED = re.compile(
 OUR_EDIT = re.compile(r'^Changed on the (pricing page|homepage): "(.+)" → "(.+)"', re.IGNORECASE)
 OUR_LINE = re.compile(r'^(New on|No longer on) the (pricing page|homepage): "(.+)"', re.IGNORECASE)
 OUR_HEADLINE = re.compile(r'^Headline changed from "(.*)" to "(.*)"', re.IGNORECASE)
+OUR_SUBHEAD = re.compile(r'^Subheadline changed from "(.*)" to "(.*)"', re.IGNORECASE)
+OUR_BUTTONS = re.compile(r"^Top-of-page buttons changed: (.+?)\.?$", re.IGNORECASE)
 RENAMED = re.compile(r"\brenam\w*\b", re.IGNORECASE)
 LIMITS = re.compile(
     r"\b(credits?|limits?|quotas?|requests?|messages?|usage|tokens?|seats?|minutes|builds?)\b",
@@ -245,6 +247,10 @@ def stated_change(text: str) -> Change | None:
         return Change("line_removed", old=quote, evidence=m.group(0), plan=plan_name(quote))
     if m := OUR_HEADLINE.match(text):
         return Change("headline", m.group(1), m.group(2), m.group(0))
+    if m := OUR_SUBHEAD.match(text):
+        return Change("subheadline", m.group(1), m.group(2), m.group(0))
+    if m := OUR_BUTTONS.match(text):
+        return Change("buttons", new=m.group(1), evidence=m.group(0))
     # Domain names are not words: "Bolt.new" must not read as "new".
     text = prepare(DOMAIN_LIKE.sub(" ", text))
     # Money is not a price: "raises $330M at a $6.6B valuation" is company news.
@@ -519,6 +525,10 @@ def describe(change: Change) -> str:
         return f"plan removed: {plan}{change.old or ''}".strip()
     if change.kind == "headline":
         return f'headline: "{change.old}" → "{change.new}"'
+    if change.kind == "subheadline":
+        return f'subheadline: "{change.old}" → "{change.new}"'
+    if change.kind == "buttons":
+        return f"top-of-page buttons: {change.new}"
     if change.kind == "line_changed":
         return f'"{change.old}" → "{change.new}"'
     if change.kind == "line_added" and change.new:
