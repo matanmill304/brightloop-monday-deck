@@ -1,0 +1,29 @@
+{
+  "week": "2026-W42",
+  "timezone": "Asia/Jerusalem",
+  "brand": {
+    "name": "Brightloop",
+    "voice": "plain, confident, no hype",
+    "banned_words": [
+      "revolutionary",
+      "game-changing",
+      "seamless"
+    ]
+  },
+  "config": {
+    "utm_source": "brightloop"
+  },
+  "output": {
+    "cta_required_per_item": true
+  },
+  "signals": [
+    {
+      "id": "pr-101601",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-16T13:32:38Z",
+      "text": "Pricing page text changed since Oct 15: now says \"sso, scim audit logs centralized security management; private networking options dedicated premium support\"; no longer says \"custom seat limits; environments static outbound ips\"."
+    }
+  ]
+}
