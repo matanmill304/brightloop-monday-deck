@@ -283,7 +283,7 @@ def page_key(s: Signal) -> tuple[str, str]:
 def decide_announcement(s: Signal, result: Selection) -> None:
     change = stated_change(s.text)
     pricing = is_pricing_related(s) or (change is not None and change.kind in PRICING_KINDS)
-    is_ad_offer = s.type == "ad" and bool(prices(s.text))
+    is_ad_offer = s.type == "ad" and bool(prices(s.text)) and bool(PROMO.search(s.text))
     if pricing and (change is not None or is_ad_offer):
         result.candidates.append(
             with_penalties(
@@ -299,6 +299,8 @@ def decide_announcement(s: Signal, result: Selection) -> None:
         return
     if s.type == "ad":
         reason = "Ad creative with no pricing claim: Daniel's area (paid), not Maya's deck."
+        if prices(s.text):
+            reason = "Ad showing the current price, not a change: Daniel's area (paid)."
         weeks = running_weeks(s)
         if weeks is not None and weeks >= 8:
             reason += f" It has been running about {weeks} weeks, so worth passing to Daniel."
@@ -352,7 +354,7 @@ def merge_same_events(candidates: list[Candidate]) -> list[Candidate]:
         if home is None:
             merged.append(c)
         else:
-            home.signals.extend(c.signals)
+            home.signals[:0] = c.signals  # the first source found stays the lead
             home.changes.extend(c.changes)
             if c.track != "announced":
                 home.confidence = max(home.confidence, c.confidence)
@@ -362,7 +364,9 @@ def merge_same_events(candidates: list[Candidate]) -> list[Candidate]:
 def mergeable(kept: Candidate, new: Candidate) -> bool:
     """Announcements join the item of the same change; two different pages never merge."""
     if new.track != "announced" and kept.track != "announced" and kept.lead.page != new.lead.page:
-        return False
+        key = change_key(kept.lead)
+        if not (key and key == change_key(new.lead)):
+            return False  # two pages merge only when they state the same specific change
     if new.track == "compared" or kept.track == "compared" and new.track != "announced":
         return False  # a compared page is its own item; only announcements join it
     return any(same_event(a, b) for a in kept.signals for b in new.signals)
@@ -381,7 +385,7 @@ def same_event(a: Signal, b: Signal) -> bool:
     """
     if a.competitor != b.competitor:
         return False
-    if a.when and b.when and abs(a.when - b.when) > SAME_EVENT:
+    if not close_in_time(a, b):
         return False
     key_a, key_b = change_key(a), change_key(b)
     if key_a or key_b:
@@ -389,6 +393,28 @@ def same_event(a: Signal, b: Signal) -> bool:
     # Neither is that specific ("Agent 4 is live for every plan" / "Replit rolls out Agent 4
     # to all tiers"): the same event only if they share a distinctive name, not common words.
     return bool(anchors(a) & anchors(b))
+
+
+def close_in_time(a: Signal, b: Signal) -> bool:
+    """Within SAME_EVENT of each other. An ad's time is its whole run, not one day."""
+    spans = []
+    for s in (a, b):
+        start = s.first_seen or s.ts or s.last_seen
+        end = s.last_seen or s.ts or s.first_seen
+        if start is None:
+            return True  # no date: time can't rule it out
+        spans.append((start, end))
+    gap = max(spans[0][0], spans[1][0]) - min(spans[0][1], spans[1][1])
+    return gap <= SAME_EVENT
+
+
+# An ad that offers something ("for your first 3 months", "20% off", "now $35") vs one that
+# shows a price ("from $25/mo").
+PROMO = re.compile(
+    r"\b(for (your|the) first|for \d+ months?|off|limited|this week|only|was|save|discount|introductory|promo"
+    r"|deal|now|down from|up from)\b|%",
+    re.IGNORECASE,
+)
 
 
 def change_key(s: Signal) -> tuple | None:
@@ -410,6 +436,8 @@ def text_key(text: str) -> tuple | None:
         return (change.kind, (change.new or change.old or "").lower())
     if change.kind == "headline":
         return ("headline", (change.new or "").lower())
+    if change.kind == "limits" and change.new:
+        return ("limits", change.plan, number(change.new))
     return None
 
 
@@ -429,7 +457,10 @@ COMMON_WORDS = frozenset(
         "you your we us our they them just only first more most less very also out about after "
         "before into over than then there these those what when which who why how here months "
         "weeks days years week day users customers everyone people page site homepage website "
-        "says said announced announces report reports reported",
+        "says said announced announces report reports reported anyone anything something someone "
+        "everybody else keep making make makes thing things option options seeing feels new old "
+        "accounts account free paid plan tokens token credits credit messages message allowance "
+        "limit limits usage seats seat",
     )
 )
 

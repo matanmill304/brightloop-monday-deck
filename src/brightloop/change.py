@@ -41,7 +41,8 @@ DOMAIN_LIKE = re.compile(
 )
 PRICE_VERB = re.compile(
     r"\b(rais(e|es|ed|ing)|increas(e|es|ed)|hik(e|es|ed)|cut(s|ting)?|lower(s|ed)?|reduc(e|es|ed)"
-    r"|drop(s|ped)?|slash(es|ed)?|halv(e|es|ed)|doubl(e|es|ed)|tripl(e|es|ed)|bump(s|ed)?)\b",
+    r"|drop(s|ped)?|slash(es|ed)?|halv(e|es|ed)|doubl(e|es|ed)|tripl(e|es|ed)|bump(s|ed)?"
+    r"|nudg(e|es|ed)|up by|goes up|went up|goes down|went down)\b",
     re.IGNORECASE,
 )
 PLAN_ADDED = re.compile(
@@ -82,6 +83,146 @@ GENERIC_CHANGE = re.compile(
 QUOTED_PAIR = re.compile(r"""from\s+["'“‘](.+?)["'”’]\s+to\s+["'“‘](.+?)["'”’]""", re.IGNORECASE)
 
 
+# Wording that says the same thing without our usual verbs (all read on prepare()d text).
+PREV = (
+    r"(?:was|previously|formerly|used to be|down from|up from|instead of|compared to|rather than"
+    r"|(?:capture|card|toggle|page|column|banner|version)\b[^.]{0,30}?\b(?:said|read|showed|listed))"
+)
+# "rather than 20%", "the same card said 40", "prior capture showed $10": the old value.
+PREVIOUS_ANY = re.compile(
+    rf"\b{PREV}\s+['\"‘“]?(?:save\s+)?({AMOUNT}|\d[\d,.]*\s?[kmb%]?)(?![\w$])", re.IGNORECASE
+)
+# "limit 3 → 10", "150K → 300K", "save 20% → 15%": numbers that changed, no currency.
+VALUE_ARROW = re.compile(
+    r"(\d[\d,.]*\s?[kmb%]?)\s*(?:→|->|=>)\s*(\d[\d,.]*\s?[kmb%]?)(?![\w$])", re.IGNORECASE
+)
+# "10% lighter", "20% cheaper": a price change stated as a percentage.
+PERCENT_MOVE = re.compile(
+    r"\b(\d[\d.]*)\s?%\s+(cheaper|lighter|less|lower|off|more|pricier|higher|dearer)\b",
+    re.IGNORECASE,
+)
+# "Pro +$5": a price change stated as a difference.
+DELTA = re.compile(rf"(?<![\w$€£])([+−])\s?({AMOUNT})")
+LIMIT_WORDS = (
+    r"(?:credits?|tokens?|messages?|allowance|cap|ceiling|limits?|quotas?|requests?|builds?"
+    r"|projects?|repls?|minutes|hours)"
+)
+# "allowance more than tripled", "the ceiling is gone", "tokens carry into the next month".
+LIMIT_MOVE = re.compile(
+    rf"\b{LIMIT_WORDS}\b.{{0,80}}?\b(\d+(\.\d+)?x|tripled|doubled|halved|quadrupled|\d times"
+    r"|gone|lifted|removed|scrapped|unlimited|carr(y|ies) (over|into)|roll(s|ed)? over)(?!\w)"
+    rf"|\b(\d+(\.\d+)?x|tripled|doubled|halved|quadrupled|double|triple)\b.{{0,60}}?\b{LIMIT_WORDS}\b"
+    r"|\brollover\b",
+    re.IGNORECASE,
+)
+# Something became free: "private projects are on the house".
+FREE_NOW = re.compile(
+    r"\b(on the house|at no (extra )?cost|free of charge|no longer (a )?(pro|paid)\b)",
+    re.IGNORECASE,
+)
+PLAN_HELLO = re.compile(
+    rf"\b(say hello to|meet|welcome|introducing)\s+(the\s+)?({PLAN_NAMES})\b", re.IGNORECASE
+)
+PLAN_CARD = re.compile(
+    r"\b((new|third|fourth|fifth|extra) (card|column|plan)|not on the page (in|on|at) last)\b",
+    re.IGNORECASE,
+)
+PLAN_GONE = re.compile(
+    rf"\b({PLAN_NAMES})\b\s+(fold(s|ed)? into|merg\w* into|won't be around|will not be around"
+    r"|is going away|goes away|is ending|will end|is being retired|is retiring|is sunsetting)",
+    re.IGNORECASE,
+)
+# A text that says nothing changed: "No price change", "Unchanged from last week".
+NO_CHANGE = re.compile(
+    r"\b(no price change|no changes?|unchanged|nothing changes|nothing has changed|untouched"
+    r"|stays the same|remains the same|still (at )?[$€£]\s?\d)",
+    re.IGNORECASE,
+)
+# Money about the company, not about what customers pay.
+FINANCE = re.compile(
+    r"\b(valuation|valued at|funding|series [a-h]\b|seed round|investors?|ipo|revenue|annual recurring"
+    r"|acquir\w*|acquisition|round)\b|[$€£]\s?\d[\d,.]*\s?(m|b|bn|million|billion)\b",
+    re.IGNORECASE,
+)
+NUMBER_WORDS = {
+    w: n
+    for n, w in enumerate(
+        [
+            "zero",
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "ten",
+            "eleven",
+            "twelve",
+            "thirteen",
+            "fourteen",
+            "fifteen",
+            "sixteen",
+            "seventeen",
+            "eighteen",
+            "nineteen",
+        ]
+    )
+}
+TENS = {
+    w: 10 * n
+    for n, w in enumerate(
+        ["_", "_", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+    )
+    if n > 1
+}
+NUMBER_WORD = re.compile(
+    rf"\b(?:({'|'.join(TENS)})(?:[- ]({'|'.join(list(NUMBER_WORDS)[1:10])}))?|({'|'.join(NUMBER_WORDS)}))\b",
+    re.IGNORECASE,
+)
+
+
+def prepare(text: str) -> str:
+    """The same text with numbers and currencies in one form: "forty" -> 40, "20 USD" -> $20,
+    "thirty bucks" -> $30, "~~$20~~ $25" -> "$20 → $25", "p/m" -> "/month"."""
+
+    def number(m: re.Match) -> str:
+        if m.group(3):
+            return str(NUMBER_WORDS[m.group(3).lower()])
+        return str(
+            TENS[m.group(1).lower()] + (NUMBER_WORDS[m.group(2).lower()] if m.group(2) else 0)
+        )
+
+    text = re.sub(r"~~\s*([^~]+?)\s*~~\s*", r"\1 → ", text)
+    text = NUMBER_WORD.sub(number, text)
+    text = re.sub(r"\b(\d[\d,.]*)\s?(?:bucks|dollars|usd)\b", r"$\1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\busd\s?(\d)", r"$\1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(\d[\d,.]*)\s?eur\b", r"€\1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\beur\s?(\d)", r"€\1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(\d[\d,.]*)\s?gbp\b", r"£\1", text, flags=re.IGNORECASE)
+    return re.sub(r"\s?\bp/m\b", "/month", text, flags=re.IGNORECASE)
+
+
+def sentence_at(text: str, pos: int) -> str:
+    """The sentence around a position: in a long page, the plan named next to the change."""
+    start = max(
+        text.rfind(". ", 0, pos), text.rfind("\n", 0, pos), text.rfind(": ", 0, max(0, pos - 80))
+    )
+    end = min(
+        (i for i in (text.find(". ", pos), text.find("\n", pos)) if i != -1), default=len(text)
+    )
+    return text[start + 1 : end + 1]
+
+
+def plan_before_amount(text: str) -> str | None:
+    """The plan named closest before the first amount: "between Pro and Business: Teams, $30"."""
+    m = re.search(AMOUNT, text)
+    names = re.findall(rf"\b({PLAN_NAMES})\b", text[: m.start()] if m else text, re.IGNORECASE)
+    return names[-1].title() if names else plan_name(text)
+
+
 @dataclass
 class Change:
     kind: (
@@ -105,15 +246,19 @@ def stated_change(text: str) -> Change | None:
     if m := OUR_HEADLINE.match(text):
         return Change("headline", m.group(1), m.group(2), m.group(0))
     # Domain names are not words: "Bolt.new" must not read as "new".
-    text = DOMAIN_LIKE.sub(" ", text)
+    text = prepare(DOMAIN_LIKE.sub(" ", text))
     # Money is not a price: "raises $330M at a $6.6B valuation" is company news.
     if "company finance" in pricing_cues(text):
         return None
     if m := PREVIOUSLY.search(text):
         old = clean(m.group(2))
-        others = [clean(a.group(0)) for a in PRICE_WITH_UNIT_RE.finditer(text)]
+        here = sentence_at(text, m.start())
+        others = [clean(a.group(0)) for a in PRICE_WITH_UNIT_RE.finditer(here)]
+        others += [clean(a.group(0)) for a in PRICE_WITH_UNIT_RE.finditer(text)]
         new = next((a for a in others if a and a != old and not old.startswith(a)), None)
-        return Change("price", old, new, m.group(0), plan=plan_name(text))
+        return Change("price", old, new, m.group(0), plan=plan_name(here) or plan_name(text))
+    if (m := PREVIOUS_ANY.search(text)) and (change := previous_value(text, m)):
+        return change
     if m := NUMBER_PREVIOUSLY.search(text):
         kind = "limits" if LIMITS.search(text) else "other"
         return Change(kind, old=m.group(2), evidence=m.group(0), plan=plan_name(text))
@@ -121,9 +266,41 @@ def stated_change(text: str) -> Change | None:
     if m and not re.search(r"\bup to\s*$", text[: m.start()], re.IGNORECASE):
         if number(m.group(1)) == number(m.group(2)):
             return None  # "$25 → $25": the same price on both sides is not a change
-        return Change("price", clean(m.group(1)), clean(m.group(2)), m.group(0), plan_name(text))
+        here = sentence_at(text, m.start())
+        plan = plan_name(here) or plan_name(text)
+        return Change("price", clean(m.group(1)), clean(m.group(2)), m.group(0), plan)
+    if (m := VALUE_ARROW.search(text)) and number(m.group(1)) != number(m.group(2)):
+        kind = (
+            "limits"
+            if LIMITS.search(text) or re.search(LIMIT_WORDS, text, re.IGNORECASE)
+            else "price"
+        )
+        return Change(kind, clean(m.group(1)), clean(m.group(2)), m.group(0), plan_name(text))
     if m := QUOTED_PAIR.search(text):
         return Change("wording", m.group(1), m.group(2), m.group(0))
+    if FINANCE.search(text):
+        return None  # company money, not a customer price ("$200M round", "$6.6B valuation")
+    if m := LIMIT_MOVE.search(text):
+        return Change("limits", evidence=m.group(0), plan=plan_name(text))
+    if NO_CHANGE.search(text):
+        return None  # "No price change", "Unchanged from last week's capture"
+    if m := PLAN_HELLO.search(text):
+        return Change(
+            "plan_added", new=first_amount(text), evidence=m.group(0), plan=m.group(3).title()
+        )
+    if m := PLAN_GONE.search(text):
+        return Change("plan_removed", evidence=m.group(0), plan=m.group(1).title())
+    if m := PLAN_CARD.search(text):
+        plan = plan_before_amount(text)
+        return Change("plan_added", new=first_amount(text), evidence=m.group(0), plan=plan)
+    if m := PERCENT_MOVE.search(text):
+        return Change("price", new=first_amount(text), evidence=m.group(0), plan=plan_name(text))
+    if m := DELTA.search(text):
+        return Change(
+            "price", new=m.group(0).replace(" ", ""), evidence=m.group(0), plan=plan_name(text)
+        )
+    if m := FREE_NOW.search(text):
+        return Change("availability", evidence=m.group(0), plan=plan_name(text))
     if m := PLAN_REMOVED.search(text):
         return Change("plan_removed", evidence=m.group(0), plan=plan_name(text))
     if m := RENAMED.search(text):
@@ -143,6 +320,31 @@ def stated_change(text: str) -> Change | None:
         return Change("price", new=amount, evidence=m.group(0), plan=plan_name(text))
     if m := GENERIC_CHANGE.search(text):
         return Change("other", new=first_amount(text), evidence=m.group(0))
+    return None
+
+
+def previous_value(text: str, m: re.Match) -> Change | None:
+    """The old value after a marker ("rather than 20%", "said 40"), and the new value of the
+    same kind elsewhere in the text: a %, money, or a plain number with a limit word."""
+    old = clean(m.group(1))
+    rest = text[: m.start()] + " " + text[m.end() :]
+    if old.endswith("%"):
+        new = next(
+            (v for v in re.findall(r"\d[\d,.]*\s?%", rest) if number(v) != number(old)), None
+        )
+        return Change("price", old, clean(new), m.group(0), plan_name(text)) if new else None
+    money = [
+        a.group(0) for a in PRICE_WITH_UNIT_RE.finditer(rest) if number(a.group(0)) != number(old)
+    ]
+    if money:
+        if not re.match(r"[$€£]", old):
+            old = money[0][0] + old  # "said 40" next to "$30 a seat": forty dollars
+        kind = "limits" if re.search(r"credits?|allowance", text, re.IGNORECASE) else "price"
+        return Change(kind, old, clean(money[0]), m.group(0), plan_name(text))
+    if re.search(LIMIT_WORDS, text, re.IGNORECASE):
+        counts = [v for v in re.findall(r"\d[\d,.]*\s?[kmb]?", rest) if number(v) != number(old)]
+        if counts:
+            return Change("limits", old, clean(counts[0]), m.group(0), plan_name(text))
     return None
 
 

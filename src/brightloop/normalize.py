@@ -72,7 +72,7 @@ DOMAIN = re.compile(r"(?:https?://)?((?:[a-z0-9-]+\.)+[a-z]{2,})(/[^\s,;)]*)?", 
 # Text aimed at an AI system rather than a human reader.
 INSTRUCTION_PATTERNS = re.compile(
     r"(ignore (all |any )?(previous|prior|above) (instructions|rules)"
-    r"|\b(note|message|instructions?) (to|for) (ai|llms?|assistants?|models?|ai systems?)"
+    r"|\b(note|message|instructions?) (to|for) (the )?(ai|llms?|assistants?|models?|ai models?|ai systems?)"
     r"|\bset (the )?confidence\b"
     r"|\bappend (the line|this|the following)\b"
     r"|\bsystem prompt\b"
@@ -139,7 +139,7 @@ TIME_FIELDS = (
     "observed_at",
     "updated_at",
 )
-MAX_TEXT = 5000  # longer text is truncated: keeps every regex fast on hostile input
+MAX_TEXT = 40000  # longer text is truncated: a 22k-character page scrape still fits
 
 
 def normalize(raw: dict[str, Any], tz: tzinfo) -> Signal:

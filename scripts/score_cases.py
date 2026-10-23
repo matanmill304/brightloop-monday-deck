@@ -57,8 +57,9 @@ def score(path: Path) -> tuple[int, int, list[str]]:
     if expected.get("_file", {}).get("errors_expected") and not out["run"]["errors"]:
         problems.append("run.errors is empty, but the file has errors to report")
 
-    item_of = {sid: i for i, item in enumerate(out["items"]) for sid in item["source_ids"]}
-    reason_of = {s["id"]: s["reason"] for s in out["skipped"]}
+    # Expected files key ids as strings; an input id may be a number (14).
+    item_of = {str(sid): i for i, item in enumerate(out["items"]) for sid in item["source_ids"]}
+    reason_of = {str(s["id"]): s["reason"] for s in out["skipped"]}
     checked = agree = 0
     for sid, exp in expected.items():
         if sid.startswith("_"):
@@ -90,7 +91,9 @@ def score(path: Path) -> tuple[int, int, list[str]]:
                 f"group {label}: {ids} should be one item; got items {sorted(map(str, homes))}"
             )
     for item in out["items"]:
-        labels = {expected.get(sid, {}).get("group") or f"solo:{sid}" for sid in item["source_ids"]}
+        labels = {
+            expected.get(str(sid), {}).get("group") or f"solo:{sid}" for sid in item["source_ids"]
+        }
         if len(labels) > 1:
             problems.append(f"merged but expected separate: {item['source_ids']}")
     return agree, checked, problems
