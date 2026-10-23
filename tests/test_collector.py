@@ -39,10 +39,11 @@ def test_failed_capture_is_not_a_change():
     assert page_events(OLD, snap("Loading…"), TZ) == ("failed-capture", [])
 
 
-def test_archived_vs_live_compares_prices_only():
-    old = snap(PAGE + "\nLog in to see our new menu layout today", method="archived")
-    status, _ = page_events(old, snap(PAGE + "\nA completely different footer text here"), TZ)
-    assert status == "unchanged"
+def test_archived_copy_vs_live_capture_is_a_new_baseline_not_a_change():
+    # Real case: Replit, Oct 21 archived (yearly view) vs Oct 23 live (monthly) once read
+    # as "$90 -> $0". Two different renders are never compared.
+    old = snap(PAGE.replace("$25", "$20"), method="archived")
+    assert page_events(old, snap(PAGE), TZ) == ("first-snapshot", [])
 
 
 def test_signal_has_exactly_the_brief_fields_in_their_style():

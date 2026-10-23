@@ -27,14 +27,9 @@
       "page": "home",
       "url": "https://lovable.dev",
       "current": null,
-      "previous": {
-        "captured_at": "2026-09-21T22:24:59+00:00",
-        "method": "archived",
-        "snapshot": "days/2026-09-30/lovable-home-baseline.json",
-        "screenshot": "days/2026-09-30/lovable-home-baseline.jpg",
-        "archive_url": "https://web.archive.org/web/20260921222459/https://lovable.dev"
-      },
-      "status": "not-captured"
+      "previous": null,
+      "status": "not-captured",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
@@ -48,21 +43,17 @@
         "screenshot": "days/2026-09-29/replit-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing"
       },
-      "status": "not-captured"
+      "status": "not-captured",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
       "page": "home",
       "url": "https://replit.com",
       "current": null,
-      "previous": {
-        "captured_at": "2026-09-27T17:54:41+00:00",
-        "method": "archived",
-        "snapshot": "days/2026-09-30/replit-home-baseline.json",
-        "screenshot": "days/2026-09-30/replit-home-baseline.jpg",
-        "archive_url": "https://web.archive.org/web/20260927175441/https://replit.com"
-      },
-      "status": "not-captured"
+      "previous": null,
+      "status": "not-captured",
+      "signal_ids": []
     },
     {
       "competitor": "Bolt",
@@ -84,8 +75,7 @@
       },
       "status": "changed",
       "signal_ids": [
-        "pr-093001",
-        "pr-093002"
+        "pr-093001"
       ]
     },
     {

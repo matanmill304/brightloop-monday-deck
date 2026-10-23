@@ -1,7 +1,7 @@
 {
   "week": "2026-W43",
-  "started_at": "2026-10-23T11:10:09+00:00",
-  "finished_at": "2026-10-23T11:10:09+00:00",
+  "started_at": "2026-10-23T13:20:31+00:00",
+  "finished_at": "2026-10-23T13:20:32+00:00",
   "pages": [
     {
       "competitor": "Lovable",
@@ -51,10 +51,8 @@
       "competitor": "Replit",
       "page": "pricing",
       "url": "https://replit.com/pricing",
-      "status": "changed",
-      "signal_ids": [
-        "pr-102301"
-      ],
+      "status": "unchanged",
+      "signal_ids": [],
       "current": {
         "captured_at": "2026-10-23T09:07:24+00:00",
         "method": "live",
@@ -75,10 +73,8 @@
       "competitor": "Replit",
       "page": "home",
       "url": "https://replit.com",
-      "status": "changed",
-      "signal_ids": [
-        "sg-102301"
-      ],
+      "status": "unchanged",
+      "signal_ids": [],
       "current": {
         "captured_at": "2026-10-23T09:07:34+00:00",
         "method": "live",
@@ -101,7 +97,10 @@
       "url": "https://bolt.new/pricing",
       "status": "changed",
       "signal_ids": [
-        "pr-102001"
+        "pr-102001",
+        "pr-102002",
+        "pr-102003",
+        "pr-102004"
       ],
       "current": {
         "captured_at": "2026-10-23T09:07:44+00:00",

@@ -20,18 +20,21 @@ Every signal goes down these branches in order; the first branch that decides, d
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
 from brightloop.change import (
+    PLAN_NAMES,
     Change,
     all_price_changes,
     compare,
     looks_like_failed_capture,
+    number,
     page_state,
     stated_change,
 )
-from brightloop.competitors import COMPETITORS
+from brightloop.competitors import COMPETITORS, name_roots
 from brightloop.decide import (
     HEDGE,
     HYPE,
@@ -60,6 +63,7 @@ class Candidate:
     changes: list[Change]
     confidence: float
     caveats: list[str] = field(default_factory=list)
+    corroboration: list[Signal] = field(default_factory=list)  # same change, other sources
 
     @property
     def lead(self) -> Signal:
@@ -111,7 +115,13 @@ def select(signals: list[Signal], week: Week | None) -> Selection:
 
     result.candidates = merge_same_events(result.candidates)
     for s in third_party:
-        result.skipped.append((s, third_party_reason(s, result.candidates)))
+        match = next(
+            (c for c in result.candidates if any(same_event(s, o) for o in c.signals)), None
+        )
+        if match:
+            match.corroboration.append(s)  # the same change, reported by someone else
+        else:
+            result.skipped.append((s, third_party_reason(s)))
     return result
 
 
@@ -215,7 +225,17 @@ def compare_snapshots(
             )
             continue
         same_method = capture_method(chain[0]) == capture_method(chain[-1])
-        changes = compare(old_state, new_state, same_method)
+        lines = all(s.is_snapshot for s in chain)  # short statements: prices only
+        changes = compare(old_state, new_state, same_method, lines)
+        if not lines and key[1] == "home":
+            # Two short statements about a homepage: compare whole sentences, never fragments.
+            before, after = sentences(chain[0].text), sentences(chain[-1].text)
+            added = [x for x in after if x not in before]
+            removed = [x for x in before if x not in after]
+            if added or removed:
+                changes.append(
+                    Change("wording", "; ".join(removed) or None, "; ".join(added) or None)
+                )
         if changes:
             result.candidates.append(
                 with_penalties(
@@ -231,6 +251,10 @@ def compare_snapshots(
                     else (s, "Snapshot of this page; the later snapshot shows no change.")
                 )
     return used
+
+
+def sentences(text: str) -> list[str]:
+    return [x.strip() for x in re.split(r"(?<=[.!?])\s+|\n+", text) if x.strip()]
 
 
 def homepage_caveat(key: tuple[str, str]) -> list[str]:
@@ -285,14 +309,8 @@ def decide_announcement(s: Signal, result: Selection) -> None:
 # ---- 3. Third parties ----------------------------------------------------------------
 
 
-def third_party_reason(s: Signal, candidates: list[Candidate]) -> str:
+def third_party_reason(s: Signal) -> str:
     page = pricing_url(s.competitor)
-    match = next((c for c in candidates if any(same_event(s, o) for o in c.signals)), None)
-    if match:
-        return (
-            f"Third-party report of the same change as the item from {match.lead.id}, which uses "
-            f"the competitor's own source." + notes(s)
-        )
     change = stated_change(s.text)
     about_pricing = is_pricing_related(s) or (change is not None and change.kind in PRICING_KINDS)
     if not about_pricing:
@@ -352,15 +370,71 @@ def capture_method(s: Signal) -> str:
 
 
 def same_event(a: Signal, b: Signal) -> bool:
+    """The same change, possibly in other words.
+
+    "Pro plan now costs $30 per month, up from $25" and "Lovable raises Pro plan to $30/month"
+    are one event (same plan, same new price). "New on the page: Bolt Lite ($9/month…)" on
+    Sep 30 and "No longer on the page: Bolt Lite ($9/month…)" on Oct 1 are two.
+    """
     if a.competitor != b.competitor:
         return False
     if a.when and b.when and abs(a.when - b.when) > SAME_EVENT:
         return False
-    pa, pb = prices(a.text), prices(b.text)
-    if pa and pb:
-        return bool(pa & pb) and not (pa ^ pb and len(pa) == len(pb) == 1)
-    shared = content_words(a.text) & content_words(b.text)
-    return len(shared) >= 2 and bool(shared - GENERIC_WORDS)
+    key_a, key_b = change_key(a), change_key(b)
+    if key_a or key_b:
+        return key_a == key_b  # a specific change only matches the same specific change
+    # Neither is that specific ("Agent 4 is live for every plan" / "Replit rolls out Agent 4
+    # to all tiers"): the same event only if they share a distinctive name, not common words.
+    return bool(anchors(a) & anchors(b))
+
+
+def change_key(s: Signal) -> tuple | None:
+    """What exactly changed, comparable across wordings; None when it isn't that specific."""
+    change = stated_change(s.text)
+    if change is None:
+        return None
+    if change.kind == "price" and change.new:
+        return ("price", change.plan, number(change.new))
+    if change.kind in ("plan_added", "plan_removed") and change.plan:
+        return (change.kind, change.plan)
+    if change.kind in ("line_added", "line_removed", "line_changed"):
+        return (change.kind, (change.new or change.old or "").lower())
+    if change.kind == "headline":
+        return ("headline", (change.new or "").lower())
+    return None
+
+
+CHANGE_VERBS = frozenset(
+    re.findall(
+        r"\w+",
+        "raise raises raised hike hikes hiked cut cuts drop drops dropped bump bumped live "
+        "available roll rolls rolled out launch launches launched add adds added introduce "
+        "introduces introduced remove removes removed ship ships shipped update updates updated "
+        "change changes changed cost costs move moves goes starting today included per month "
+        "monthly year",
+    )
+)
+COMMON_WORDS = frozenset(
+    re.findall(
+        r"\w+",
+        "you your we us our they them just only first more most less very also out about after "
+        "before into over than then there these those what when which who why how here months "
+        "weeks days years week day users customers everyone people page site homepage website "
+        "says said announced announces report reports reported",
+    )
+)
+
+
+def anchors(s: Signal) -> set[str]:
+    """Distinctive words two reports of one event share: not numbers, plan names, the
+    competitor's own name, or change verbs."""
+    own = {*name_roots(s.competitor), s.competitor.lower()}
+    words = content_words(s.text) - GENERIC_WORDS - CHANGE_VERBS - COMMON_WORDS - own
+    return {
+        w
+        for w in words
+        if len(w) >= 3 and not w.replace(".", "").isdigit() and not re.fullmatch(PLAN_NAMES, w)
+    }
 
 
 GENERIC_WORDS = frozenset(

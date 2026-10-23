@@ -18,6 +18,7 @@ EXPECTED_ITEMS = {
     "real-price",  # stated on Lovable's pricing page
     "real-tier",  # new tier stated on Bolt's pricing page
     "named-page",  # "Replit pricing page" with no URL: linked to the official page
+    "same-event-press",  # TechCrunch on the same change: joins real-price's item
     "messaging",  # homepage headline change on lovable.dev
     "dst-sunday-late",  # Sunday 23:30 local, still inside the week across the DST change
     "odd-shapes",  # other field names, nested source and title, epoch time
@@ -26,7 +27,6 @@ EXPECTED_ITEMS = {
     "ad-offer",  # Bolt's own ad with a price: announced, "check the page"
 }
 EXPECTED_SKIPS = {
-    "same-event-press": "same change as the item from real-price",
     "funding": "isn't a pricing",
     "feature": "Noa",
     "mislabeled": "Noa",

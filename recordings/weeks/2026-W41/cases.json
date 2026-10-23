@@ -16,5 +16,22 @@
   "output": {
     "cta_required_per_item": true
   },
-  "signals": []
+  "signals": [
+    {
+      "id": "pr-100701",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-07T13:58:53Z",
+      "text": "Changed on the pricing page: \"$20 towards most powerful models\" → \"$20 towards more powerful models\""
+    },
+    {
+      "id": "sg-100701",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "replit.com",
+      "ts": "2026-10-07T05:39:42Z",
+      "text": "Changed on the homepage: \"$20 towards most powerful models\" → \"$20 towards more powerful models\""
+    }
+  ]
 }

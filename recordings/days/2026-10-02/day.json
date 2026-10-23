@@ -61,10 +61,8 @@
         "screenshot": "days/2026-09-29/replit-pricing.jpg",
         "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing"
       },
-      "status": "changed",
-      "signal_ids": [
-        "pr-100201"
-      ]
+      "status": "unchanged",
+      "signal_ids": []
     },
     {
       "competitor": "Replit",
@@ -77,17 +75,9 @@
         "screenshot": "days/2026-10-02/replit-home.jpg",
         "archive_url": "https://web.archive.org/web/20261002052348/https://replit.com"
       },
-      "previous": {
-        "captured_at": "2026-09-27T17:54:41+00:00",
-        "method": "archived",
-        "snapshot": "days/2026-10-02/replit-home-baseline.json",
-        "screenshot": "days/2026-10-02/replit-home-baseline.jpg",
-        "archive_url": "https://web.archive.org/web/20260927175441/https://replit.com"
-      },
-      "status": "changed",
-      "signal_ids": [
-        "sg-100201"
-      ]
+      "previous": null,
+      "status": "first-snapshot",
+      "signal_ids": []
     },
     {
       "competitor": "Bolt",
