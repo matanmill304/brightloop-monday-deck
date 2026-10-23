@@ -4,20 +4,27 @@
     {
       "id": "maya-replit-1",
       "source_ids": [
+        "sg-100701",
         "pr-100701"
       ],
       "confidence": 0.9,
       "action": "Update the Replit pricing slide: \"$20 towards most powerful models\" → \"$20 towards more powerful models\".",
-      "why": "Stated on Replit's own pricing page (https://replit.com/pricing) on Oct 07, 2026.",
+      "why": "Stated on Replit's own pricing page (https://replit.com/pricing) on Oct 07, 2026. Also stated by replit.com.",
       "competitor": "Replit",
       "page": "pricing",
       "change": [
         "\"$20 towards most powerful models\" → \"$20 towards more powerful models\""
       ],
       "links": [
+        "https://replit.com",
         "https://replit.com/pricing"
       ],
       "sources": [
+        {
+          "id": "sg-100701",
+          "source": "replit.com",
+          "class": "official"
+        },
         {
           "id": "pr-100701",
           "source": "replit.com/pricing",
@@ -26,41 +33,13 @@
       ],
       "cta": {
         "text": "Open Replit's pricing page",
-        "url": "https://replit.com/pricing"
-      }
-    },
-    {
-      "id": "maya-replit-2",
-      "source_ids": [
-        "sg-100701"
-      ],
-      "confidence": 0.9,
-      "action": "Update the Replit homepage slide: \"$20 towards most powerful models\" → \"$20 towards more powerful models\".",
-      "why": "Stated on Replit's own homepage page (https://replit.com) on Oct 07, 2026.",
-      "competitor": "Replit",
-      "page": "home",
-      "change": [
-        "\"$20 towards most powerful models\" → \"$20 towards more powerful models\""
-      ],
-      "links": [
-        "https://replit.com"
-      ],
-      "sources": [
-        {
-          "id": "sg-100701",
-          "source": "replit.com",
-          "class": "official"
-        }
-      ],
-      "cta": {
-        "text": "Open Replit's homepage page",
         "url": "https://replit.com"
       }
     }
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-23T13:35:25+00:00",
+    "started_at": "2026-10-23T14:14:45+00:00",
     "cost_usd": 0.0,
     "errors": []
   }
