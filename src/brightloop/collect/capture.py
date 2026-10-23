@@ -16,8 +16,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+UTC = timezone.utc  # datetime.UTC is 3.11+
 
 USER_AGENT = "BrightloopMondayDeck/0.1 (competitor pricing snapshots; weekly)"
 PAUSE_SECONDS = 1.5

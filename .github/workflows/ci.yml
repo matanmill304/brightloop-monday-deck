@@ -8,17 +8,22 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.9 is the python3 that ships with macOS; reviewers may run on it.
+        python-version: ["3.9", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
-      - run: ruff check src tests
+      - run: ruff check src tests scripts api
       - run: ruff format --check src tests
       - run: pytest
 
-  # The reviewers' gate: a fresh clone, zero keys, one command.
+  # The reviewers' gate: a fresh clone, zero keys, one command, the oldest Python we support.
   fresh-clone-proof:
     runs-on: ubuntu-latest
     env: {}
@@ -26,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - run: pip install .
-      - run: brightloop run --input tests/fixtures/brief_sample.json --output result.json
-      - run: python -c "import json; d = json.load(open('result.json')); assert d['built_for'] == 'maya'"
+          python-version: "3.9"
+      - run: ./proof
+      - run: ./run --input tests/fixtures/brief_sample.json --output out/result.json
+      - run: python3 -c "import json; d = json.load(open('out/result.json')); assert d['built_for'] == 'maya'"

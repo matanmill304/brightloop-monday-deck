@@ -7,8 +7,9 @@ import json
 import sys
 from pathlib import Path
 
-from brightloop.contract import build_output, new_run
-from brightloop.pipeline import run_pipeline
+from brightloop import write_text
+from brightloop.contract import empty_output, to_json
+from brightloop.pipeline import run_bytes
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -84,17 +85,27 @@ def explain_file(input_path: Path | None, output_path: Path) -> int:
 
 
 def run_file(input_path: Path, output_path: Path) -> int:
-    try:
-        case = json.loads(input_path.read_text(encoding="utf-8-sig"))
-    except (OSError, ValueError) as exc:
-        run = new_run()
-        run["errors"].append(f"input: could not read {input_path.name}: {exc}")
-        output = build_output(items=[], skipped=[], run=run)
-    else:
-        output = run_pipeline(case)
+    """Always writes the output wrapper; input problems go to run.errors (exit 0).
 
-    text = json.dumps(output, indent=2, ensure_ascii=False) + "\n"
-    output_path.write_text(text, encoding="utf-8", newline="\n")
+    Exit 1 only when the output itself can't be written (there's nowhere to report it).
+    """
+    try:
+        raw = input_path.read_bytes()
+    except OSError as exc:
+        reason = exc.strerror or type(exc).__name__
+        output = empty_output(f"input: could not read {input_path}: {reason}; no signals read")
+    else:
+        output = run_bytes(raw, input_path.name)
+
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        write_text(output_path, to_json(output))
+    except OSError as exc:
+        reason = exc.strerror or type(exc).__name__
+        if isinstance(exc, FileExistsError):  # from mkdir: a file sits where a folder should be
+            reason = "part of the path is a file, not a folder"
+        print(f"brightloop: could not write {output_path}: {reason}", file=sys.stderr)
+        return 1
     placed = sum(len(i["source_ids"]) for i in output["items"]) + len(output["skipped"])
     print(
         f"brightloop: {len(output['items'])} items, {len(output['skipped'])} skipped, "

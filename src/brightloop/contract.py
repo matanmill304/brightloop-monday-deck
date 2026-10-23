@@ -6,10 +6,14 @@ item's ``source_ids`` or in ``skipped``. Nothing may silently disappear.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import json
+import math
+from datetime import datetime, timezone
 from typing import Any
 
 from brightloop import BUILT_FOR
+
+UTC = timezone.utc  # datetime.UTC is 3.11+
 
 
 def new_run(started_at: datetime | None = None) -> dict[str, Any]:
@@ -27,6 +31,38 @@ def build_output(
     run: dict[str, Any],
 ) -> dict[str, Any]:
     return {"built_for": BUILT_FOR, "items": items, "skipped": skipped, "run": run}
+
+
+def empty_output(error: str) -> dict[str, Any]:
+    """The wrapper with nothing in it, for a file that could not be read at all."""
+    run = new_run()
+    run["errors"].append(error)
+    return build_output(items=[], skipped=[], run=run)
+
+
+def to_json(output: Any) -> str:
+    """Strict JSON text that encodes as UTF-8.
+
+    json.dumps writes NaN/Infinity by default (JSON has no such values: they become null),
+    and an input like "\\ud800" gives a lone surrogate that UTF-8 can't encode (kept escaped).
+    """
+
+    def finite(node: Any) -> Any:
+        if isinstance(node, float) and not math.isfinite(node):
+            return None
+        if isinstance(node, dict):
+            return {k: finite(v) for k, v in node.items()}
+        if isinstance(node, (list, tuple)):
+            return [finite(v) for v in node]
+        return node
+
+    clean = finite(output)
+    text = json.dumps(clean, indent=2, ensure_ascii=False, allow_nan=False)
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError:
+        text = json.dumps(clean, indent=2, ensure_ascii=True, allow_nan=False)
+    return text + "\n"
 
 
 def enforce_accounting(output: dict[str, Any], input_ids: list[Any]) -> dict[str, Any]:

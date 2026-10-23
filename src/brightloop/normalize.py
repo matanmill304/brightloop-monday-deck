@@ -9,7 +9,7 @@ from __future__ import annotations
 import html
 import re
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta, tzinfo
+from datetime import datetime, timedelta, timezone, tzinfo
 from email.utils import parsedate_to_datetime
 from typing import Any
 
@@ -22,6 +22,8 @@ from brightloop.competitors import (
     known_page,
     name_roots,
 )
+
+UTC = timezone.utc  # datetime.UTC is 3.11+
 
 TYPE_SYNONYMS = {
     "pricing": {"pricing", "price", "prices", "plan", "plans", "packaging", "billing", "tier"},
@@ -421,12 +423,24 @@ def parse_when(value: Any, tz: tzinfo, end_of_day: bool = False) -> datetime | N
     return parsed.astimezone(UTC)
 
 
+def parse_iso(text: str) -> datetime:
+    """``datetime.fromisoformat`` that reads on 3.9 what 3.11+ reads: a trailing Z, a +HHMM
+    offset, and any number of fraction digits. Raises ValueError like fromisoformat."""
+    try:
+        return datetime.fromisoformat(text)
+    except ValueError:
+        fixed = re.sub(r"[Zz]$", "+00:00", text)
+        fixed = re.sub(r"(?<=\d)([+-]\d{2})(\d{2})$", r"\1:\2", fixed)
+        fixed = re.sub(r"\.(\d+)", lambda m: "." + m.group(1)[:6].ljust(6, "0"), fixed)
+        return datetime.fromisoformat(fixed)
+
+
 def _try_iso(text: str) -> datetime | None:
     try:
-        return datetime.fromisoformat(text.replace(" ", "T", 1) if "T" not in text else text)
+        return parse_iso(text.replace(" ", "T", 1) if "T" not in text else text)
     except ValueError:
         try:
-            return datetime.fromisoformat(text)
+            return parse_iso(text)
         except ValueError:
             return None
 

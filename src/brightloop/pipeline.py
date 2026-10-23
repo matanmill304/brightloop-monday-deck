@@ -5,10 +5,12 @@ read -> normalize -> select (the decision tree, select.py) -> write -> safety ->
 
 from __future__ import annotations
 
+import json
+import math
 import re
 from typing import Any
 
-from brightloop.contract import build_output, enforce_accounting, new_run
+from brightloop.contract import build_output, empty_output, enforce_accounting, new_run
 from brightloop.normalize import Signal, normalize
 from brightloop.select import select
 from brightloop.window import resolve_timezone, resolve_week
@@ -21,6 +23,93 @@ SECRET_PATTERNS = re.compile(
     r"|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}"
     r"|-----BEGIN [A-Z ]*PRIVATE KEY-----)"
 )
+MAX_DEPTH = 100  # a real cases file nests about 4 levels
+
+
+# ---- Files: the CLI and the upload endpoint both start here --------------------
+
+
+def run_bytes(raw: bytes, name: str) -> dict[str, Any]:
+    """A cases file's bytes -> the output wrapper. Never raises.
+
+    A file that can't be read (empty, not UTF-8, not JSON, nested too deeply) gives
+    the empty wrapper with the reason in ``run.errors``.
+    """
+    notes: list[str] = []
+    try:
+        case = parse_case(raw, notes)
+    except ValueError as exc:
+        return empty_output(f"input: could not read {name}: {exc}; no signals read")
+    output = run_safely(case)
+    output["run"]["errors"][:0] = notes
+    return output
+
+
+def parse_case(raw: bytes, notes: list[str]) -> Any:
+    """Decode and parse a cases file. Raises ValueError saying why it can't be read."""
+    # UTF-8 with or without a byte-order mark; UTF-16 is what Windows PowerShell's `>` writes.
+    utf16 = raw.startswith((b"\xff\xfe", b"\xfe\xff"))
+    try:
+        text = raw.decode("utf-16" if utf16 else "utf-8-sig")
+    except UnicodeDecodeError as exc:
+        kind = "UTF-16" if utf16 else "UTF-8"
+        raise ValueError(f"it is not {kind} text (bad byte at position {exc.start})") from None
+    if not text.strip():
+        raise ValueError("the file is empty")
+
+    non_finite: list[str] = []
+
+    def constant(word: str) -> None:  # NaN, Infinity, -Infinity: Python reads them, JSON has none
+        non_finite.append(word)
+
+    def number(digits: str) -> float | None:  # 1e999 would be read as infinity
+        value = float(digits)
+        if math.isfinite(value):
+            return value
+        non_finite.append(digits)
+        return None
+
+    too_deep = f"it is nested more than {MAX_DEPTH} levels deep"
+    try:
+        case = json.loads(text, parse_constant=constant, parse_float=number)
+    except RecursionError:  # how deep json can go depends on the Python version
+        raise ValueError(too_deep) from None
+    except ValueError as exc:
+        raise ValueError(f"it is not valid JSON ({exc})") from None
+    if depth(case) > MAX_DEPTH:
+        raise ValueError(too_deep)
+    if non_finite:
+        notes.append(
+            f"input: {len(non_finite)} value(s) like {non_finite[0]} are not valid JSON; "
+            "read as null"
+        )
+    return case
+
+
+def depth(node: Any) -> int:
+    """How deeply lists and objects nest (without recursion, so any depth is safe)."""
+    deepest, stack = 0, [(node, 1)]
+    while stack:
+        value, level = stack.pop()
+        if isinstance(value, (dict, list)):
+            deepest = max(deepest, level)
+            children = value.values() if isinstance(value, dict) else value
+            stack.extend((child, level + 1) for child in children)
+    return deepest
+
+
+def run_safely(case: Any) -> dict[str, Any]:
+    """run_pipeline, with a last resort: if anything breaks, every id is still placed."""
+    try:
+        return run_pipeline(case)
+    except Exception as exc:  # noqa: BLE001 - the wrapper must always be written
+        run = new_run()
+        run["errors"].append(f"internal: the run stopped ({type(exc).__name__}); no items built")
+        try:
+            _, ids = read_signals(case, [])
+        except Exception:  # noqa: BLE001
+            ids = []
+        return enforce_accounting(build_output(items=[], skipped=[], run=run), ids)
 
 
 def run_pipeline(case: Any) -> dict[str, Any]:
@@ -31,7 +120,11 @@ def run_pipeline(case: Any) -> dict[str, Any]:
 
     tz = resolve_timezone(case.get("timezone"), errors)
     week = resolve_week(case.get("week"), tz, errors)
-    output_cfg = case.get("output") if isinstance(case.get("output"), dict) else {}
+    output_cfg = case.get("output")
+    if not isinstance(output_cfg, dict):
+        if output_cfg is not None:
+            errors.append("input: 'output' is not an object; using the default output settings")
+        output_cfg = {}
     cta_required = truthy(output_cfg.get("cta_required_per_item", False))
 
     skipped: list[dict[str, Any]] = []

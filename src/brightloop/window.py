@@ -3,21 +3,28 @@
 from __future__ import annotations
 
 import re
+import reprlib
 from dataclasses import dataclass
-from datetime import UTC, date, datetime, time, timedelta, tzinfo
+from datetime import date, datetime, time, timedelta, timezone, tzinfo
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from brightloop.normalize import Signal
 
+UTC = timezone.utc  # datetime.UTC is 3.11+
+
 DEFAULT_TZ = "UTC"
+SHOWN = reprlib.Repr()  # an error message names a bad value; a huge one is cut short
+SHOWN.maxstring = SHOWN.maxother = 80
 
 
 def resolve_timezone(value: object, errors: list[str]) -> tzinfo:
     if isinstance(value, str) and value.strip():
         try:
             return ZoneInfo(value.strip())
-        except (ZoneInfoNotFoundError, ValueError):
-            errors.append(f"input: unknown timezone {value!r}; using UTC")
+        except (ZoneInfoNotFoundError, ValueError, OSError):  # OSError: a folder, a huge name
+            errors.append(f"input: unknown timezone {SHOWN.repr(value)}; using UTC")
+    elif value is not None and value != "":
+        errors.append(f"input: timezone {SHOWN.repr(value)} is not a name; using UTC")
     return ZoneInfo(DEFAULT_TZ)
 
 
@@ -32,9 +39,11 @@ def resolve_week(value: object, tz: tzinfo, errors: list[str]) -> Week | None:
     """Parse an ISO week like 2026-W43. No week means no date filtering."""
     if value is None or value == "":
         return None
-    match = re.fullmatch(r"\s*(\d{4})-?W(\d{1,2})\s*", str(value), re.IGNORECASE)
+    text = value if isinstance(value, str) else ""
+    match = re.fullmatch(r"\s*(\d{4})-?W(\d{1,2})\s*", text, re.IGNORECASE)
     if not match:
-        errors.append(f"input: could not read week {value!r}; no date filtering applied")
+        shown = SHOWN.repr(value)
+        errors.append(f"input: could not read week {shown}; no date filtering applied")
         return None
     year, number = int(match.group(1)), int(match.group(2))
     try:

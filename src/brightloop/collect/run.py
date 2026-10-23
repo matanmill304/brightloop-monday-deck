@@ -23,17 +23,21 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from brightloop import write_text
 from brightloop.change import page_state
 from brightloop.collect.capture import Capturer, Snapshot, now_iso, slug
 from brightloop.collect.events import page_events
 from brightloop.competitors import COMPETITORS
 from brightloop.deck import write_deck
+from brightloop.normalize import parse_iso
 from brightloop.pipeline import run_pipeline
+
+UTC = timezone.utc  # datetime.UTC is 3.11+
 
 TIMEZONE = "Asia/Jerusalem"
 TZ = ZoneInfo(TIMEZONE)
@@ -165,7 +169,7 @@ def latest_snapshot(root: Path, key: str, before: datetime):
     best = None
     for path in (root / "days").glob(f"*/{key}.json"):
         data = json.loads(path.read_text(encoding="utf-8"))
-        captured = datetime.fromisoformat(data["captured_at"])
+        captured = parse_iso(data["captured_at"])
         if page_state(data["text"]).error_page:
             continue  # the archive's error page is not a snapshot of the page
         if captured < before and (best is None or captured > best[0]):
@@ -282,4 +286,4 @@ def append_log(root: Path, entry: dict[str, Any]) -> None:
 
 def write_json(path: Path, data: Any) -> None:
     text = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    path.write_text(text, encoding="utf-8", newline="\n")
+    write_text(path, text)
