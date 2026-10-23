@@ -158,3 +158,64 @@ def test_the_daily_refresh_adds_no_run_log_line(tmp_path, monkeypatch):
     summary = build_week("2026-W40", tmp_path)
     assert log.read_text().count("\n") == 1 and summary["trigger"] == "scheduled"
     assert summary["items"] == 2  # Bolt Lite appeared on Sep 30 and was gone on Oct 1
+
+
+def test_homepage_top_changes_become_signals_and_items():
+    hero = {
+        "headline": "What will you build?",
+        "subheadline": "Turn ideas into apps in minutes",
+        "buttons": ["Start building", "Website"],
+    }
+    old = Snapshot(
+        "Replit",
+        "home",
+        "https://replit.com",
+        "2026-10-26T04:30:00+00:00",
+        "live",
+        PAGE,
+        "What will you build?",
+        hero=hero,
+    )
+    new_hero = {
+        **hero,
+        "subheadline": "Ship real software with an AI agent",
+        "buttons": ["Start for free", "Website"],
+    }
+    new = Snapshot(
+        "Replit",
+        "home",
+        "https://replit.com",
+        "2026-10-27T04:30:00+00:00",
+        "live",
+        PAGE,
+        "What will you build?",
+        hero=new_hero,
+    )
+    status, texts = page_events(old, new, TZ)
+    assert status == "changed"
+    subheadline = (
+        'Subheadline changed from "Turn ideas into apps in minutes" to '
+        '"Ship real software with an AI agent".'
+    )
+    buttons = 'Top-of-page buttons changed: now "Start for free"; no longer "Start building".'
+    assert texts == [subheadline, buttons]
+    signals = [to_signal(new, t, date(2026, 10, 27), n) for n, t in enumerate(texts, 1)]
+    out = run_pipeline({"week": "2026-W44", "timezone": "Asia/Jerusalem", "signals": signals})
+    assert [i["page"] for i in out["items"]] == ["home", "home"]
+    assert out["items"][0]["change"] == [
+        'subheadline: "Turn ideas into apps in minutes" → "Ship real software with an AI agent"'
+    ]
+
+
+def test_snapshots_saved_before_the_top_of_page_was_read_still_load():
+    old = snap(PAGE)  # no hero: captures before Oct 24
+    new = Snapshot(
+        "Lovable",
+        "pricing",
+        "https://lovable.dev/pricing",
+        "2026-10-27T04:30:00+00:00",
+        "live",
+        PAGE,
+        hero={"headline": "Pricing", "subheadline": "x", "buttons": ["a"]},
+    )
+    assert page_events(old, new, TZ) == ("unchanged", [])

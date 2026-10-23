@@ -46,6 +46,49 @@ VISIBLE_TEXT_JS = """
   return out.join("\\n");
 }
 """
+# The top of the page, where Maya looks for "new headlines, changed CTAs": the visible h1, the
+# closest short text block under it, and the links/buttons near it (outside the nav).
+HERO_JS = r"""
+() => {
+  const clean = (t) => (t || '').replace(/\s+/g, ' ').trim();
+  const words = (t) => t.split(' ').filter(Boolean).length;
+  const shown = (el) => {
+    const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+    return r.width > 20 && r.height > 8 && s.visibility !== 'hidden' && s.display !== 'none' && s.opacity !== '0';
+  };
+  // Only the text a person sees: hidden tooltips and screen-reader text are skipped.
+  const seen = (el) => {
+    const parts = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const parent = walker.currentNode.parentElement;
+      if (parent && shown(parent)) parts.push(walker.currentNode.textContent);
+    }
+    return clean(parts.join(' '));
+  };
+  const chrome = (el) => !!el.closest('nav, header, footer, [role=navigation], [role=banner], dialog');
+  const h1 = [...document.querySelectorAll('h1')].find((el) => shown(el) && clean(el.innerText));
+  if (!h1) return null;
+  const box = h1.getBoundingClientRect(), top = box.top + window.scrollY, bottom = box.bottom + window.scrollY;
+  const y = (el) => el.getBoundingClientRect().top + window.scrollY;
+  const INLINE = new Set(['SPAN', 'A', 'STRONG', 'EM', 'B', 'I', 'BR', 'SUP', 'SUB', 'MARK']);
+  const sub = [...document.querySelectorAll('p, h2, h3, div, span')]
+    .filter((el) => shown(el) && !chrome(el) && !h1.contains(el) && !el.contains(h1))
+    .filter((el) => y(el) >= bottom - 4 && y(el) <= bottom + 240)
+    .filter((el) => [...el.children].every((c) => INLINE.has(c.tagName)))
+    .map((el) => ({ y: y(el), t: seen(el), size: parseFloat(getComputedStyle(el).fontSize) || 0 }))
+    .filter((c) => words(c.t) >= 4 && words(c.t) <= 40)
+    // The largest text under the headline is the subheadline; hints and tooltips are smaller.
+    .sort((a, b) => b.size - a.size || a.y - b.y || a.t.length - b.t.length)[0];
+  const buttons = [];
+  for (const el of document.querySelectorAll('a, button')) {
+    if (!shown(el) || chrome(el) || y(el) < top - 40 || y(el) > top + 480) continue;
+    const t = clean(el.innerText);
+    if (t && words(t) <= 6 && !buttons.includes(t)) buttons.push(t);
+  }
+  return { headline: clean(h1.innerText), subheadline: sub ? sub.t : '', buttons: buttons.slice(0, 8) };
+}
+"""
 HIDE_BANNERS = """
 [id*="cookie" i], [class*="cookie" i], [id*="consent" i], [class*="consent" i],
 [aria-label*="cookie" i], [id*="onetrust" i] { display: none !important; }
@@ -64,6 +107,7 @@ class Snapshot:
     screenshot: str | None = None  # path relative to the run folder
     archive_url: str | None = None
     notes: list[str] = field(default_factory=list)
+    hero: dict | None = None  # the top of the page: headline, the line under it, its buttons
 
     def to_json(self) -> dict:
         return asdict(self)
@@ -146,11 +190,11 @@ class Capturer:
 
     def live(self, competitor: str, page: str, url: str, name: str) -> Snapshot | None:
         """The page as it is now; None if it's blocked or empty."""
-        text, headline = self._render(url)
+        text, headline, hero = self._render(url)
         if text is None or BLOCK_MARKERS.search(text[:2000]) or len(text) < 200:
             return None
         shot = self._screenshot(name)
-        return Snapshot(competitor, page, url, now_iso(), "live", text, headline, shot)
+        return Snapshot(competitor, page, url, now_iso(), "live", text, headline, shot, hero=hero)
 
     def archived(
         self, competitor: str, page: str, url: str, after: datetime, before: datetime, name: str
@@ -161,7 +205,7 @@ class Capturer:
             return None
         timestamp, archive_url = found
         frame_url = re.sub(r"/web/(\d+)/", r"/web/\1if_/", archive_url)
-        text, headline = self._render(frame_url)
+        text, headline, hero = self._render(frame_url)
         if text is None or len(text) < 200:
             return None
         captured = datetime.strptime(timestamp, "%Y%m%d%H%M%S").replace(tzinfo=UTC)
@@ -177,9 +221,10 @@ class Capturer:
             shot,
             archive_url,
             [f"archived copy from {captured:%b %d, %Y} (Wayback Machine)"],
+            hero,
         )
 
-    def _render(self, url: str) -> tuple[str | None, str]:
+    def _render(self, url: str) -> tuple[str | None, str, dict | None]:
         try:
             self._page.goto(url, wait_until="domcontentloaded", timeout=60000)
             self._page.wait_for_timeout(6000)
@@ -188,11 +233,32 @@ class Capturer:
             text = self._page.evaluate(VISIBLE_TEXT_JS)
             h1 = self._page.locator("h1").first
             headline = h1.inner_text(timeout=2000) if self._page.locator("h1").count() else ""
-            return condense(text), headline.strip()
+            hero = self._stable_hero()
+            return condense(text), headline.strip(), hero
         except Exception:  # noqa: BLE001 - any capture failure means "try the next method"
-            return None, ""
+            return None, "", None
         finally:
             time.sleep(PAUSE_SECONDS)
+
+    def _stable_hero(self) -> dict | None:
+        """The top of the page, read twice 4 s apart. Text that changed between the two reads
+        rotates on its own (Replit's subheadline cycles between two lines), so it is left out:
+        comparing it from day to day would report changes that aren't changes."""
+        try:
+            first = self._page.evaluate(HERO_JS)
+            self._page.wait_for_timeout(4000)
+            second = self._page.evaluate(HERO_JS)
+        except Exception:  # noqa: BLE001 - no hero is not a failed capture
+            return None
+        if not first or not second:
+            return None
+        return {
+            "headline": first["headline"] if first["headline"] == second["headline"] else "",
+            "subheadline": first["subheadline"]
+            if first["subheadline"] == second["subheadline"]
+            else "",
+            "buttons": [b for b in first["buttons"] if b in second["buttons"]],
+        }
 
     def _show_monthly_prices(self) -> None:
         """Pricing pages with a Monthly/Yearly toggle: always capture the monthly view, so two
