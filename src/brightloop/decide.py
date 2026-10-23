@@ -2,7 +2,7 @@
 
 Used where the decision tree (select.py) still needs to read meaning: is an official
 announcement about pricing, and is an amount company finance rather than a price.
-No model answers them instead: the same rules run live and on the reviewers' files (D26).
+No model answers them instead: the same rules run live and on the reviewers' files (decision D2).
 """
 
 from __future__ import annotations
