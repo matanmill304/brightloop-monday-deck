@@ -26,6 +26,8 @@ from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 
 from brightloop.change import (
+    FINANCE,
+    NO_CHANGE,
     PLAN_NAMES,
     Change,
     all_price_changes,
@@ -304,6 +306,10 @@ def decide_announcement(s: Signal, result: Selection) -> None:
         weeks = running_weeks(s)
         if weeks is not None and weeks >= 8:
             reason += f" It has been running about {weeks} weeks, so worth passing to Daniel."
+    elif FINANCE.search(s.text):
+        reason = "Company news (funding, valuation, revenue): money, not a customer price."
+    elif NO_CHANGE.search(s.text):
+        reason = "Says nothing changed; Maya's deck tracks what changed."
     elif pricing:
         reason = "States the current price, not a change; Maya's deck tracks what changed."
     else:
