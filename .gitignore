@@ -21,3 +21,6 @@ dist/
 
 # Review pack for the user (generated + private notes)
 review/
+
+# Local Claude Code files (worktrees, launch config)
+.claude/
