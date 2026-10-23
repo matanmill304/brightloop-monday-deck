@@ -16,14 +16,16 @@ from __future__ import annotations
 import json
 import shutil
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from brightloop import write_text
 from brightloop.collect.run import TZ, targets, week_bounds
 from brightloop.deck import build_slides, week_label
+from brightloop.normalize import UTC, parse_iso
 
 RECORDINGS = ROOT / "recordings"
 PUBLIC = ROOT / "public"
@@ -53,7 +55,7 @@ def build() -> None:
     }
     embedded = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     html = TEMPLATE.read_text(encoding="utf-8").replace("__DATA__", embedded)
-    (PUBLIC / "index.html").write_text(html, encoding="utf-8", newline="\n")
+    write_text(PUBLIC / "index.html", html)
     print(f"built public/ with {len(weeks)} week(s)")
 
 
@@ -70,7 +72,7 @@ def week_data(run_file: Path) -> dict:
         "week": folder.name,
         "label": week_label(folder.name),
         "built_at": run["finished_at"],
-        "partial": datetime.fromisoformat(run["finished_at"]) < end,
+        "partial": parse_iso(run["finished_at"]) < end,
         "slides": slides,
         "changed": sum(s["status"] == "changed" for s in slides),
         "shots": sorted({r["screenshot"] for r in refs if r and r.get("screenshot")}),
@@ -88,7 +90,7 @@ def health(runs: list[dict]) -> dict:
     last = max(daily, key=lambda r: r["started_at"]) if daily else None
     now = datetime.now(TZ)
     monday = (now + timedelta(days=(7 - now.weekday()) % 7 or 7)).date()
-    fresh = bool(last) and now - datetime.fromisoformat(last["started_at"]) < timedelta(days=2)
+    fresh = bool(last) and now - parse_iso(last["started_at"]) < timedelta(days=2)
     return {
         "ok": fresh,
         "last_run": max(r["started_at"] for r in runs) if runs else None,
