@@ -15,8 +15,6 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from brightloop.competitors import COMPETITORS
-
 PAGES = (("pricing", "Pricing page"), ("home", "Homepage"))
 DEFAULT_COMPETITORS = ("Lovable", "Replit", "Bolt")
 
@@ -33,75 +31,64 @@ class Slide:
     footnote: str = ""
 
 
-def build_slides(case: dict[str, Any], result: dict[str, Any]) -> list[Slide]:
+def build_slides(
+    case: dict[str, Any], result: dict[str, Any], run: dict[str, Any] | None = None
+) -> list[Slide]:
+    """Slides for a week. With the collector's run.json: one slide per page (incl. "no change").
+    Without it (an uploaded cases.json): one slide per item."""
     tz = ZoneInfo(case.get("timezone") or "UTC")
-    signals = {s["id"]: s for s in case.get("signals", []) if isinstance(s, dict) and "id" in s}
     item_of = {sid: item for item in result.get("items", []) for sid in item["source_ids"]}
-    skip_of = {s["id"]: s["reason"] for s in result.get("skipped", [])}
-    snapshots = [s for s in signals.values() if s.get("snapshot") is True]
-
     slides: list[Slide] = []
-    used_items: set[str] = set()
-    competitors = sorted({s["competitor"] for s in snapshots}, key=order) or []
-    for competitor in competitors:
-        for page, label in PAGES:
-            mine = sorted(
-                (s for s in snapshots if s["competitor"] == competitor and page_of(s) == page),
-                key=lambda s: s["ts"],
-            )
-            slide = page_slide(competitor, page, label, mine, item_of, skip_of, tz)
-            if slide.status == "changed":
-                used_items.add(item_of[mine[-1]["id"]]["id"])
-            slides.append(slide)
-
-    for item in result.get("items", []):
-        if item["id"] in used_items:
-            continue
-        slides.append(item_slide(item))
+    shown: set[str] = set()
+    for entry in (run or {}).get("pages", []):
+        items = unique_items(item_of.get(sid) for sid in entry.get("signal_ids", []))
+        shown.update(item["id"] for item in items)
+        slides.append(page_slide(entry, items, tz))
+    slides += [item_slide(item) for item in result.get("items", []) if item["id"] not in shown]
     return [summary_slide(case, slides, tz), *slides]
 
 
-def page_slide(competitor, page, label, mine, item_of, skip_of, tz) -> Slide:
-    url = page_url(competitor, page)
-    if not mine:
-        return Slide(
-            f"{competitor} · {label}",
-            "not-captured",
-            "Not captured this week",
-            [
-                (
-                    "The live page blocked automated access and no archived copy was available. "
-                    "Check it by hand."
-                )
-            ],
-            url,
-        )
-    current, previous = mine[-1], (mine[-2] if len(mine) > 1 else None)
-    footnote = capture_note(current, tz)
-    shots = {"current_shot": current.get("screenshot"), "url": url, "footnote": footnote}
-    item = item_of.get(current["id"])
-    if item:
-        lines = [f"{c}" for c in item.get("change", [])]
-        lines += [f"Caveat: {c}" for c in item.get("caveats", [])]
-        return Slide(
-            f"{competitor} · {label}",
-            "changed",
-            "Changed since last week",
-            lines,
-            previous_shot=previous.get("screenshot") if previous else None,
-            **shots,
-        )
-    reason = skip_of.get(current["id"], "")
-    if previous is None or "no earlier snapshot" in reason:
-        return Slide(
-            f"{competitor} · {label}",
-            "no-baseline",
-            "First snapshot: nothing to compare yet",
-            ["Next week's deck will show what changed against this one."],
-            **shots,
-        )
-    since = when_local(previous["ts"], tz, "%b %d")
-    return Slide(f"{competitor} · {label}", "unchanged", f"No change since {since}", [], **shots)
+def page_slide(entry: dict[str, Any], items: list[dict[str, Any]], tz: ZoneInfo) -> Slide:
+    label = dict(PAGES)[entry["page"]]
+    title = f"{entry['competitor']} · {label}"
+    current, previous = entry.get("current"), entry.get("previous")
+    shots = {
+        "url": entry["url"],
+        "current_shot": (current or {}).get("screenshot"),
+        "footnote": capture_note(current, tz) if current else "",
+    }
+    status = entry["status"]
+    if status == "not-captured":
+        lines = [
+            (
+                "The live page blocked automated access and no archived copy was available "
+                "this week. Check it by hand."
+            )
+        ]
+        return Slide(title, status, "Not captured this week", lines, url=entry["url"])
+    if status == "first-snapshot":
+        lines = ["Next week's deck will show what changed against this one."]
+        return Slide(title, status, "First snapshot: nothing to compare yet", lines, **shots)
+    if status == "failed-capture":
+        lines = ["The capture lost the page's prices and text: likely a loading problem."]
+        return Slide(title, status, "Capture failed: check the page by hand", lines, **shots)
+    since = when_local(previous["captured_at"], tz, "%b %d") if previous else "last week"
+    if status == "unchanged" or not items:
+        return Slide(title, "unchanged", f"No change since {since}", [], **shots)
+    lines = [line for item in items for line in item.get("change", [])]
+    lines += [f"Caveat: {c}" for item in items for c in item.get("caveats", [])]
+    previous_shot = (previous or {}).get("screenshot")
+    return Slide(
+        title, "changed", f"Changed since {since}", lines, previous_shot=previous_shot, **shots
+    )
+
+
+def unique_items(items) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for item in items:
+        if item and all(item["id"] != o["id"] for o in out):
+            out.append(item)
+    return out
 
 
 def item_slide(item: dict[str, Any]) -> Slide:
@@ -240,7 +227,9 @@ def write_deck(folder: Path, pptx: bool = True) -> list[Path]:
     """Build deck.html (and deck.pptx) next to a run's cases.json and result.json."""
     case = json.loads((folder / "cases.json").read_text(encoding="utf-8"))
     result = json.loads((folder / "result.json").read_text(encoding="utf-8"))
-    slides = build_slides(case, result)
+    run_path = folder / "run.json"
+    run = json.loads(run_path.read_text(encoding="utf-8")) if run_path.exists() else None
+    slides = build_slides(case, result, run)
     title = f"Competitor pages · {case.get('week', folder.name)}"
     out = [folder / "deck.html"]
     out[0].write_text(render_html(slides, title), encoding="utf-8", newline="\n")
@@ -256,20 +245,9 @@ def write_deck(folder: Path, pptx: bool = True) -> list[Path]:
 # ---- Helpers ---------------------------------------------------------------------------------
 
 
-def page_of(signal: dict[str, Any]) -> str:
-    return "pricing" if "/pricing" in str(signal.get("source", "")) else "home"
-
-
-def page_url(competitor: str, page: str) -> str | None:
-    info = COMPETITORS.get(competitor)
-    if not info:
-        return None
-    return info["pricing_url"][0] if page == "pricing" else info["home_url"][0]
-
-
-def capture_note(signal: dict[str, Any], tz: ZoneInfo) -> str:
-    when = when_local(signal["ts"], tz, "%b %d, %H:%M")
-    if signal.get("capture") == "archived":
+def capture_note(snapshot: dict[str, Any], tz: ZoneInfo) -> str:
+    when = when_local(snapshot["captured_at"], tz, "%b %d, %H:%M")
+    if snapshot.get("method") == "archived":
         return (
             f"Archived copy from {when} (Wayback Machine): the live page blocked automated access"
         )

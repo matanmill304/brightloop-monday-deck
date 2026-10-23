@@ -34,11 +34,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     collect_cmd.add_argument("--root", type=Path, default=Path("recordings"))
 
+    deck_cmd = sub.add_parser("deck", help="Build deck.html and deck.pptx for a recorded week")
+    deck_cmd.add_argument("folder", type=Path, help="e.g. recordings/2026-W43")
+
     args = parser.parse_args(argv)
     if args.command == "run":
         return run_file(args.input, args.output)
     if args.command == "explain":
         return explain_file(args.input, args.output)
+    if args.command == "deck":
+        from brightloop.deck import write_deck
+
+        for path in write_deck(args.folder):
+            print(f"brightloop: wrote {path}", file=sys.stderr)
+        return 0
     if args.command == "collect":
         from brightloop.collect.run import collect, current_week
 
