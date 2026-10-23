@@ -8,6 +8,7 @@ price ("Pro: $25/month") is a fact, not a change. A change is either:
 
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass, field
 
@@ -133,31 +134,82 @@ class PageState:
     prices: dict[str, str] = field(default_factory=dict)  # plan -> price, when readable
     amounts: set[str] = field(default_factory=set)
     blocks: list[str] = field(default_factory=list)  # visible text lines, normalized
+    billing: str | None = None  # monthly | yearly: which view of a toggle page was captured
+
+
+BILLED_YEARLY = re.compile(
+    r"\bbilled (annually|yearly)\b|\bper year\b|/\s?(year|yr)\b", re.IGNORECASE
+)
+BILLED_MONTHLY = re.compile(r"\bbilled monthly\b", re.IGNORECASE)
+
+
+def billing_view(text: str) -> str | None:
+    yearly, monthly = bool(BILLED_YEARLY.search(text)), bool(BILLED_MONTHLY.search(text))
+    if yearly == monthly:
+        return None  # no toggle, or both shown: nothing to tell apart
+    return "yearly" if yearly else "monthly"
 
 
 PLAN_PRICE = re.compile(rf"\b({PLAN_NAMES})\b[^$€£.\n]{{0,25}}?({AMOUNT}{UNIT})", re.IGNORECASE)
 NOISE_LINE = re.compile(
     r"(cookie|privacy|©|copyright|all rights reserved|\b\d{1,2}:\d{2}\b|\b(19|20)\d{2}\b"
-    r"|^\W*$|^\d[\d,.]*\+?$)",
+    r"|^\W*$|^\d[\d,.]*\+?$"
+    # navigation and page chrome, not the competitor's message
+    r"|opens in (a )?new (window|tab)|^(log ?in|sign ?in|sign ?up|get started|book a demo"
+    r"|contact (sales|us)|skip to (main )?content|menu|toggle (menu|navigation)|close)$)",
     re.IGNORECASE,
 )
+# Lines of one or two words with no amount are menu items and buttons; ignored when comparing.
+SHORT_LINE = re.compile(r"^\W*\w+(\W+\w+)?\W*$")
+
+
+PLAN_LINE = re.compile(rf"(?i)({PLAN_NAMES})( plan)?")
+UNIT_LINE = re.compile(r"(?i)/ ?(mo|month|year|yr|user|seat|member)(/(mo|month))?")
 
 
 def page_state(text: str) -> PageState:
     prices = {}
     for m in PLAN_PRICE.finditer(text):
         prices.setdefault(m.group(1).title(), clean(m.group(2)))
+    # Captured pages are line-based: a line that is just a plan name, its price a few lines below.
+    lines = [line.strip() for line in text.splitlines()]
+    for i, line in enumerate(lines):
+        if not PLAN_LINE.fullmatch(line):
+            continue
+        for below in lines[i + 1 : i + 5]:
+            if PLAN_LINE.fullmatch(below):
+                break  # the next plan started before a price showed up
+            if amount := re.search(AMOUNT, below):
+                unit = next((u for u in lines[i + 1 : i + 6] if UNIT_LINE.fullmatch(u)), "")
+                prices.setdefault(line.title(), clean(f"{amount.group(0)}{unit}"))
+                break
     amounts = {clean(a) for a in re.findall(AMOUNT, text)}
     lines = re.split(r"(?<=[.!?])\s+|\n+", text)
-    blocks = [norm_line(line) for line in lines if line.strip() and not NOISE_LINE.search(line)]
-    return PageState(prices=prices, amounts=amounts, blocks=[b for b in blocks if b])
+    blocks = [
+        norm_line(line)
+        for line in lines
+        if line.strip()
+        and not NOISE_LINE.search(line.strip())
+        and not (SHORT_LINE.fullmatch(line.strip()) and not re.search(AMOUNT, line))
+    ]
+    return PageState(
+        prices=prices, amounts=amounts, blocks=[b for b in blocks if b], billing=billing_view(text)
+    )
 
 
-def compare(old: PageState, new: PageState) -> list[Change]:
-    """Differences between two snapshots of the same page, most specific first."""
+def compare(old: PageState, new: PageState, same_method: bool = True) -> list[Change]:
+    """Differences between two snapshots of the same page, most specific first.
+
+    `same_method` is False when one snapshot is a live render and the other an archived
+    one: their text differs for rendering reasons (menus, scripts that didn't run), so only
+    prices are compared, and only when both sides show them.
+    """
     changes: list[Change] = []
+    if old.billing and new.billing and old.billing != new.billing:
+        # Monthly view vs annual view of the same toggle: prices aren't comparable; text is.
+        old, new = without_prices(old), without_prices(new)
     for plan in sorted(old.prices.keys() & new.prices.keys()):
-        if old.prices[plan] != new.prices[plan]:
+        if number(old.prices[plan]) != number(new.prices[plan]):
             changes.append(
                 Change("price", f"{plan} {old.prices[plan]}", f"{plan} {new.prices[plan]}")
             )
@@ -167,17 +219,46 @@ def compare(old: PageState, new: PageState) -> list[Change]:
     for plan in sorted(old.prices.keys() - new.prices.keys()):
         if new.prices:
             changes.append(Change("plan_removed", old=f"{plan} {old.prices[plan]}"))
-    if not changes and old.amounts != new.amounts and (old.amounts or new.amounts):
+    # Amounts on only one side mean that side wasn't readable (e.g. prices drawn by a script
+    # that didn't run in the archive), not that every price appeared or vanished.
+    old_numbers = {number(a) for a in old.amounts}
+    new_numbers = {number(a) for a in new.amounts}
+    if not changes and old_numbers and new_numbers and old_numbers != new_numbers:
         changes.append(
-            Change("price", ", ".join(sorted(old.amounts)) or None, ", ".join(sorted(new.amounts)))
+            Change("price", ", ".join(sorted(old.amounts)), ", ".join(sorted(new.amounts)))
         )
-    added = [b for b in new.blocks if b not in old.blocks]
-    removed = [b for b in old.blocks if b not in new.blocks]
+    if not same_method:
+        return changes
+    removed, added = word_diff(old.blocks, new.blocks)
     if added or removed:
         changes.append(
             Change("wording", "; ".join(removed[:3]) or None, "; ".join(added[:3]) or None)
         )
     return changes
+
+
+SAME_TEXT = 0.97  # word sequences this similar are the same page, re-rendered
+MIN_PHRASE = 3  # words; shorter differences are layout noise
+
+
+def word_diff(old_blocks: list[str], new_blocks: list[str]) -> tuple[list[str], list[str]]:
+    """Phrases removed and added between two versions of a page, compared word by word.
+
+    Line breaks differ between renders ("log in" + "create account" can come out glued as
+    "log increate account"), so lines are joined and compared as one word sequence.
+    """
+    old_words = re.findall(r"[\w$€£%.,/-]+", " ".join(old_blocks))
+    new_words = re.findall(r"[\w$€£%.,/-]+", " ".join(new_blocks))
+    matcher = difflib.SequenceMatcher(None, old_words, new_words, autojunk=False)
+    if matcher.ratio() >= SAME_TEXT:
+        return [], []
+    removed, added = [], []
+    for op, i1, i2, j1, j2 in matcher.get_opcodes():
+        if op in ("delete", "replace") and i2 - i1 >= MIN_PHRASE:
+            removed.append(" ".join(old_words[i1:i2])[:160])
+        if op in ("insert", "replace") and j2 - j1 >= MIN_PHRASE:
+            added.append(" ".join(new_words[j1:j2])[:160])
+    return removed, added
 
 
 def describe(change: Change) -> str:
@@ -237,3 +318,9 @@ def all_price_changes(text: str) -> list[Change]:
 def looks_like_failed_capture(old: PageState, new: PageState) -> bool:
     """A page that suddenly lost all its prices and almost all its text was not captured."""
     return bool(old.amounts) and not new.amounts and len(new.blocks) <= 2
+
+
+def without_prices(state: PageState) -> PageState:
+    """The same page state with prices removed (and lines that are only amounts)."""
+    blocks = [b for b in state.blocks if not re.fullmatch(rf"[\s{re.escape('$€£')}\d.,/a-z]*", b)]
+    return PageState(prices={}, amounts=set(), blocks=blocks, billing=state.billing)

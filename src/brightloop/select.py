@@ -96,7 +96,7 @@ def select(signals: list[Signal], week: Week | None) -> Selection:
         if not s.official:
             third_party.append(s)
         elif s.on_page:
-            change = stated_change(s.text)
+            change = None if s.is_snapshot else stated_change(s.text)
             if change:
                 result.candidates.append(page_candidate(s, change))
             else:
@@ -153,7 +153,7 @@ def place_in_week(s: Signal, week: Week | None) -> str:
 
 def older_reason(s: Signal, week: Week | None) -> str:
     label = week.label if week else "this week"
-    if s.on_page and stated_change(s.text) is None:
+    if s.on_page and (s.is_snapshot or stated_change(s.text) is None):
         return (
             f"Older than the reporting week ({label}) and no newer snapshot of the same page "
             "to compare it with."
@@ -187,7 +187,7 @@ def compare_snapshots(
         pages.setdefault(page_key(s), []).append(s)
     old_pages: dict[tuple[str, str], list[Signal]] = {}
     for s in baselines:
-        if s.on_page and stated_change(s.text) is None:
+        if s.on_page and (s.is_snapshot or stated_change(s.text) is None):
             old_pages.setdefault(page_key(s), []).append(s)
 
     for key, snaps in pages.items():
@@ -214,10 +214,13 @@ def compare_snapshots(
                 for s in chain
             )
             continue
-        changes = compare(old_state, new_state)
+        same_method = capture_method(chain[0]) == capture_method(chain[-1])
+        changes = compare(old_state, new_state, same_method)
         if changes:
             result.candidates.append(
-                with_penalties(Candidate("compared", chain, changes, CONF_COMPARED))
+                with_penalties(
+                    Candidate("compared", chain, changes, CONF_COMPARED, homepage_caveat(key))
+                )
             )
         else:
             first = chain[0]
@@ -228,6 +231,12 @@ def compare_snapshots(
                     else (s, "Snapshot of this page; the later snapshot shows no change.")
                 )
     return used
+
+
+def homepage_caveat(key: tuple[str, str]) -> list[str]:
+    if key[1] != "home":
+        return []
+    return ["homepages carry rotating content (testimonials, carousels): check the screenshots"]
 
 
 def when_key(s: Signal) -> datetime:
@@ -318,10 +327,7 @@ def merge_same_events(candidates: list[Candidate]) -> list[Candidate]:
     order = {"compared": 0, "page": 1, "announced": 2}
     merged: list[Candidate] = []
     for c in sorted(candidates, key=lambda c: order[c.track]):
-        home = next(
-            (m for m in merged if any(same_event(a, b) for a in m.signals for b in c.signals)),
-            None,
-        )
+        home = next((m for m in merged if mergeable(m, c)), None)
         if home is None:
             merged.append(c)
         else:
@@ -330,6 +336,19 @@ def merge_same_events(candidates: list[Candidate]) -> list[Candidate]:
             if c.track != "announced":
                 home.confidence = max(home.confidence, c.confidence)
     return merged
+
+
+def mergeable(kept: Candidate, new: Candidate) -> bool:
+    """Announcements join the item of the same change; two different pages never merge."""
+    if new.track != "announced" and kept.track != "announced" and kept.lead.page != new.lead.page:
+        return False
+    if new.track == "compared" or kept.track == "compared" and new.track != "announced":
+        return False  # a compared page is its own item; only announcements join it
+    return any(same_event(a, b) for a in kept.signals for b in new.signals)
+
+
+def capture_method(s: Signal) -> str:
+    return str(s.raw.get("capture") or "input")
 
 
 def same_event(a: Signal, b: Signal) -> bool:

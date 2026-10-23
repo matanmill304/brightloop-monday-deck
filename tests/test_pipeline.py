@@ -300,3 +300,23 @@ def test_every_item_has_a_link_and_bounded_confidence():
     for item in run_pipeline(case)["items"]:
         assert item["links"] or item.get("cta", {}).get("url"), item["id"]
         assert 0 <= item["confidence"] <= 0.95
+
+
+# ---- Snapshots from the collector ---------------------------------------------------
+
+PAGE_TEXT = (
+    "Pricing\nFree\n$0\nPro\nNew: more credits\n$25\n/ month\nBusiness\n$50\n/ month\nStart now"
+)
+
+
+def test_a_captured_page_is_a_state_even_with_change_words():
+    raw = {**page("snap", PAGE_TEXT), "snapshot": True}
+    kind, reason = placement(run(raw))["snap"]
+    assert kind == "skip" and "not a change" in reason
+
+
+def test_two_captured_pages_compare_line_by_line():
+    old = {**page("old", PAGE_TEXT, ts="2026-10-16T08:00:00Z"), "snapshot": True}
+    new = {**page("new", PAGE_TEXT.replace("$25", "$30")), "snapshot": True}
+    kind, item = placement(run(old, new))["new"]
+    assert kind == "item" and "Pro $25/ month → Pro $30/ month" in item["change"]

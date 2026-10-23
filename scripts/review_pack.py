@@ -85,3 +85,55 @@ def adversarial_markdown() -> str:
 
 if __name__ == "__main__":
     write("6-adversarial-results.md", adversarial_markdown())
+
+
+def live_run_markdown(week: str = "2026-W43") -> str:
+    from brightloop.explain import table, trace_markdown
+
+    folder = ROOT / "recordings" / week
+    if not (folder / "cases.json").exists():
+        return f"# Live run {week}\n\nNo recording yet. Run `brightloop collect --week {week}`.\n"
+    runs = [
+        json.loads(line)
+        for line in (ROOT / "recordings" / "runlog.jsonl").read_text("utf-8").splitlines()
+    ]
+    run = [r for r in runs if r["week"] == week][-1]
+    pages = [
+        (p["competitor"], p["page"], p.get("live", "ok"), p["baseline"], p["current"])
+        for p in run["pages"]
+    ]
+    result = load(f"recordings/{week}/result.json")
+    rows = [
+        (", ".join(map(str, i["source_ids"])), i["confidence"], i["action"])
+        for i in result["items"]
+    ]
+    rows += [(s["id"], "-", "SKIPPED: " + s["reason"]) for s in result["skipped"]]
+    return "\n".join(
+        [
+            f"# Live run {week}",
+            "",
+            (
+                f"Started {run['started_at']}, finished {run['finished_at']} · {run['signals']} snapshots · "
+                f"{run['items']} items · {run['skipped']} skipped · errors: {run['errors'] or 'none'}"
+            ),
+            "",
+            "## Pages captured",
+            "",
+            table(["Competitor", "Page", "Live", "Baseline (last week)", "Current"], pages),
+            "",
+            "## Result",
+            "",
+            table(["Signals", "Confidence", "Action / reason"], rows),
+            "",
+            (
+                f"Screenshots: `recordings/{week}/*.jpg`. Cases file: `recordings/{week}/cases.json` "
+                "(replay with `brightloop run --input recordings/{week}/cases.json --output result.json`)."
+            ),
+            "",
+            trace_markdown(load(f"recordings/{week}/cases.json"), f"recorded live run {week}"),
+        ]
+    )
+
+
+if __name__ == "__main__":
+    write("7-first-live-run.md", live_run_markdown())
