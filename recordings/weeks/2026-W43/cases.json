@@ -1,0 +1,45 @@
+{
+  "week": "2026-W43",
+  "timezone": "Asia/Jerusalem",
+  "brand": {
+    "name": "Brightloop",
+    "voice": "plain, confident, no hype",
+    "banned_words": [
+      "revolutionary",
+      "game-changing",
+      "seamless"
+    ]
+  },
+  "config": {
+    "utm_source": "brightloop"
+  },
+  "output": {
+    "cta_required_per_item": true
+  },
+  "signals": [
+    {
+      "id": "pr-102001",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-10-20T07:28:33Z",
+      "text": "Pricing page text changed since Oct 16: now says \"enterprise-grade security and compliance certifications access to best newest ai models public private projects team-level access management org-wide sharing si; are you ready\"; no longer says \"you get everything in pro, plus; advanced security sso, audit logs, compliance support dedicated account manager 24/7 priority support custom workflows, integrations slas scalable for large tea; hands-on onboarding enterprise training\"."
+    },
+    {
+      "id": "pr-102301",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-23T09:07:24Z",
+      "text": "Prices changed from $100, $18, $20, $90 to $100, $2,050, $20, $225, $440, $850 (was $100, $18, $20, $90 on Oct 21)."
+    },
+    {
+      "id": "sg-102301",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "replit.com",
+      "ts": "2026-10-23T09:07:34Z",
+      "text": "Prices changed from $0, $100, $120, $18, $20, $90 to $0, $100, $20 (was $0, $100, $120, $18, $20, $90 on Oct 21)."
+    }
+  ]
+}

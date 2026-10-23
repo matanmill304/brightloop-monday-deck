@@ -1,0 +1,18 @@
+[
+  {
+    "id": "pr-100101",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-10-01T16:21:25Z",
+    "text": "Prices changed from $0, $25, $30, $9 to $0, $25, $30 (was $0, $25, $30, $9 on Sep 30)."
+  },
+  {
+    "id": "pr-100102",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-10-01T16:21:25Z",
+    "text": "Pricing page text changed since Sep 30: no longer says \"bolt lite $9/month, invite only during the research preview is powered by bolt forge and is the only ai mode on that plan forge is included on pro at no extra c\"."
+  }
+]
