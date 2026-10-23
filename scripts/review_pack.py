@@ -112,8 +112,10 @@ def live_run_markdown(week: str = "2026-W43") -> str:
         [
             f"# Live run {week}",
             "",
-            (f"Started {run['started_at']}, finished {run['finished_at']} · {run['signals']} snapshots · "
-            f"{run['items']} items · {run['skipped']} skipped · errors: {run['errors'] or 'none'}"),
+            (
+                f"Started {run['started_at']}, finished {run['finished_at']} · {run['signals']} snapshots · "
+                f"{run['items']} items · {run['skipped']} skipped · errors: {run['errors'] or 'none'}"
+            ),
             "",
             "## Pages captured",
             "",
@@ -123,8 +125,10 @@ def live_run_markdown(week: str = "2026-W43") -> str:
             "",
             table(["Signals", "Confidence", "Action / reason"], rows),
             "",
-            (f"Screenshots: `recordings/{week}/*.jpg`. Cases file: `recordings/{week}/cases.json` "
-            "(replay with `brightloop run --input recordings/{week}/cases.json --output result.json`)."),
+            (
+                f"Screenshots: `recordings/{week}/*.jpg`. Cases file: `recordings/{week}/cases.json` "
+                "(replay with `brightloop run --input recordings/{week}/cases.json --output result.json`)."
+            ),
             "",
             trace_markdown(load(f"recordings/{week}/cases.json"), f"recorded live run {week}"),
         ]
