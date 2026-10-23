@@ -30,7 +30,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from brightloop import write_text
-from brightloop.change import page_state
+from brightloop.change import billing_view, page_state
 from brightloop.collect.capture import Capturer, Snapshot, now_iso, slug
 from brightloop.collect.events import page_events
 from brightloop.competitors import COMPETITORS
@@ -48,6 +48,13 @@ BRAND = {
     "name": "Brightloop",
     "voice": "plain, confident, no hype",
     "banned_words": ["revolutionary", "game-changing", "seamless"],
+}
+
+
+PAGE_NAME = {"pricing": "pricing", "home": "homepage"}
+PROBLEM = {
+    "not-captured": "not captured (blocked live, no Wayback copy)",
+    "failed-capture": "capture failed (no prices or text could be read)",
 }
 
 
@@ -131,9 +138,9 @@ def collect_day(day: date, root: Path, archived: bool = False) -> dict[str, Any]
         "signals": len(signals),
         "notes": [f"{p['competitor']} {p['page']}: {p['note']}" for p in pages if p.get("note")],
         "errors": [
-            f"{p['competitor']} {p['page']}: {p['status']}"
+            f"{p['competitor']} {PAGE_NAME[p['page']]}: {PROBLEM[p['status']]}"
             for p in pages
-            if p["status"] in ("not-captured", "failed-capture")
+            if p["status"] in PROBLEM
         ],
     }
     append_log(root, summary)
@@ -179,6 +186,7 @@ def snapshot_ref(snap: Snapshot, path: Path) -> dict[str, Any]:
         "snapshot": f"days/{day_folder}/{path.name}",
         "screenshot": f"days/{day_folder}/{snap.screenshot}" if snap.screenshot else None,
         "archive_url": snap.archive_url,
+        "billing": billing_view(snap.text),  # monthly | yearly | None: the view in the screenshot
     }
 
 
