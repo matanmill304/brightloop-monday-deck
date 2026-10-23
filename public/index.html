@@ -992,7 +992,8 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     $('deck-crumb').textContent = w.week;
     [$('dl-pptx'), $('menu-pptx')].forEach((a) => { a.href = pptxHref(w); a.setAttribute('download', pptxName(w)); });
     $('menu-pdf').href = 'weeks/' + w.week + '/deck.html';
-    $('deck-eyebrow').innerHTML = esc(w.week + ' · ' + w.range) + (w.partial ? ' ' + inProgress : '');
+    $('deck-eyebrow').hidden = !w.partial;  // only the week in progress needs its dates spelled out
+    $('deck-eyebrow').innerHTML = w.partial ? esc(w.week + ' · ' + w.range) + ' ' + inProgress : '';
     $('deck-title').textContent = w.partial ? 'This week so far' : 'Deck for ' + w.meeting;
     $('deck-sub').textContent = total() + ' slides: the summary, then one per page · built ' + w.built;
     $('films').innerHTML = filmstrip(w);
