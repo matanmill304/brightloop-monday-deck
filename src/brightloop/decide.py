@@ -58,10 +58,12 @@ COST_CHANGE = re.compile(
 COST_OBJECT = re.compile(
     r"\b(api|cache|tokens?|input|output|plans?|subscriptions?|seats?)\b", re.IGNORECASE
 )
+# Packaging: what a specific plan includes, or something becoming free. "Live for every plan"
+# and "available to all users" describe a launch: nothing moved between tiers.
+NAMED_PLAN = r"(the )?(free|pro|team|teams|business|enterprise|starter|hobby|core|paid|plus|max)"
 PACKAGING = re.compile(
-    r"\b((all|every|each) (plans?|tiers?|paid plans?|users|customers|subscribers)"
-    r"|available (on|to|for|in) (free|pro|team|teams|business|enterprise|all|every|paid)"
-    r"|now (free|included)|included (in|with)|moved (to|behind)|subscriptions? (with|for))\b",
+    rf"\b((available|included) (on|to|for|in|with) {NAMED_PLAN}"
+    r"|now free|moved (to|behind)|subscriptions? (with|for))\b",
     re.IGNORECASE,
 )
 # Company finance: money about the company, not about what customers pay.

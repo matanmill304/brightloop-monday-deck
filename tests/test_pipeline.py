@@ -68,12 +68,10 @@ def test_brief_sample():
     where = placement(run(*case["signals"]))
     kind, item = where["pr-401"]
     assert kind == "item" and item["confidence"] == 0.9 and "$20 → $25" in item["action"]
-    kind, item = where["sg-301"]
-    assert kind == "item" and item["confidence"] == 0.7 and "replit.com/pricing" in item["action"]
-    # One launch, two sources, two time formats: one item built from both ids.
-    assert item["source_ids"] == ["sg-301", "sg-302"] and where["sg-302"][1] is item
-    assert "Also reported by techblog.example" in item["why"]
-    assert item["change"] == ["Agent 4 is live for every plan"]
+    # A launch on every plan moves nothing between tiers: Noa's area, not Maya's deck.
+    assert where["sg-301"][0] == "skip" and "Noa" in where["sg-301"][1]
+    # The same launch from a blog (other time format) is recognised as the same event.
+    assert where["sg-302"][0] == "skip" and "Same event as sg-301" in where["sg-302"][1]
     assert "verify on https://bolt.new/pricing" in where["pr-402"][1]
     assert "rumor" in where["sg-304"][1]
     assert "instructions aimed at AI" in where["sg-303"][1]
@@ -383,3 +381,20 @@ def test_a_specific_change_never_groups_with_a_vague_one_over_common_words():
 def test_plan_removed_and_bumped_are_read_as_changes():
     out = run(page("rm", "Business plan removed."), page("up", "Pro plan bumped to $30/mo."))
     assert placement(out)["rm"][0] == "item" and placement(out)["up"][0] == "item"
+
+
+def test_packaging_means_something_moved_between_plans():
+    out = run(
+        page("live", "Agent 4 is live for every plan.", "Replit", path="/blog", kind="launch"),
+        page("free", "Agent mode is now free for all users.", path="/blog", kind="launch"),
+        page(
+            "tier",
+            "Agent 4 now included in Core and Pro plans.",
+            "Replit",
+            "/changelog",
+            kind="launch",
+        ),
+    )
+    where = placement(out)
+    assert where["live"][0] == "skip" and "Noa" in where["live"][1]
+    assert where["free"][0] == "item" and where["tier"][0] == "item"
