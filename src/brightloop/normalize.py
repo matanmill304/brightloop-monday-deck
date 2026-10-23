@@ -14,6 +14,7 @@ from email.utils import parsedate_to_datetime
 from typing import Any
 
 from brightloop.competitors import (
+    COMPETITORS,
     canonical_competitor,
     competitor_from_domain,
     is_official_domain,
@@ -95,8 +96,19 @@ class Signal:
     ts: datetime | None
     first_seen: datetime | None
     last_seen: datetime | None
+    page: str = "other"  # pricing | home | other
     flags: list[str] = field(default_factory=list)
     raw: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def official(self) -> bool:
+        """From the competitor itself: its own site, its own account or its own ad."""
+        return self.source_class in ("official", "observed", "advertiser")
+
+    @property
+    def on_page(self) -> bool:
+        """From one of the two pages Maya treats as the source of truth."""
+        return self.source_class in ("official", "observed") and self.page in ("pricing", "home")
 
     @property
     def when(self) -> datetime | None:
@@ -168,6 +180,7 @@ def normalize(raw: dict[str, Any], tz: tzinfo) -> Signal:
         domain=domain,
         url=url,
         source_class=classify_source(sig_type, competitor, source, domain, url),
+        page=page_of(url, source),
         text=text,
         ts=ts,
         first_seen=first_seen,
@@ -250,6 +263,8 @@ def clean_text(value: Any) -> tuple[str, bool]:
     """Strip HTML and hidden comments; report whether instructions to an AI were found."""
     if not isinstance(value, str):
         return "", False
+    # Zero-width and other invisible characters can split words to dodge the patterns.
+    value = re.sub("[\u200b-\u200f\u2060-\u2064\ufeff\u00ad]", "", value)
     injected = bool(INSTRUCTION_PATTERNS.search(value))
     comments = re.findall(r"<!--(.*?)(?:-->|$)", value, flags=re.DOTALL)
     if any(c.strip() for c in comments):
@@ -267,7 +282,13 @@ def _looks_injected(value: Any) -> bool:
     return isinstance(value, str) and ("<!--" in value or bool(INSTRUCTION_PATTERNS.search(value)))
 
 
+WAYBACK = re.compile(r"web\.archive\.org/web/(\d{4,14})\w*/(https?://\S+)", re.IGNORECASE)
+
+
 def find_link(source: str) -> tuple[str, str | None] | None:
+    # An archived copy of a page is that page: read the original URL out of the Wayback link.
+    if archived := WAYBACK.search(source or ""):
+        source = archived.group(2)
     match = DOMAIN.search(source or "")
     if not match:
         return None
@@ -292,8 +313,11 @@ def classify_source(
         return "anonymous"
     if GUEST.search(text):
         return "guest"
+    if sig_type == "ad" and (domain is None or any(domain.endswith(d) for d in AD_LIBRARIES)):
+        # An ad library entry is the competitor's own paid message.
+        return "advertiser"
     if domain:
-        if is_official_domain(competitor, domain):
+        if is_official_domain(competitor, domain) or own_domain_by_name(competitor, domain):
             return "official"
         if domain in SOCIAL_DOMAINS:
             handle = _handle(url or source)
@@ -310,6 +334,44 @@ def classify_source(
         # An ad library entry is the competitor's own paid message.
         return "advertiser"
     return "unknown"
+
+
+AD_LIBRARIES = ("facebook.com", "adstransparency.google.com", "linkedin.com")
+
+
+def own_domain_by_name(competitor: str, domain: str) -> bool:
+    """For a competitor missing from our dictionary: acme.io is Acme's own site."""
+    if competitor in COMPETITORS or competitor == "Unknown":
+        return False
+    slug = re.sub(r"[^a-z0-9]", "", competitor.lower())
+    return bool(slug) and slug in domain.split(".")[:-1]
+
+
+PRICING_PATH = re.compile(
+    r"/(pricing|plans?|billing|subscribe|upgrade|prices?)(/|$|\?|#)", re.IGNORECASE
+)
+HOME_PATH = re.compile(r"^/?((en|us|en-us|home)/?)?$", re.IGNORECASE)
+
+
+def page_of(url: str | None, source: str) -> str:
+    """Which page a signal describes: pricing, home, or other (blog, changelog, social…)."""
+    if url:
+        host = re.sub(r"^https?://", "", url).split("/")[0].removeprefix("www.")
+        path = re.sub(r"^https?://[^/]+", "", url)
+        if host.count(".") > 1:
+            # status.bolt.new or blog.replit.com is not the pricing page or the homepage
+            return "other"
+        if PRICING_PATH.search(path + "/"):
+            return "pricing"
+        if HOME_PATH.fullmatch(path.split("?")[0]):
+            return "home"
+        return "other"
+    text = source.lower()
+    if re.search(r"\bpric(ing|es)\b|\bplans? page\b", text):
+        return "pricing"
+    if re.search(r"\bhome ?page\b|\blanding page\b", text):
+        return "home"
+    return "other"
 
 
 def _handle(value: str) -> str | None:

@@ -135,11 +135,11 @@ def test_name_collisions_are_skipped_with_a_reason():
     out = run([signal(f"c{i}", "pricing", c, s, t) for i, (c, s, t) in enumerate(COLLISIONS)])
     assert not out["items"]
     reasons = " ".join(s["reason"] for s in out["skipped"])
-    assert "not Bolt's site" in reasons and "shares the name" in reasons
+    assert "is not its site" in reasons and "shares the name" in reasons
 
 
 def test_official_domain_wins_over_collision_words():
-    out = run([signal("ok", "pricing", "Bolt", "bolt.new/pricing", "Pro now $25/month for teams.")])
+    out = run([signal("ok", "pricing", "Bolt", "bolt.new/pricing", "Pro now $25/month (was $20).")])
     assert item_ids(out) == {"ok"}
 
 

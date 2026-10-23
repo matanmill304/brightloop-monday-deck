@@ -1,6 +1,6 @@
 """The one pipeline. The web source and the file source both end here.
 
-read -> normalize -> window -> relevance -> group -> trust -> write -> safety -> account
+read -> normalize -> select (the decision tree, select.py) -> write -> safety -> account
 """
 
 from __future__ import annotations
@@ -9,10 +9,10 @@ import re
 from typing import Any
 
 from brightloop.contract import build_output, enforce_accounting, new_run
-from brightloop.decide import THRESHOLD, assess, group_signals, prices, relevance_reason
 from brightloop.normalize import Signal, normalize
-from brightloop.window import resolve_timezone, resolve_week, window_reason
-from brightloop.write import build_item, skip_reason_for_trust
+from brightloop.select import select
+from brightloop.window import resolve_timezone, resolve_week
+from brightloop.write import build_item
 
 SECRET_KEY = re.compile(r"(key|token|secret|password|passwd|credential|auth)", re.IGNORECASE)
 # Well-known credential formats, redacted wherever they appear (even inside signal text).
@@ -35,36 +35,24 @@ def run_pipeline(case: Any) -> dict[str, Any]:
     cta_required = truthy(output_cfg.get("cta_required_per_item", False))
 
     skipped: list[dict[str, Any]] = []
-    candidates: list[Signal] = []
+    signals: list[Signal] = []
     for raw in raw_signals:
         try:
-            signal = normalize(raw, tz)
+            signals.append(normalize(raw, tz))
         except Exception as exc:  # noqa: BLE001 - one bad signal must never stop the run
             errors.append(f"signal {raw.get('id')!r}: could not be read ({type(exc).__name__})")
             skipped.append({"id": raw.get("id"), "reason": "Could not be read; see run.errors."})
-            continue
-        reason = window_reason(signal, week) or relevance_reason(signal)
-        if reason:
-            skipped.append({"id": signal.id, "reason": reason})
-        else:
-            candidates.append(signal)
 
-    official_prices: dict[str, set[str]] = {}
-    for s in candidates:
-        if s.source_class in ("official", "observed") and "embedded_instructions" not in s.flags:
-            official_prices.setdefault(s.competitor, set()).update(prices(s.text))
+    selection = select(signals, week)
+    skipped.extend({"id": s.id, "reason": reason} for s, reason in selection.skipped)
 
     items: list[dict[str, Any]] = []
     counters: dict[str, int] = {}
-    for group in group_signals(candidates):
-        verdict = assess(group, official_prices)
-        if verdict.confidence < THRESHOLD:
-            reason = skip_reason_for_trust(verdict)
-            skipped.extend({"id": s.id, "reason": reason} for s in group)
-            continue
-        slug = re.sub(r"[^a-z0-9]+", "-", group[0].competitor.lower()).strip("-") or "unknown"
+    for candidate in selection.candidates:
+        competitor = candidate.lead.competitor
+        slug = re.sub(r"[^a-z0-9]+", "-", competitor.lower()).strip("-") or "unknown"
         counters[slug] = counters.get(slug, 0) + 1
-        items.append(build_item(f"maya-{slug}-{counters[slug]}", group, verdict, cta_required, tz))
+        items.append(build_item(f"maya-{slug}-{counters[slug]}", candidate, cta_required, tz))
 
     items.sort(key=lambda item: -item["confidence"])
     output = build_output(items=items, skipped=skipped, run=run)

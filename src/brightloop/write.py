@@ -1,4 +1,8 @@
-"""Step 7: the words. Templates filled from the signals, so no number is ever invented."""
+"""Step 7: the words. Facts filled into templates, so no number is ever invented.
+
+Maya: "Leadership wants the visual diff, not an essay." So `action` says which slide to
+update and what changed; `why` says where it was seen and when. Nothing else.
+"""
 
 from __future__ import annotations
 
@@ -6,96 +10,93 @@ import re
 from datetime import tzinfo
 from typing import Any
 
-from brightloop.decide import PRICE, Verdict, is_messaging_change, is_pricing_related
-from brightloop.normalize import Signal
+from brightloop.change import describe
+from brightloop.select import Candidate, pricing_url
 
-CLASS_LABEL = {
-    "observed": "captured from the page itself",
-    "official": "official source",
-    "advertiser": "the competitor's own ad",
-    "press": "press",
-    "media": "third-party blog or media",
-    "unknown": "unclassified source",
-    "community": "community post",
-    "guest": "guest post",
-    "sponsored": "sponsored content",
-    "anonymous": "anonymous post",
-}
-TRUST_ORDER = list(CLASS_LABEL)
+SLIDE = {"pricing": "pricing", "home": "homepage", "other": "pricing"}
 
 
-def build_item(
-    item_id: str, group: list[Signal], verdict: Verdict, cta_required: bool, tz: tzinfo
-) -> dict[str, Any]:
-    lead = min(group, key=lambda s: TRUST_ORDER.index(s.source_class))
-    if PRICE.search(lead.text) and is_pricing_related(lead):
-        kind = "price_change"
-    elif is_messaging_change(lead) and not is_pricing_related(lead):
-        kind = "messaging"
+def build_item(item_id: str, c: Candidate, cta_required: bool, tz: tzinfo) -> dict[str, Any]:
+    lead = c.lead
+    links = unique([s.url for s in c.signals if s.url])
+    what = change_text(c)
+    slide = SLIDE[lead.page] if c.track != "announced" else "pricing"
+    check = pricing_url(lead.competitor) or (links[0] if links else None)
+
+    if c.track == "announced":
+        page = check or f"{lead.competitor}'s pricing page"
+        action = (
+            f"Check {page} before the 11:00 meeting: {lead.competitor} announced {what}. "
+            f"Add it to the {lead.competitor} pricing slide only if the page shows it."
+        )
     else:
-        kind = "packaging"
-    summary = first_sentence(lead.text)
-    links = unique([s.url for s in group if s.url])
+        action = f"Update the {lead.competitor} {slide} slide: {what}."
 
     item: dict[str, Any] = {
         "id": item_id,
-        "source_ids": [s.id for s in group],
-        "confidence": verdict.confidence,
-        "action": (
-            f"Flag on the {lead.competitor} slide: {summary} "
-            f"Check the linked source before the 11:00 meeting."
-        ),
-        "why": explain(group, lead, kind, tz),
+        "source_ids": [s.id for s in c.signals],
+        "confidence": c.confidence,
+        "action": action,
+        "why": explain(c, tz),
         "competitor": lead.competitor,
-        "kind": kind,
+        "page": lead.page if c.track != "announced" else "announcement",
+        "change": [describe(ch) or ch.kind for ch in c.changes],
         "links": links,
         "sources": [
-            {"id": s.id, "source": s.source or None, "class": s.source_class} for s in group
+            {"id": s.id, "source": s.source or None, "class": s.source_class} for s in c.signals
         ],
     }
-    if verdict.reasons:
-        item["caveats"] = verdict.reasons
+    if c.caveats:
+        item["caveats"] = c.caveats
     if cta_required:
-        item["cta"] = {
-            "text": f"Open the {lead.competitor} source and update the slide",
-            "url": links[0] if links else None,
-        }
+        if c.track == "announced":
+            item["cta"] = {"text": "Check the official pricing page", "url": check}
+        else:
+            item["cta"] = {
+                "text": f"Open {lead.competitor}'s {slide} page",
+                "url": links[0] if links else check,
+            }
     return item
 
 
-def explain(group: list[Signal], lead: Signal, kind: str, tz: tzinfo) -> str:
+def change_text(c: Candidate) -> str:
+    """The change in one line: old → new when we have both, else the source's own words."""
+    described = [describe(ch) for ch in c.changes if describe(ch)]
+    if c.track == "compared" and described:
+        return "; ".join(described[:3])
+    first = c.changes[0]
+    if first.old and first.new:
+        return describe(first)
+    return first_sentence(c.lead.text)
+
+
+def explain(c: Candidate, tz: tzinfo) -> str:
+    lead = c.lead
     when = lead.when.astimezone(tz).strftime("%b %d, %Y") if lead.when else "date unknown"
-    parts = [f"Reported by {describe(lead)} on {when}."]
-    others = [s for s in group if s is not lead]
+    where = lead.url or lead.source or lead.domain or "its own site"
+    if c.track == "compared":
+        first = c.signals[0]
+        then = first.when.astimezone(tz).strftime("%b %d") if first.when else "earlier"
+        text = (
+            f"Compared two snapshots of {lead.competitor}'s own {SLIDE[lead.page]} page "
+            f"({where}): {then} vs {when}."
+        )
+    elif c.track == "page":
+        text = f"Stated on {lead.competitor}'s own {SLIDE[lead.page]} page ({where}) on {when}."
+    else:
+        text = (
+            f"Announced by {lead.competitor} itself ({where}) on {when}, not on its pricing page."
+        )
+    others = [s for s in c.signals if s is not lead and c.track != "compared"]
     if others:
-        listed = ", ".join(describe(s) for s in others)
-        parts.append(f"Also reported by {listed}, which agree{'s' if len(others) == 1 else ''}.")
-    if kind == "packaging":
-        parts.append("It changes what is included in which plan, which is what prospects compare.")
-    elif kind == "messaging":
-        parts.append("It changes how they present themselves to the same prospects we target.")
-    if any("link_from_named_page" in s.flags for s in group):
-        parts.append("The input named the page but gave no URL; the link is that official page.")
-    return " ".join(parts)
-
-
-def describe(signal: Signal) -> str:
-    label = CLASS_LABEL.get(signal.source_class, "source")
-    where = signal.source or signal.domain or "an unnamed source"
-    return f"{where} ({label})"
-
-
-def skip_reason_for_trust(verdict: Verdict) -> str:
-    why = "; ".join(verdict.reasons) or "weak source"
-    return f"Not confident enough to put in front of leadership ({verdict.confidence:.2f}): {why}."
+        text += " Also stated by " + ", ".join(s.source or str(s.id) for s in others) + "."
+    return text
 
 
 def first_sentence(text: str, limit: int = 160) -> str:
-    sentence = re.split(r"(?<=[.!?])\s+", text.strip())[0]
+    sentence = re.split(r"(?<=[.!?])\s+", text.strip())[0].rstrip(".")
     if len(sentence) > limit:
         sentence = sentence[: limit - 1].rsplit(" ", 1)[0] + "…"
-    if sentence and sentence[-1] not in ".!?…":
-        sentence += "."
     return sentence
 
 

@@ -53,3 +53,35 @@ if __name__ == "__main__":
             }
         ),
     )
+
+
+def adversarial_markdown() -> str:
+    from adversarial_cases import CASES
+    from test_adversarial import outcome
+
+    from brightloop.explain import table
+
+    rows, weak = [], 0
+    for case in CASES:
+        ok, got, detail = outcome(case)
+        weak += case["weak"]
+        verdict = "✅" if ok else "❌ known weakness"
+        note = case.get("instead", "") if case["weak"] else ""
+        rows.append((verdict, case["name"], case["expect"], got, case["why"], note or detail[:90]))
+    rows.sort(key=lambda r: r[0] == "✅")
+    head = [
+        "# Adversarial signals: built to break the pipeline",
+        "",
+        (
+            f"{len(CASES)} cases, {len(CASES) - weak} handled, **{weak} known weaknesses**. "
+            "Source: `tests/adversarial_cases.py`; enforced by `tests/test_adversarial.py` "
+            "(a weakness that starts passing fails the test, so this list stays honest)."
+        ),
+        "",
+    ]
+    body = table(["", "Case", "Expected", "Got", "Why it's hard", "What we do"], rows)
+    return "\n".join(head) + body + "\n"
+
+
+if __name__ == "__main__":
+    write("6-adversarial-results.md", adversarial_markdown())
