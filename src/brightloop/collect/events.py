@@ -7,11 +7,11 @@ Prices, plans, lines and dates come from the captured pages; nothing is generate
 from __future__ import annotations
 
 import re
-from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from brightloop.change import Change, compare, looks_like_failed_capture, page_state
 from brightloop.collect.capture import Snapshot
+from brightloop.normalize import parse_iso
 
 
 def page_events(previous: Snapshot, current: Snapshot, tz: ZoneInfo) -> tuple[str, list[str]]:
@@ -25,7 +25,7 @@ def page_events(previous: Snapshot, current: Snapshot, tz: ZoneInfo) -> tuple[st
         # An archived copy and a live render differ for reasons that aren't changes (scripts
         # that didn't run, a different billing view): the first live capture is a new baseline.
         return "first-snapshot", []
-    then = datetime.fromisoformat(previous.captured_at).astimezone(tz).strftime("%b %d")
+    then = parse_iso(previous.captured_at).astimezone(tz).strftime("%b %d")
     sentences = []
     if headline_changed(previous.headline, current.headline):
         sentences.append(f'Headline changed from "{previous.headline}" to "{current.headline}".')

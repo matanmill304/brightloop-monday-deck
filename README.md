@@ -9,7 +9,7 @@ This app does it for her. Every Monday at 07:30 (Israel time) it captures those 
 
 ## Prove it works (fresh clone, zero keys, no install)
 
-Needs Python 3.11+ only.
+Needs Python 3.9+ only (the `python3` that ships with macOS works).
 
 ```bash
 ./proof
@@ -24,6 +24,8 @@ It replays every recorded real run in `recordings/` (the result must match the r
 ```
 
 Or upload `cases.json` on the live app's **Test** page and download `result.json`. Both run the same pipeline as the scheduled job; only the source of the signals differs.
+
+Any file gets a `result.json`: an empty, binary, non-JSON or wrongly shaped file gives the empty wrapper with the reason in `run.errors` (exit code 0). The exit code is 1 only when `result.json` itself can't be written.
 
 ## How it works
 

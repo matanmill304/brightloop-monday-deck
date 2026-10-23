@@ -12,6 +12,7 @@ sys.path[:0] = [str(ROOT / "src"), str(ROOT / "tests")]
 
 from test_noisy_inputs import WEEK, noisy_case
 
+from brightloop import write_text
 from brightloop.explain import eval_markdown, rules_markdown, trace_markdown
 
 OUT = ROOT / "review"
@@ -22,7 +23,7 @@ def load(path: str):
 
 
 def write(name: str, text: str) -> None:
-    (OUT / name).write_text(text, encoding="utf-8", newline="\n")
+    write_text(OUT / name, text)
     print(f"wrote review/{name}")
 
 

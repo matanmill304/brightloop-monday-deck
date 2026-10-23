@@ -15,10 +15,13 @@ import html
 import json
 import os
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
+
+from brightloop import write_text
+from brightloop.normalize import parse_iso
 
 PAGES = (("pricing", "pricing"), ("home", "homepage"))
 DEFAULT_COMPETITORS = ("Lovable", "Replit", "Bolt")
@@ -265,7 +268,7 @@ def write_deck(folder: Path, pptx: bool = True, assets_root: Path | None = None)
                 slide.shot = f"{prefix}/{slide.shot}"
     title = f"{BRAND} · {week_label(case.get('week')) or folder.name}"
     out = [folder / "deck.html"]
-    out[0].write_text(render_html(slides, title), encoding="utf-8", newline="\n")
+    write_text(out[0], render_html(slides, title))
     if pptx:
         try:
             render_pptx(slides, folder, folder / "deck.pptx")
@@ -290,7 +293,7 @@ def week_label(week: str | None) -> str:
 
 def short_date(ts: str, tz: ZoneInfo) -> str:
     try:
-        moment = datetime.fromisoformat(ts).astimezone(tz)
+        moment = parse_iso(ts).astimezone(tz)
     except ValueError:
         return ts
     return f"{moment:%b} {moment.day}"

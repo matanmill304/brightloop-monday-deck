@@ -7,7 +7,7 @@ name = "brightloop-monday-deck"
 version = "0.1.0"
 description = "Builds Maya's Monday competitor deck: what changed on competitor pricing pages and homepages, with every number linked."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
     "tzdata>=2024.1",
 ]
@@ -38,4 +38,4 @@ addopts = "-q"
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py39"

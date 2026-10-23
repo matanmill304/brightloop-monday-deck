@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from functools import lru_cache
 
 from brightloop.change import (
@@ -46,7 +46,7 @@ from brightloop.decide import (
     prices,
     running_weeks,
 )
-from brightloop.normalize import Signal
+from brightloop.normalize import UTC, Signal
 from brightloop.window import Week
 
 CONF_COMPARED = 0.95  # we compared two snapshots of the official page ourselves
