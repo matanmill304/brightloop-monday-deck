@@ -69,6 +69,8 @@ def sentence(change: Change, page: str, then: str) -> str:
         return f"New {plan} plan added at {new} (not on the page on {then})."
     if change.kind == "plan_removed" and old:
         return f"{plan} plan ({old}) removed (it was on the page on {then})."
+    if plan and change.kind.startswith("line_"):
+        where += f" ({plan} plan)"  # the card the line sits in
     if change.kind == "line_changed":
         return f'Changed on the {where}: "{change.old}" → "{change.new}"'
     if change.kind == "line_added" and change.new:

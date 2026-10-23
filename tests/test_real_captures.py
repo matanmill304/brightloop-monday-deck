@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from brightloop.change import page_state
+from brightloop.change import Change, PageState, compare, page_state, stated_change
 from brightloop.collect.capture import Snapshot
 from brightloop.collect.events import page_events
 
@@ -69,18 +69,64 @@ def test_a_footnote_with_a_price_is_reported_in_the_pages_own_words():
 
 def test_an_edited_line_is_one_change_not_two():
     edit = (
-        'Changed on the pricing page: "$20 towards most powerful models" → '
+        'Changed on the pricing page (Core plan): "$20 towards most powerful models" → '
         '"$20 towards more powerful models"'
     )
     assert events("2026-10-05", "2026-10-07", "replit-pricing") == ("changed", [edit])
+    # On the homepage the line sits in a card we can't name ("Replit Core"): no plan, not a
+    # wrong one ("Starter", the last name we could read above it).
+    home = 'Changed on the homepage: "$20 towards most powerful models" → "$20 towards more'
+    assert events("2026-10-05", "2026-10-07", "replit-home")[1][0].startswith(home)
 
 
 def test_bolts_october_allowance_change():
+    # Pairing by number in the same card: "Start at 10M…" -> "10M tokens/month…" is one edit.
     status, sentences = events("2026-10-16", "2026-10-20", "bolt-pricing")
     assert status == "changed"
+    free = 'Changed on the pricing page (Free plan): "1M tokens per month" → '
+    pro = 'Changed on the pricing page (Pro plan): "Start at 10M tokens per month" → '
     assert sentences == [
-        'Changed on the pricing page: "1M tokens per month" → "1M tokens/month to try Bolt"',
-        'New on the pricing page: "10M tokens/month, rollover included"',
-        'No longer on the pricing page: "300K tokens daily limit"',
-        'No longer on the pricing page: "Start at 10M tokens per month"',
+        free + '"1M tokens/month to try Bolt"',
+        pro + '"10M tokens/month, rollover included"',
+        'No longer on the pricing page (Free plan): "300K tokens daily limit"',
     ]
+
+
+def test_each_line_gets_the_plan_card_it_sits_in():
+    before = page_state(snap("2026-10-16", "bolt-pricing").text).plans
+    after = page_state(snap("2026-10-20", "bolt-pricing").text).plans
+    assert before["300K tokens daily limit"] == "Free"
+    assert before["1M tokens per month"] == "Free"
+    assert before["Start at 10M tokens per month"] == "Pro"
+    assert after["10M tokens/month, rollover included"] == "Pro"
+    # The Bolt Lite footnote sits under the Enterprise card (no price): no plan.
+    lite = page_state(snap("2026-09-30", "bolt-pricing").text)
+    assert LITE.strip('"') in lite.lines and LITE.strip('"') not in lite.plans
+
+
+def test_two_lines_sharing_a_number_in_different_plans_are_not_one_edit():
+    old = PageState(lines=["$20 towards more powerful models"], plans={})
+    new = PageState(lines=["Teams get $20 of credits for each seat"], plans={})
+    old.plans = {"$20 towards more powerful models": "Core"}
+    new.plans = {"Teams get $20 of credits for each seat": "Teams"}
+    kinds = [c.kind for c in compare(old, new)]
+    assert kinds == ["line_added", "line_removed"]
+
+
+def test_sentences_written_before_plans_still_parse_the_same():
+    old = stated_change('Changed on the pricing page: "1M tokens per month" → "1M tokens/month"')
+    assert old == Change(
+        "line_changed",
+        "1M tokens per month",
+        "1M tokens/month",
+        'Changed on the pricing page: "1M tokens per month" → "1M tokens/month"',
+        None,
+    )
+    gone = stated_change('No longer on the pricing page: "Pro plan: 300K tokens daily limit"')
+    assert (gone.kind, gone.old, gone.plan) == (
+        "line_removed",
+        "Pro plan: 300K tokens daily limit",
+        "Pro",
+    )
+    new = stated_change('No longer on the pricing page (Free plan): "300K tokens daily limit"')
+    assert (new.kind, new.old, new.plan) == ("line_removed", "300K tokens daily limit", "Free")
