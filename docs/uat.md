@@ -4,7 +4,7 @@ Every situation the product handles, what it does, and the test that proves it. 
 
 **Who it's for:** Maya (Head of Growth). **What counts:** a change on a competitor's **own** pricing page or homepage this week ("the source of truth"). **Everything else** is skipped with a reason; nothing silently disappears.
 
-Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · 🔜 not built yet
+Legend: ⚠️ known limit (tested, documented)
 
 ## 1. Input file
 
@@ -17,10 +17,11 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 | 1.5 | Duplicate ids | Placed once, noted in `run.errors` | same |
 | 1.6 | Odd ids (numbers, unicode, 300 chars, `<!-- -->`, "A" vs "a") | Echoed exactly | `test_noisy_inputs::test_ids_with_odd_values_are_echoed_exactly` |
 | 1.7 | Fields in other names or shapes (`title`/`headline`/`body`, nested `source`, list `text`, `published_at`, `kind`, `company`) | Read anyway | `test_noisy_inputs::test_odd_field_shapes_still_work`, `test_text_under_other_field_names` |
-| 1.8 | 200,000-character text, HTML, `<script>` | Capped at 5,000 chars, tags stripped, fast | `test_noisy_inputs::test_huge_and_hostile_text` |
+| 1.8 | 200,000-character text, HTML, `<script>` | Capped at 40,000 chars, tags stripped, fast | `test_noisy_inputs::test_huge_and_hostile_text` |
 | 1.9 | 2,000+ signals, mostly unrelated | Real changes found, none of the noise reaches the deck, < 10 s | `test_noisy_inputs::test_large_input_is_fast_and_complete` |
 | 1.10 | Same input twice | Same output (except `run.started_at`) | `test_noisy_inputs::test_same_input_same_output` |
 | 1.11 | Random garbage (200 generated inputs) | The accounting rule always holds | `test_contract::test_any_input_meets_contract` |
+| 1.12 | Empty, binary or non-UTF-8 file, top level not an object, NaN, very deep nesting, missing file | A valid output with the reason in `run.errors`, exit code 0; the same on the upload page | `test_file_safety` |
 
 ## 2. The week and time
 
@@ -45,9 +46,10 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 | 3.2 | Competitor's own homepage changed | **Item** (homepage slide) | `test_pipeline::test_homepage_change_is_a_homepage_item` |
 | 3.3 | Competitor's blog / changelog / own X account / own ad announces a pricing change | **Item**, 0.7, "check the official pricing page" | `test_pipeline::test_official_blog_price_change_says_check_the_page`, `test_competitor_ad_with_a_price_is_checked_against_the_page` |
 | 3.4 | Same, but a feature launch | Skipped: "route to Noa" | `test_pipeline::test_official_feature_launch_goes_to_noa` |
+| 3.4b | A feature on every plan ("Agent 4 is live for every plan") vs. one moved between plans ("previously Pro-only, now on Free") | Launch, skipped (Noa) vs. packaging, item (decision D7) | `test_pipeline::test_packaging_means_something_moved_between_plans` |
 | 3.5 | Competitor's ad with no price | Skipped: "Daniel's area" (+ "running N weeks" if 8+) | `test_pipeline::test_brief_sample` |
 | 3.6 | Press, Reddit, sponsored, anonymous, unknown source | Skipped: "verify on <official pricing page>" | `test_pipeline::test_third_party_is_never_an_item_even_from_good_press` |
-| 3.7 | Third party reports the same change as an official item | Skipped, pointing to that item | `test_pipeline::test_third_party_matching_an_official_item_points_to_it` |
+| 3.7 | Third party reports the same change as an official item | Joins that item's `source_ids` ("Also reported by …") | `test_pipeline::test_third_party_report_of_the_same_change_joins_the_official_item` |
 | 3.8 | Third-party news that isn't about pricing (funding…) | Skipped: "isn't a pricing or packaging change" | `test_edge_cases` (`funding`) |
 | 3.9 | Source names the page but no URL ("Replit pricing page") | Linked to the official page, caveat says so | `test_pipeline::test_named_official_page_without_url_gets_its_link` |
 | 3.10 | Competitor not in our dictionary, its own domain (`acmeai.io` for "Acme AI") | Official | `test_pipeline::test_unknown_competitor_with_its_own_domain_counts_as_official` |
@@ -86,12 +88,14 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 | 5.12 | Annual vs monthly prices on one line | Not a change | `test_adversarial` |
 | 5.13 | Company money ("raises $330M at $6.6B valuation") | Never a price change | `test_relevance_eval`, `test_edge_cases` |
 | 5.14 | "Bolt.new" (domain) read as the word "new" | Masked | `test_noisy_inputs` |
+| 5.15 | Unusual wording: numbers in words, "20 USD", "~~$20~~ $25", "+$5", "10% cheaper", "rather than 20%", "say hello to Teams", "is being retired" | Item | `test_adversarial_files` (wording), `test_pipeline` |
+| 5.16 | "No price change", "Unchanged", an ad's "from $25/mo" | Not a change | `test_adversarial_files` (wording) |
 
 ## 6. Comparing two snapshots of a page (collector)
 
 | # | Situation | Expected | Test |
 |---|---|---|---|
-| 6.1 | Plan price changed | Item: "Pro $25/month → Pro $30/month" | `test_pipeline::test_two_snapshots_that_differ_make_one_item` |
+| 6.1 | Plan price changed | Item: "Pro: $25/month → $30/month" | `test_pipeline::test_two_snapshots_that_differ_make_one_item` |
 | 6.2 | Identical | No item | `test_pipeline::test_two_identical_snapshots_are_both_skipped` |
 | 6.3 | Plans reordered, cookie banner or footer year changed | No change | `test_adversarial` |
 | 6.4 | Pricing page vs homepage | Never compared | `test_adversarial` |
@@ -99,6 +103,9 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 | 6.6 | Archived copy vs live capture | Not compared: the first live capture starts a new baseline | `test_real_captures::test_archived_yearly_view_vs_live_monthly_view_is_not_a_price_change` |
 | 6.7 | Menus, FAQ prose, inline-SVG CSS between renders | Not compared: only prices, plans, lines with a price/%/limit and the top of the homepage are | `test_real_captures` |
 | 6.8 | Homepage with rotating testimonials | Item carries "check the screenshots" caveat | `select.homepage_caveat` |
+| 6.9 | Homepage headline, subheadline or buttons changed | Item; text that rotates on its own (read twice, 4 s apart) is left out | `test_collector::test_homepage_top_changes_become_signals_and_items` |
+| 6.10 | The archive's own error page saved as a copy | Not a capture; never compared | `test_real_captures::test_the_archives_own_error_page_is_never_compared` |
+| 6.11 | Prices drawn without a currency sign (Lovable: "Pro … 25 / month") | Read as $25 | `test_real_captures::test_prices_drawn_without_a_currency_sign_are_read` |
 
 ## 7. Safety
 
@@ -119,23 +126,26 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 | 8.1 | Every input id exactly once | Always; repairs logged | `test_contract` (all) |
 | 8.2 | `cta_required_per_item` true / false / "false" | `cta` present only when true | `test_pipeline::test_cta_only_when_required`, `test_noisy_inputs::test_cta_flag_as_string` |
 | 8.3 | Same change from two official sources | One item | `test_pipeline::test_official_announcement_merges_into_the_page_item` |
+| 8.3b | Same change in other words, from several sources | One item listing all their ids | `test_pipeline::test_same_change_in_other_words_is_one_item`, `test_three_wordings_of_one_price_change_are_one_item` |
 | 8.4 | Two changes, same plan / same day / different plans | Separate items | `test_pipeline::test_look_alikes_stay_separate`, `test_adversarial` |
 | 8.5 | Confidence | 0–0.95, never forced by the input | `test_pipeline::test_every_item_has_a_link_and_bounded_confidence` |
 | 8.6 | Recorded real run | Replays to the same result with zero keys | `test_recordings` |
+| 8.7 | 96 signals written by agents that never saw the code (broken formats, judgment traps, unusual wording) | 92 placed as expected, no wrong merges | `test_adversarial_files` |
 
 ## 9. Live collection
 
 | # | Situation | Expected | Test |
 |---|---|---|---|
-| 9.1 | Page blocks bots (Replit, Lovable's homepage) | Not bypassed; latest Wayback copy, labeled with its date | run log (`recordings/runlog.jsonl`) |
+| 9.1 | Page blocks headless browsers (Replit, Lovable's homepage) | Captured in real Chrome; if it still fails, that day's Wayback copy, labeled "archived" | run log (`recordings/runlog.jsonl`) |
 | 9.2 | Wayback rate-limits (HTTP 429) | Back off (Retry-After); if still failing, "not available" in the run log | run log |
 | 9.3 | Cookie banner | Hidden for the screenshot, never accepted | `collect/capture.py` |
 | 9.4 | No earlier snapshot | "First snapshot: nothing to compare yet" | first live run |
-| 9.5 | Short event signals from the collector (not page dumps) | 🔜 building now | — |
-| 9.6 | Weekly schedule + "run now" | 🔜 | — |
+| 9.5 | Short event signals from the collector (not page dumps) | One signal per change, in the brief's input format | `test_collector` |
+| 9.6 | Daily schedule (04:30 UTC) + "Run workflow" | Captures daily; Mondays build last week's deck; each run is a run-log line | `.github/workflows/daily.yml`, `test_collector::test_the_daily_refresh_adds_no_run_log_line` |
 
 ## 10. Known limits
 
 - Rule-based reading: wording we didn't anticipate can be missed (relevance recall 0.85 on held-out real headlines; precision 1.00). There is no LLM by design: the live app and a keyless clone run the same rules (decisions D2).
-- English pages; US date format reads as "no date".
+- English only; an ambiguous date like `03/04/2026` is treated as missing ("no date" caveat).
+- Slang and third-party paraphrases ("a fiver more", "shaved five points off") can be missed: skipped with a reason, never shown as fact.
 - Live data depends on what competitors allow: blocked pages come from the Wayback Machine, which is itself rate-limited.
