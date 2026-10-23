@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -223,13 +224,22 @@ def render_pptx(slides: list[Slide], folder: Path, path: Path) -> None:
     deck.save(str(path))
 
 
-def write_deck(folder: Path, pptx: bool = True) -> list[Path]:
-    """Build deck.html (and deck.pptx) next to a run's cases.json and result.json."""
+def write_deck(folder: Path, pptx: bool = True, assets_root: Path | None = None) -> list[Path]:
+    """Build deck.html (and deck.pptx) next to a run's cases.json and result.json.
+
+    Screenshot paths in run.json are relative to `assets_root` (recordings/); the deck
+    rewrites them relative to its own folder so the HTML works when served as files."""
     case = json.loads((folder / "cases.json").read_text(encoding="utf-8"))
     result = json.loads((folder / "result.json").read_text(encoding="utf-8"))
     run_path = folder / "run.json"
     run = json.loads(run_path.read_text(encoding="utf-8")) if run_path.exists() else None
     slides = build_slides(case, result, run)
+    if assets_root is not None:
+        prefix = Path(os.path.relpath(assets_root, folder)).as_posix()
+        for slide in slides:
+            for attr in ("current_shot", "previous_shot"):
+                if getattr(slide, attr):
+                    setattr(slide, attr, f"{prefix}/{getattr(slide, attr)}")
     title = f"Competitor pages · {case.get('week', folder.name)}"
     out = [folder / "deck.html"]
     out[0].write_text(render_html(slides, title), encoding="utf-8", newline="\n")

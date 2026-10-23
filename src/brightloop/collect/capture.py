@@ -137,16 +137,16 @@ class Capturer:
         self._browser.close()
         self._pw.stop()
 
-    def live(self, competitor: str, page: str, url: str) -> Snapshot | None:
+    def live(self, competitor: str, page: str, url: str, name: str) -> Snapshot | None:
         """The page as it is now; None if it's blocked or empty."""
         text, headline = self._render(url)
         if text is None or BLOCK_MARKERS.search(text[:2000]) or len(text) < 200:
             return None
-        shot = self._screenshot(competitor, page, "live")
+        shot = self._screenshot(name)
         return Snapshot(competitor, page, url, now_iso(), "live", text, headline, shot)
 
     def archived(
-        self, competitor: str, page: str, url: str, after: datetime, before: datetime
+        self, competitor: str, page: str, url: str, after: datetime, before: datetime, name: str
     ) -> Snapshot | None:
         """The latest Wayback copy in [after, before), rendered without the archive toolbar."""
         found = wayback_latest(url, after, before)
@@ -158,7 +158,7 @@ class Capturer:
         if text is None or len(text) < 200:
             return None
         captured = datetime.strptime(timestamp, "%Y%m%d%H%M%S").replace(tzinfo=UTC)
-        shot = self._screenshot(competitor, page, f"archived-{timestamp}")
+        shot = self._screenshot(name)
         return Snapshot(
             competitor,
             page,
@@ -198,10 +198,11 @@ class Capturer:
         except Exception:  # noqa: BLE001, S110 - no toggle or not clickable: keep the default view
             pass
 
-    def _screenshot(self, competitor: str, page: str, label: str) -> str:
-        name = f"{slug(competitor)}-{page}-{label}.jpg"
-        self._page.screenshot(path=str(self.out_dir / name), type="jpeg", quality=70)
-        return name
+    def _screenshot(self, name: str) -> str:
+        """Viewport screenshot (top of the page: plans and prices, the hero) as <name>.jpg."""
+        filename = f"{name}.jpg"
+        self._page.screenshot(path=str(self.out_dir / filename), type="jpeg", quality=70)
+        return filename
 
 
 def condense(text: str, limit: int = 4500) -> str:

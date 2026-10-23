@@ -36,7 +36,7 @@ def ids(case: dict) -> list:
 
 def main() -> int:
     failures = 0
-    recordings = sorted((ROOT / "recordings").glob("*-W*/cases.json"))
+    recordings = sorted((ROOT / "recordings").glob("weeks/*-W*/cases.json"))
     for path in recordings:
         case = json.loads(path.read_text(encoding="utf-8"))
         recorded = json.loads((path.parent / "result.json").read_text(encoding="utf-8"))

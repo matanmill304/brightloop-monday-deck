@@ -11,7 +11,7 @@ import pytest
 from brightloop.contract import check_contract
 from brightloop.pipeline import run_pipeline
 
-RECORDINGS = sorted((Path(__file__).resolve().parents[1] / "recordings").glob("*/cases.json"))
+RECORDINGS = sorted((Path(__file__).resolve().parents[1] / "recordings").glob("weeks/*/cases.json"))
 
 
 @pytest.mark.parametrize("cases", RECORDINGS, ids=[p.parent.name for p in RECORDINGS])
