@@ -7,12 +7,20 @@
         "pr-102001"
       ],
       "confidence": 0.9,
-      "action": "Update the Bolt pricing slide: \"1M tokens per month\" → \"1M tokens/month to try Bolt\".",
+      "action": "Update the Bolt pricing slide: Free: \"1M tokens per month\" → \"1M tokens/month to try Bolt\".",
       "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 20, 2026.",
       "competitor": "Bolt",
       "page": "pricing",
       "change": [
-        "\"1M tokens per month\" → \"1M tokens/month to try Bolt\""
+        "Free: \"1M tokens per month\" → \"1M tokens/month to try Bolt\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_changed",
+          "plan": "Free",
+          "old": "1M tokens per month",
+          "new": "1M tokens/month to try Bolt"
+        }
       ],
       "links": [
         "https://bolt.new/pricing"
@@ -35,12 +43,20 @@
         "pr-102002"
       ],
       "confidence": 0.9,
-      "action": "Update the Bolt pricing slide: new on the page: \"10M tokens/month, rollover included\".",
+      "action": "Update the Bolt pricing slide: Pro: \"Start at 10M tokens per month\" → \"10M tokens/month, rollover included\".",
       "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 20, 2026.",
       "competitor": "Bolt",
       "page": "pricing",
       "change": [
-        "new on the page: \"10M tokens/month, rollover included\""
+        "Pro: \"Start at 10M tokens per month\" → \"10M tokens/month, rollover included\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_changed",
+          "plan": "Pro",
+          "old": "Start at 10M tokens per month",
+          "new": "10M tokens/month, rollover included"
+        }
       ],
       "links": [
         "https://bolt.new/pricing"
@@ -63,12 +79,20 @@
         "pr-102003"
       ],
       "confidence": 0.9,
-      "action": "Update the Bolt pricing slide: no longer on the page: \"300K tokens daily limit\".",
+      "action": "Update the Bolt pricing slide: Free: no longer on the page: \"300K tokens daily limit\".",
       "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 20, 2026.",
       "competitor": "Bolt",
       "page": "pricing",
       "change": [
-        "no longer on the page: \"300K tokens daily limit\""
+        "Free: no longer on the page: \"300K tokens daily limit\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_removed",
+          "plan": "Free",
+          "old": "300K tokens daily limit",
+          "new": null
+        }
       ],
       "links": [
         "https://bolt.new/pricing"
@@ -84,39 +108,11 @@
         "text": "Open Bolt's pricing page",
         "url": "https://bolt.new/pricing"
       }
-    },
-    {
-      "id": "maya-bolt-4",
-      "source_ids": [
-        "pr-102004"
-      ],
-      "confidence": 0.9,
-      "action": "Update the Bolt pricing slide: no longer on the page: \"Start at 10M tokens per month\".",
-      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 20, 2026.",
-      "competitor": "Bolt",
-      "page": "pricing",
-      "change": [
-        "no longer on the page: \"Start at 10M tokens per month\""
-      ],
-      "links": [
-        "https://bolt.new/pricing"
-      ],
-      "sources": [
-        {
-          "id": "pr-102004",
-          "source": "bolt.new/pricing",
-          "class": "official"
-        }
-      ],
-      "cta": {
-        "text": "Open Bolt's pricing page",
-        "url": "https://bolt.new/pricing"
-      }
     }
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-23T14:45:11+00:00",
+    "started_at": "2026-10-23T16:33:42+00:00",
     "cost_usd": 0.0,
     "errors": []
   }

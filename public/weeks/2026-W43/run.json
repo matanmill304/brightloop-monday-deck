@@ -1,7 +1,7 @@
 {
   "week": "2026-W43",
-  "started_at": "2026-10-23T14:45:11+00:00",
-  "finished_at": "2026-10-23T14:45:11+00:00",
+  "started_at": "2026-10-23T16:33:42+00:00",
+  "finished_at": "2026-10-23T16:33:42+00:00",
   "pages": [
     {
       "competitor": "Lovable",
@@ -14,14 +14,16 @@
         "method": "live",
         "snapshot": "days/2026-10-23/lovable-pricing.json",
         "screenshot": "days/2026-10-23/lovable-pricing.jpg",
-        "archive_url": null
+        "archive_url": null,
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-10-15T20:41:54+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-15/lovable-pricing.json",
         "screenshot": "days/2026-10-15/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261015204154/https://lovable.dev/pricing"
+        "archive_url": "https://web.archive.org/web/20261015204154/https://lovable.dev/pricing",
+        "billing": null
       },
       "days_captured": 4
     },
@@ -36,14 +38,16 @@
         "method": "live",
         "snapshot": "days/2026-10-23/lovable-home.json",
         "screenshot": "days/2026-10-23/lovable-home.jpg",
-        "archive_url": null
+        "archive_url": null,
+        "billing": "yearly"
       },
       "previous": {
         "captured_at": "2026-10-14T04:02:27+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-14/lovable-home.json",
         "screenshot": "days/2026-10-14/lovable-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261014040227/https://lovable.dev"
+        "archive_url": "https://web.archive.org/web/20261014040227/https://lovable.dev",
+        "billing": "yearly"
       },
       "days_captured": 1
     },
@@ -58,14 +62,16 @@
         "method": "live",
         "snapshot": "days/2026-10-23/replit-pricing.json",
         "screenshot": "days/2026-10-23/replit-pricing.jpg",
-        "archive_url": null
+        "archive_url": null,
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-10-18T15:20:41+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-18/replit-pricing.json",
         "screenshot": "days/2026-10-18/replit-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261018152041/https://replit.com/pricing"
+        "archive_url": "https://web.archive.org/web/20261018152041/https://replit.com/pricing",
+        "billing": "yearly"
       },
       "days_captured": 4
     },
@@ -80,14 +86,16 @@
         "method": "live",
         "snapshot": "days/2026-10-23/replit-home.json",
         "screenshot": "days/2026-10-23/replit-home.jpg",
-        "archive_url": null
+        "archive_url": null,
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-10-16T17:17:41+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-16/replit-home.json",
         "screenshot": "days/2026-10-16/replit-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261016171741/https://replit.com"
+        "archive_url": "https://web.archive.org/web/20261016171741/https://replit.com",
+        "billing": "yearly"
       },
       "days_captured": 3
     },
@@ -99,22 +107,23 @@
       "signal_ids": [
         "pr-102001",
         "pr-102002",
-        "pr-102003",
-        "pr-102004"
+        "pr-102003"
       ],
       "current": {
         "captured_at": "2026-10-23T14:45:01+00:00",
         "method": "live",
         "snapshot": "days/2026-10-23/bolt-pricing.json",
         "screenshot": "days/2026-10-23/bolt-pricing.jpg",
-        "archive_url": null
+        "archive_url": null,
+        "billing": "monthly"
       },
       "previous": {
         "captured_at": "2026-10-16T10:07:06+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-16/bolt-pricing.json",
         "screenshot": "days/2026-10-16/bolt-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261016100706/https://bolt.new/pricing"
+        "archive_url": "https://web.archive.org/web/20261016100706/https://bolt.new/pricing",
+        "billing": "monthly"
       },
       "days_captured": 4
     },
@@ -129,14 +138,16 @@
         "method": "live",
         "snapshot": "days/2026-10-23/bolt-home.json",
         "screenshot": "days/2026-10-23/bolt-home.jpg",
-        "archive_url": null
+        "archive_url": null,
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-10-14T01:07:30+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-14/bolt-home.json",
         "screenshot": "days/2026-10-14/bolt-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261014010730/https://bolt.new"
+        "archive_url": "https://web.archive.org/web/20261014010730/https://bolt.new",
+        "billing": null
       },
       "days_captured": 1
     }
