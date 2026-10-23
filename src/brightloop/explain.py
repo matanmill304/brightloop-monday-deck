@@ -14,6 +14,37 @@ from brightloop import change, competitors, decide, normalize, pipeline, window
 from brightloop import select as sel
 from brightloop.normalize import Signal
 
+# Skip reasons grouped by outcome for the app's Test page: the first prefix that matches wins.
+# A reason worded some new way lands in "Other", and a test fails until it gets its group.
+NOT_FROM = "Not from the competitor: verify on the official page"
+OUTSIDE = "Outside the week"
+SKIP_GROUPS = (
+    ("Contains instructions aimed at AI", "Unsafe or unusable"),
+    ("A different company named like", "Unsafe or unusable"),
+    ("About something else that shares the name", "Unsafe or unusable"),
+    ("No competitor named", "Unsafe or unusable"),
+    ("No text to evaluate", "Unsafe or unusable"),
+    ("Not from ", NOT_FROM),
+    ("Third-party news", NOT_FROM),
+    ("Same event as ", NOT_FROM),
+    ("States the current price", "Not a change"),
+    ("Says nothing changed", "Not a change"),
+    ("Company news", "Not a change"),
+    ("Current state only", "Not a change"),
+    ("Feature launch", "Noa's area: features"),
+    ("Ad creative", "Daniel's area: ads"),
+    ("Ad showing the current price", "Daniel's area: ads"),
+    ("Older than the reporting week", OUTSIDE),
+    ("Happened before the reporting week", OUTSIDE),
+    ("Stopped before the reporting week", OUTSIDE),
+    ("Dated after the reporting week", OUTSIDE),
+    ("Starts after the reporting week", OUTSIDE),
+)
+
+
+def skip_group(reason: str) -> str:
+    return next((group for start, group in SKIP_GROUPS if reason.startswith(start)), "Other")
+
 
 def rules_markdown() -> str:
     c, d, n = change, decide, normalize

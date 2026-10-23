@@ -1,12 +1,14 @@
 """Vercel function: rebuild a week's deck from the daily captures. GET /api/deck?week=2026-W43
 
 Same code as the Monday run (assemble_week -> pipeline -> slides), computed on request and
-returned as slide data; nothing is written. Screenshot paths are relative to the site root.
+returned in the same shape as the app's stored week, so the Test page can compare the two.
+Nothing is written. Screenshot paths are relative to the site root.
 """
 
 import json
 import re
 import sys
+import time
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -15,21 +17,17 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from brightloop.collect.run import assemble_week, last_complete_week
-from brightloop.deck import build_slides, week_label
+from brightloop.deck import week_view
 
 WEEK = re.compile(r"^\d{4}-W\d{2}$")
 
 
 def deck_data(week: str, recordings: Path) -> dict:
+    started = time.perf_counter()
     case, result, run = assemble_week(week, recordings)
-    slides = [vars(s) for s in build_slides(case, result, run)]
-    return {
-        "week": week,
-        "label": week_label(week),
-        "built_at": run["finished_at"],
-        "slides": slides,
-        "changed": sum(s["status"] == "changed" for s in slides),
-    }
+    view = week_view(case, result, run)
+    view["seconds"] = round(time.perf_counter() - started, 1)
+    return view
 
 
 class handler(BaseHTTPRequestHandler):

@@ -3,12 +3,13 @@
     python scripts/build_site.py
 
 public/
-  index.html               the app (site/app.html + this data): Deck, Test, Setup
+  index.html               the app (site/app.html + this data): What's new, Deck, Test, Setup
   weeks/<week>/            deck.html (print view / PDF), deck.pptx, cases.json, result.json, run.json
   days/<date>/*.jpg        the screenshots the decks show
-  runlog.jsonl             every daily and weekly run (the brief's run log)
+  runlog.jsonl             every daily, weekly and rebuild run (the brief's run log)
 
-The Test page calls /api/run and "Rebuild" calls /api/deck (Vercel Python functions in api/).
+The Test page calls /api/run, and its rebuild check calls /api/deck (Vercel Python functions
+in api/).
 """
 
 from __future__ import annotations
@@ -16,15 +17,16 @@ from __future__ import annotations
 import json
 import shutil
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from brightloop import write_text
-from brightloop.collect.run import TZ, targets, week_bounds
-from brightloop.deck import build_slides, week_label
+from brightloop.collect.run import TZ, targets
+from brightloop.deck import clock, is_partial, week_label, week_view
+from brightloop.explain import SKIP_GROUPS
 from brightloop.normalize import UTC, parse_iso
 
 RECORDINGS = ROOT / "recordings"
@@ -32,6 +34,8 @@ PUBLIC = ROOT / "public"
 TEMPLATE = ROOT / "site" / "app.html"
 REPO = "https://github.com/matanmill304/brightloop-monday-deck"
 BRIEF_SAMPLE = ROOT / "tests" / "fixtures" / "brief_sample.json"
+CAPTURE_AT = time(4, 30)  # UTC, .github/workflows/daily.yml
+RUNS_SHOWN = 14
 
 
 def build() -> None:
@@ -47,10 +51,14 @@ def build() -> None:
     runs = read_runlog()
     shutil.copy2(RECORDINGS / "runlog.jsonl", PUBLIC / "runlog.jsonl")
     data = {
+        "default_week": default_week(weeks),
         "weeks": weeks,
+        "runs": run_rows(runs),
         "health": health(runs),
         "tracked": tracked(),
         "samples": samples(weeks),
+        "skip_groups": [list(group) for group in SKIP_GROUPS],
+        "links": links(),
         "repo": REPO,
     }
     embedded = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
@@ -65,18 +73,16 @@ def week_data(run_file: Path) -> dict:
         json.loads((folder / name).read_text(encoding="utf-8"))
         for name in ("cases.json", "result.json", "run.json")
     )
-    slides = [vars(s) for s in build_slides(case, result, run)]
+    view = week_view(case, result, run)
     refs = [p.get(k) for p in run["pages"] for k in ("current", "previous")]
-    _start, end = week_bounds(folder.name)
-    return {
-        "week": folder.name,
-        "label": week_label(folder.name),
-        "built_at": run["finished_at"],
-        "partial": parse_iso(run["finished_at"]) < end,
-        "slides": slides,
-        "changed": sum(s["status"] == "changed" for s in slides),
-        "shots": sorted({r["screenshot"] for r in refs if r and r.get("screenshot")}),
-    }
+    view["shots"] = sorted({r["screenshot"] for r in refs if r and r.get("screenshot")})
+    return view
+
+
+def default_week(weeks: list[dict]) -> int:
+    """The newest complete week: on Monday morning that's the deck for the 11:00 meeting, not
+    the week that just started. With no complete week, the newest."""
+    return next((i for i, w in enumerate(weeks) if not w["partial"]), 0)
 
 
 def read_runlog() -> list[dict]:
@@ -85,18 +91,75 @@ def read_runlog() -> list[dict]:
     return [json.loads(line) for line in lines if line]
 
 
+def israel(iso: str) -> str:
+    return clock(parse_iso(iso).astimezone(TZ))
+
+
 def health(runs: list[dict]) -> dict:
     daily = [r for r in runs if r["run"] == "daily"]
     last = max(daily, key=lambda r: r["started_at"]) if daily else None
-    now = datetime.now(TZ)
-    monday = (now + timedelta(days=(7 - now.weekday()) % 7 or 7)).date()
+    now = datetime.now(UTC)
     fresh = bool(last) and now - parse_iso(last["started_at"]) < timedelta(days=2)
+    latest = max(runs, key=lambda r: r["started_at"]) if runs else None
     return {
-        "ok": fresh,
-        "last_run": max(r["started_at"] for r in runs) if runs else None,
-        "last_capture": last["started_at"] if last else None,
-        "next_deck": f"{monday:%a}, {monday:%b} {monday.day}",
+        "ok": fresh and not (latest or {}).get("errors"),
+        "last_capture": israel(last["started_at"]) if last else None,
+        "last_run": israel(latest["started_at"]) if latest else None,
+        "next_deck": clock(next_deck(now).astimezone(TZ)),
     }
+
+
+def next_deck(now: datetime) -> datetime:
+    """The next Monday's scheduled run, when the week's deck is built."""
+    monday = (now + timedelta(days=-now.weekday() % 7)).date()
+    run = datetime.combine(monday, CAPTURE_AT, UTC)
+    return run if run > now else run + timedelta(days=7)
+
+
+RUN_NAME = {"daily": "Daily capture", "weekly": "Weekly deck", "rebuild": "Rebuild"}
+
+
+def run_rows(runs: list[dict]) -> list[dict]:
+    """The last runs, newest first, shaped for the Setup page's run log table."""
+    order = [f"{c} {p}" for c, p, _url in targets()]
+    rows = []
+    for r in sorted(runs, key=lambda r: r["started_at"], reverse=True)[:RUNS_SHOWN]:
+        pages = r.get("pages") or {}
+        errors = r.get("errors")
+        if errors is None:  # entries written before daily runs listed their errors
+            names = {"not-captured": "not captured", "failed-capture": "capture failed"}
+            errors = [f"{k}: {names[v]}" for k, v in pages.items() if v in names]
+        row = {
+            "when": israel(r["started_at"]),
+            "run": RUN_NAME.get(r["run"], r["run"]),
+            "pages": [pages.get(key, "not-captured") for key in order] if pages else None,
+            "problems": "; ".join(e.replace(" home:", " homepage:") for e in errors) or "—",
+        }
+        if r["run"] == "daily":
+            day = parse_iso(r["date"] + "T12:00:00+00:00")
+            row["for"] = f"{day:%b} {day.day} · {r.get('mode', 'live')}"
+            row["found"] = plural(r.get("signals", 0), "signal", "signals")
+        elif r["run"] == "weekly":
+            partial = is_partial(r["week"], r, TZ)
+            row["for"] = r["week"] + (" (so far)" if partial else "")
+            row["found"] = plural(r.get("items", 0), "item", "items")
+        else:
+            weeks = r.get("weeks") or {}
+            newest = max(weeks) if weeks else None
+            row["for"] = f"All {len(weeks)} weeks" + (
+                f" · {r['reason']}" if r.get("reason") else ""
+            )
+            row["found"] = (
+                f"{newest[5:]}: {plural(weeks[newest]['items'], 'item', 'items')}"
+                if newest
+                else "—"
+            )
+        rows.append(row)
+    return rows
+
+
+def plural(n: int, one: str, many: str) -> str:
+    return f"{n} {one if n == 1 else many}"
 
 
 def tracked() -> list[dict]:
@@ -110,9 +173,23 @@ def tracked() -> list[dict]:
         row = out.setdefault(competitor, {"name": competitor, "last": None, "live": False})
         row["pricing" if page == "pricing" else "home"] = url
         current = latest.get((competitor, page))
-        if current and (row["last"] is None or current["captured_at"] > row["last"]):
-            row["last"], row["live"] = current["captured_at"], current["method"] == "live"
+        if current and (row.get("_at") is None or current["captured_at"] > row["_at"]):
+            row["_at"], row["live"] = current["captured_at"], current["method"] == "live"
+            row["last"] = israel(current["captured_at"])
+    for row in out.values():
+        row.pop("_at", None)
     return list(out.values())
+
+
+def links() -> dict:
+    blob = f"{REPO}/blob/main"
+    return {
+        "repo": REPO,
+        "readme": f"{blob}/README.md",
+        "why_maya": f"{blob}/docs/why-maya.md",
+        "decisions": f"{blob}/decisions.md",
+        "spotted": f"{blob}/SPOTTED.md",
+    }
 
 
 def samples(weeks: list[dict]) -> list[dict]:
@@ -129,7 +206,8 @@ def samples(weeks: list[dict]) -> list[dict]:
             (RECORDINGS / "weeks" / week["week"] / "cases.json").read_text(encoding="utf-8")
         )
         if cases["signals"]:
-            out.append({"name": f"Our {week['label'].lower()}", "cases": cases})
+            label = week_label(week["week"])
+            out.append({"name": f"Our {label[:1].lower()}{label[1:]}", "cases": cases})
             break
     return out
 
