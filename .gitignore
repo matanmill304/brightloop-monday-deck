@@ -18,3 +18,6 @@ result.json
 .env
 .env.*
 !.env.example
+
+# Review pack for the user (generated + private notes)
+review/

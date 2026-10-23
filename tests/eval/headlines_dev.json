@@ -1,0 +1,416 @@
+[
+ {
+  "title": "Developers Raise Concerns as GitHub Copilot Shifts to Token-Based Billing Model",
+  "source": "CXO Digitalpulse",
+  "date": "2026-06-01",
+  "label": "pricing"
+ },
+ {
+  "title": "Anthropic Ties Claude Opus 5.5 Pricing to Longer Coding Sessions",
+  "source": "Unite.AI",
+  "date": "2026-09-24",
+  "label": "pricing"
+ },
+ {
+  "title": "OpenAI Brings Back Five-Hour Codex Limits After Six Weeks of Unlimited Access",
+  "source": "Startup Fortune",
+  "date": "2026-08-30",
+  "label": "pricing"
+ },
+ {
+  "title": "OpenAI Adds New $100/Month ChatGPT Subscription Tier for Heavier Codex Use",
+  "source": "MacRumors",
+  "date": "2026-04-09",
+  "label": "pricing"
+ },
+ {
+  "title": "Cursor AI’s Controversial Pricing Update Explained, is Simplicity a Thing of the Past?",
+  "source": "Geeky Gadgets",
+  "date": "2025-07-10",
+  "label": "pricing"
+ },
+ {
+  "title": "GitHub Copilot's New Pricing Shock: Some Developers Say Their AI Coding Bills Jumped 25x Overnight",
+  "source": "Memeburn",
+  "date": "2026-06-03",
+  "label": "pricing"
+ },
+ {
+  "title": "Codex now offers pay-as-you-go pricing for teams",
+  "source": "OpenAI",
+  "date": "2026-04-02",
+  "label": "pricing"
+ },
+ {
+  "title": "Claude Code’s Temporary Usage Boost Expires Tonight. Here’s What Actually Changes",
+  "source": "DevOps.com",
+  "date": "2026-08-19",
+  "label": "pricing"
+ },
+ {
+  "title": "Anthropic halved Sonnet 5.5 cache reads, and its own tool showed the old price for two days",
+  "source": "MIXED Reality News",
+  "date": "2026-10-11",
+  "label": "pricing"
+ },
+ {
+  "title": "Anthropic Slashes Claude Sonnet 5.5 Cache-Read Cost by 50%",
+  "source": "Unite.AI",
+  "date": "2026-10-07",
+  "label": "pricing"
+ },
+ {
+  "title": "Cursor’s New Pricing Blew My Budget, So I Built a Usage Tracker",
+  "source": "HackerNoon",
+  "date": "2025-08-11",
+  "label": "pricing"
+ },
+ {
+  "title": "OpenAI launches GPT-6 Sol and Luna at half the API cost",
+  "source": "Tbreak UAE",
+  "date": "2026-09-22",
+  "label": "pricing"
+ },
+ {
+  "title": "OpenAI launches GPT-6.1 Sol at one-fifth of Astra pricing",
+  "source": "TestingCatalog AI News",
+  "date": "2026-09-30",
+  "label": "pricing"
+ },
+ {
+  "title": "OpenAI prepares new $500/month Pro Max plan for ChatGPT",
+  "source": "TestingCatalog AI News",
+  "date": "2026-09-24",
+  "label": "pricing"
+ },
+ {
+  "title": "OpenAI halves its Pro price to $100 for heavy Codex users, undercuts Anthropic and Google",
+  "source": "the-decoder.com",
+  "date": "2026-04-09",
+  "label": "pricing"
+ },
+ {
+  "title": "‘What a joke’: GitHub Copilot’s new token-based billing spurs consternation among devs",
+  "source": "TechCrunch",
+  "date": "2026-05-30",
+  "label": "pricing"
+ },
+ {
+  "title": "Tech Matters: Claude’s new pricing could change how we pay for AI",
+  "source": "Standard-Examiner",
+  "date": "2026-07-14",
+  "label": "pricing"
+ },
+ {
+  "title": "Cursor cuts prices and adds enterprise spend controls amid \"tokenomics\" reckoning",
+  "source": "The New Stack",
+  "date": "2026-06-04",
+  "label": "pricing"
+ },
+ {
+  "title": "Anthropic cuts off the ability to use Claude subscriptions with OpenClaw and third-party AI agents",
+  "source": "VentureBeat",
+  "date": "2026-04-03",
+  "label": "pricing"
+ },
+ {
+  "title": "Anthropic's Claude Fable 5.1 and Mythos 5.1 arrive with a 75% cost reduction for Fable cache reads",
+  "source": "VentureBeat",
+  "date": "2026-09-01",
+  "label": "pricing"
+ },
+ {
+  "title": "Cursor apologizes for unclear pricing changes that upset users",
+  "source": "TechCrunch",
+  "date": "2025-07-07",
+  "label": "pricing"
+ },
+ {
+  "title": "Increased usage for agents",
+  "source": "Cursor",
+  "date": "2026-02-11",
+  "label": "pricing"
+ },
+ {
+  "title": "Replit Closes $250 Million in Funding to Build on Customer Momentum",
+  "source": "PR Newswire",
+  "date": "2025-09-10",
+  "label": "other"
+ },
+ {
+  "title": "Vibe coding service Replit deleted user’s production database, faked data, told fibs galore",
+  "source": "The Register",
+  "date": "2025-07-21",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Announces EMEA Office and Team Expansion to Meet Regional Demand",
+  "source": "Business Wire",
+  "date": "2026-06-09",
+  "label": "other"
+ },
+ {
+  "title": "After nine years of grinding, Replit finally found its market. Can it keep it?",
+  "source": "TechCrunch",
+  "date": "2025-10-02",
+  "label": "other"
+ },
+ {
+  "title": "Lovable Launches Mobile App for iOS & Android, Brings Vibe-Coding to Smartphones",
+  "source": "analyticsindiamag.com",
+  "date": "2026-04-29",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Launches an AI Coding Tool For Designers",
+  "source": "WIRED",
+  "date": "2025-12-11",
+  "label": "other"
+ },
+ {
+  "title": "Replit makes OpenAI its default over Anthropic, CEO says",
+  "source": "TechCrunch",
+  "date": "2026-10-17",
+  "label": "other"
+ },
+ {
+  "title": "Vercel revamps v0 for secure production deployment",
+  "source": "VentureBeat",
+  "date": "2026-02-03",
+  "label": "other"
+ },
+ {
+  "title": "Introducing Claude Fable 5.1 and Claude Mythos 5.1",
+  "source": "Anthropic",
+  "date": "2026-09-01",
+  "label": "other"
+ },
+ {
+  "title": "$400M ARR With Under 200 People: What Lovable’s Head of Growth Elena Verna Says Actually Works in B2B Now",
+  "source": "saastr.com",
+  "date": "2026-06-05",
+  "label": "other"
+ },
+ {
+  "title": "Cursor capitalizes on GitHub frustration, launches rival hosting platform",
+  "source": "TechCrunch",
+  "date": "2026-08-18",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Releases Cursor Router: A Request-Level Classifier Delivering Frontier Coding Quality at 30–50% Lower Cost",
+  "source": "MarkTechPost",
+  "date": "2026-07-22",
+  "label": "other"
+ },
+ {
+  "title": "StackBlitz Bolt.new blurs boundaries between web development and skilled use of AI prompts",
+  "source": "DevClass",
+  "date": "2024-10-16",
+  "label": "other"
+ },
+ {
+  "title": "Lovable Vibe-Coding App Launches on iOS, Android",
+  "source": "iPhone in Canada",
+  "date": "2026-04-28",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Launches A New iPhone App After Being Acquired By SpaceX",
+  "source": "The Mac Observer",
+  "date": "2026-06-30",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Launches New Web App, Takes AI Coding Agents Beyond IDEs",
+  "source": "WinBuzzer",
+  "date": "2025-06-30",
+  "label": "other"
+ },
+ {
+  "title": "Zhipu AI launches ZCode to challenge Claude Code and OpenAI Codex at a fraction of the cost",
+  "source": "The Decoder",
+  "date": "2026-07-06",
+  "label": "other"
+ },
+ {
+  "title": "OpenAI Acquires Ona to Power Up Codex for Long-Running Tasks",
+  "source": "The Tech Buzz",
+  "date": "2026-06-11",
+  "label": "other"
+ },
+ {
+  "title": "Replit expands access to software creation with GPT-5.6 Luna",
+  "source": "OpenAI",
+  "date": "2026-08-19",
+  "label": "other"
+ },
+ {
+  "title": "Vercel raises $300M at $9.3B valuation to scale AI Cloud and v0 platform",
+  "source": "Tech Funding News",
+  "date": "2025-10-01",
+  "label": "other"
+ },
+ {
+  "title": "Nvidia and Alphabet VC arms back vibe coding startup Lovable at $6.6 billion valuation",
+  "source": "CNBC",
+  "date": "2025-12-18",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Launches Automations for Trigger-Based AI Coding",
+  "source": "The Tech Buzz",
+  "date": "2026-03-05",
+  "label": "other"
+ },
+ {
+  "title": "Vercel: $300 Million Series F At $9.3 Billion Valuation Raised For Scaling AI Cloud",
+  "source": "Pulse 2.0",
+  "date": "2025-10-09",
+  "label": "other"
+ },
+ {
+  "title": "Canva Code 2.0 boosts AI coding for 265M users",
+  "source": "VentureBeat",
+  "date": "2026-07-14",
+  "label": "other"
+ },
+ {
+  "title": "Cursor launches Origin, its own code hosting and git platform",
+  "source": "Dealroom",
+  "date": "2026-06-16",
+  "label": "other"
+ },
+ {
+  "title": "Vibe Coding Startup Lovable’s Valuation Triples to $6.6 Billion",
+  "source": "The Daily Upside",
+  "date": "2025-12-22",
+  "label": "other"
+ },
+ {
+  "title": "Replit buys Atta to add AI data analysis inside its build platform",
+  "source": "Dealroom",
+  "date": "2026-09-30",
+  "label": "other"
+ },
+ {
+  "title": "OpenAI Acquires ONA for Enterprise Codex Agents",
+  "source": "SaasRise",
+  "date": "2026-06-17",
+  "label": "other"
+ },
+ {
+  "title": "GPT-5.6: Frontier intelligence that scales with your ambition",
+  "source": "OpenAI",
+  "date": "2026-07-09",
+  "label": "other"
+ },
+ {
+  "title": "Replit launches the newest version of its popular vibe coding app",
+  "source": "Mashable",
+  "date": "2026-05-16",
+  "label": "other"
+ },
+ {
+  "title": "Amazon S3 lands on Vercel Marketplace and v0, adding object, table, and vector storage to the frontend cloud",
+  "source": "news.lavx.hu",
+  "date": "2026-10-14",
+  "label": "other"
+ },
+ {
+  "title": "Cursor now has a mobile app for guiding your coding agent on the go",
+  "source": "TechCrunch",
+  "date": "2026-06-29",
+  "label": "other"
+ },
+ {
+  "title": "Lovable’s CEO isn’t too worried about the vibe-coding competition",
+  "source": "TechCrunch",
+  "date": "2025-09-01",
+  "label": "other"
+ },
+ {
+  "title": "Lovable launches mobile app for vibe coding on iOS and Android",
+  "source": "Mezha",
+  "date": "2026-04-28",
+  "label": "other"
+ },
+ {
+  "title": "OpenAI Models and Codex Are Now Generally Available on AWS, and Daybreak Is Next",
+  "source": "Memeburn",
+  "date": "2026-06-03",
+  "label": "other"
+ },
+ {
+  "title": "Replit rolls out fixes after AI coding agent deletes customer database without permission",
+  "source": "The Indian Express",
+  "date": "2025-07-22",
+  "label": "other"
+ },
+ {
+  "title": "Lovable’s $13.3 Billion Raise and the Application Layer’s AI Revenue Lead",
+  "source": "FourWeekMBA",
+  "date": "2026-08-12",
+  "label": "other"
+ },
+ {
+  "title": "Replit Introduces Agent 3 for Extended Autonomous Coding and Automation",
+  "source": "infoq.com",
+  "date": "2025-09-22",
+  "label": "other"
+ },
+ {
+  "title": "If the Idea Won’t Leave You Alone, Build It: Lovable Launches First-Ever Brand Campaign",
+  "source": "Roastbrief US",
+  "date": "2026-03-11",
+  "label": "other"
+ },
+ {
+  "title": "Meta Launches Muse Code to Rival Claude Code and OpenAI’s Codex",
+  "source": "www.trendingtopics.eu",
+  "date": "2026-08-06",
+  "label": "other"
+ },
+ {
+  "title": "Replit Dumps Anthropic for OpenAI, Citing Cost Pressures",
+  "source": "The Tech Buzz",
+  "date": "2026-10-16",
+  "label": "other"
+ },
+ {
+  "title": "Cursor Launches a New AI Agent Experience to Take On Claude Code and Codex",
+  "source": "WIRED",
+  "date": "2026-04-02",
+  "label": "other"
+ },
+ {
+  "title": "Lovable's annual revenue surpasses $600M, with two-thirds of Fortune 500 using its vibe-coding platform.",
+  "source": "Pluang",
+  "date": "2026-09-24",
+  "label": "other"
+ },
+ {
+  "title": "Introducing Claude Opus 5",
+  "source": "Anthropic",
+  "date": "2026-07-24",
+  "label": "other"
+ },
+ {
+  "title": "Swedish Vibe Coding Firm Lovable Hits $1.8 Billion Valuation",
+  "source": "Bloomberg.com",
+  "date": "2025-07-17",
+  "label": "other"
+ },
+ {
+  "title": "Sitra, Aalto University and Lovable launch the AI Summer Program – students to develop new solutions for the public sector",
+  "source": "www.sitra.fi",
+  "date": "2026-05-15",
+  "label": "other"
+ },
+ {
+  "title": "SpaceXAI and Cursor Launch Grok 4.5 – Not Yet in the EU",
+  "source": "www.trendingtopics.eu",
+  "date": "2026-07-08",
+  "label": "other"
+ }
+]

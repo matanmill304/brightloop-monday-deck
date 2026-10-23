@@ -19,10 +19,31 @@ def main(argv: list[str] | None = None) -> int:
     run_cmd.add_argument("--input", required=True, type=Path)
     run_cmd.add_argument("--output", required=True, type=Path)
 
+    explain_cmd = sub.add_parser(
+        "explain", help="Write a step-by-step trace of every signal (and the rules) as Markdown"
+    )
+    explain_cmd.add_argument("--input", type=Path, help="Cases file to trace")
+    explain_cmd.add_argument("--output", required=True, type=Path)
+
     args = parser.parse_args(argv)
     if args.command == "run":
         return run_file(args.input, args.output)
+    if args.command == "explain":
+        return explain_file(args.input, args.output)
     return 2
+
+
+def explain_file(input_path: Path | None, output_path: Path) -> int:
+    from brightloop.explain import rules_markdown, trace_markdown
+
+    if input_path is None:
+        text = rules_markdown()
+    else:
+        case = json.loads(input_path.read_text(encoding="utf-8-sig"))
+        text = trace_markdown(case, input_path.name)
+    output_path.write_text(text, encoding="utf-8")
+    print(f"brightloop: explanation written to {output_path}", file=sys.stderr)
+    return 0
 
 
 def run_file(input_path: Path, output_path: Path) -> int:
