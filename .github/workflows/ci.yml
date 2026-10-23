@@ -35,4 +35,5 @@ jobs:
           python-version: "3.9"
       - run: ./run --input recordings/weeks/2026-W43/cases.json --output out/our-week.json
       - run: ./run --input tests/fixtures/brief_sample.json --output out/result.json
+      - run: python3 scripts/build_site.py  # the web app builds on 3.9 too
       - run: python3 -c "import json; [json.load(open(f))['built_for'] == 'maya' or exit(1) for f in ('out/our-week.json', 'out/result.json')]"
