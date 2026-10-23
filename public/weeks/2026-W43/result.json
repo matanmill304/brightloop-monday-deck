@@ -1,0 +1,98 @@
+{
+  "built_for": "maya",
+  "items": [
+    {
+      "id": "maya-replit-1",
+      "source_ids": [
+        "pr-102301"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Replit pricing slide: $90 → $100,.",
+      "why": "Stated on Replit's own pricing page (https://replit.com/pricing) on Oct 23, 2026.",
+      "competitor": "Replit",
+      "page": "pricing",
+      "change": [
+        "$90 → $100,"
+      ],
+      "links": [
+        "https://replit.com/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-102301",
+          "source": "replit.com/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Replit's pricing page",
+        "url": "https://replit.com/pricing"
+      }
+    },
+    {
+      "id": "maya-replit-2",
+      "source_ids": [
+        "sg-102301"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Replit homepage slide: $90 → $0,.",
+      "why": "Stated on Replit's own homepage page (https://replit.com) on Oct 23, 2026.",
+      "competitor": "Replit",
+      "page": "home",
+      "change": [
+        "$90 → $0,"
+      ],
+      "links": [
+        "https://replit.com"
+      ],
+      "sources": [
+        {
+          "id": "sg-102301",
+          "source": "replit.com",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Replit's homepage page",
+        "url": "https://replit.com"
+      }
+    },
+    {
+      "id": "maya-bolt-1",
+      "source_ids": [
+        "pr-102001"
+      ],
+      "confidence": 0.8,
+      "action": "Update the Bolt pricing slide: Pricing page text changed since Oct 16: now says \"enterprise-grade security and compliance certifications access to best newest ai models public private….",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Oct 20, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "other"
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-102001",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "caveats": [
+        "the page says something changed but not exactly what"
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    }
+  ],
+  "skipped": [],
+  "run": {
+    "started_at": "2026-10-23T11:10:09+00:00",
+    "cost_usd": 0.0,
+    "errors": []
+  }
+}
