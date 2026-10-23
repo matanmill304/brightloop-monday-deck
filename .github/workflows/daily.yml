@@ -33,13 +33,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ".[collect]"
-      - run: python -m playwright install --with-deps chromium
+      # Real Chrome on a virtual screen: Cloudflare blocks headless Chrome on some pages.
+      - run: python -m playwright install --with-deps chrome
       - name: Capture today's pages and compare with the day before
         run: |
           if [ -n "${{ inputs.date }}" ]; then
-            brightloop collect --date "${{ inputs.date }}" --archived
+            xvfb-run -a brightloop collect --date "${{ inputs.date }}" --archived
           else
-            brightloop collect
+            xvfb-run -a brightloop collect
           fi
       - name: Monday (Israel time), or a week asked for, build the week's deck
         run: |
