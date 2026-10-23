@@ -155,7 +155,7 @@ def summary_slide(pages: list[Slide], week: str | None, lead: str) -> Slide:
     quiet = [s for s in pages if s.status == "unchanged"]
     rows: list[dict[str, Any]] = []
     for s in changed:
-        first = next(r for r in s.rows if not r["minor"])
+        first = next((r for r in s.rows if not r["minor"]), s.rows[0])
         more = []
         if s.real > 1:
             more.append("Plus " + plural(s.real - 1, "more change", "more changes"))
