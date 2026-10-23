@@ -113,9 +113,12 @@ def test_deck_shows_every_page_status():
     )
     case = {"week": "2026-W44", "timezone": "Asia/Jerusalem", "signals": [signal]}
     slides = build_slides(case, run_pipeline(case), run)
-    assert [s.status for s in slides] == ["summary", "changed", "not-captured", "unchanged"]
-    assert slides[1].previous_shot == "b.jpg" and slides[1].current_shot == "a.jpg"
-    assert "Archived copy" in slides[3].footnote
+    assert [s.title for s in slides] == ["Lovable pricing", "Lovable homepage", "Bolt pricing"]
+    assert [s.status for s in slides] == ["changed", "not-captured", "unchanged"]
+    assert slides[0].shot == "a.jpg" and slides[1].shot is None
+    assert slides[0].rows == [("Oct 26", run_pipeline(case)["items"][0]["action"])]
+    assert slides[0].footer == "Week of Oct 26 · lovable.dev/pricing · screenshot Oct 26"
+    assert "(archived copy)" in slides[2].footer
 
 
 def test_deck_without_run_shows_items_only():
@@ -134,4 +137,5 @@ def test_deck_without_run_shows_items_only():
         ],
     }
     slides = build_slides(case, run_pipeline(case))
-    assert [s.status for s in slides] == ["summary", "changed"]
+    assert [(s.title, s.status) for s in slides] == [("Lovable pricing", "changed")]
+    assert slides[0].rows[0][0] == "Oct 23"
