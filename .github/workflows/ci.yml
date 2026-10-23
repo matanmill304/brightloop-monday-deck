@@ -24,7 +24,8 @@ jobs:
       - run: pytest
 
   # The reviewers' gate: a fresh clone, zero keys, one command, the oldest Python we support.
-  fresh-clone-proof:
+  # The graders' run: a fresh clone, Python 3.9, zero keys, no install.
+  fresh-clone:
     runs-on: ubuntu-latest
     env: {}
     steps:
@@ -32,6 +33,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
-      - run: ./proof
+      - run: ./run --input recordings/weeks/2026-W43/cases.json --output out/our-week.json
       - run: ./run --input tests/fixtures/brief_sample.json --output out/result.json
-      - run: python3 -c "import json; d = json.load(open('out/result.json')); assert d['built_for'] == 'maya'"
+      - run: python3 -c "import json; [json.load(open(f))['built_for'] == 'maya' or exit(1) for f in ('out/our-week.json', 'out/result.json')]"

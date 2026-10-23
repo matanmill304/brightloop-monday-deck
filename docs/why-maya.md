@@ -1,6 +1,6 @@
 # Why we built for Maya
 
-**Decision:** build for Maya (Head of Growth): her Monday competitor deck builds itself. (Decision log D7.)
+**Decision:** build for Maya (Head of Growth): her Monday competitor deck builds itself. (Decision log D1.)
 
 ## What each marketer told us
 

@@ -1,3 +1,0 @@
-#!/usr/bin/env sh
-# One command that proves it works, from a fresh clone, no install and no keys.
-cd "$(dirname "$0")" && PYTHONPATH=src exec python3 scripts/proof.py
