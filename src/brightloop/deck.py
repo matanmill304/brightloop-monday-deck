@@ -2,7 +2,7 @@
 
 The deck is a wrapper for leadership: short and clean. Each slide is the page's screenshot,
 one status line and, when the analysis kept something, one dated line per item (the item's
-`action`, as the pipeline wrote it). No confidence, sources or caveats on the slides: those
+`change`, in the page's own words). No confidence, sources or caveats on the slides: those
 stay in result.json. Wrong content on a slide is a problem in an earlier step, not here.
 
 Rendered as HTML (the web app) and .pptx (opens in Google Slides via File → Import), from the
@@ -82,7 +82,7 @@ def page_slide(
         title=f"{entry['competitor']} {dict(PAGES)[entry['page']]}",
         status=status,
         lead=STATUS_LINE.get(status, status),
-        rows=[(item_date(item, signal_ts, tz), item["action"]) for item in items],
+        rows=[(item_date(item, signal_ts, tz), slide_line(item)) for item in items],
         url=entry["url"],
         shot=current.get("screenshot") if status != "not-captured" else None,
         footer=footer(week, entry["url"], current, tz),
@@ -96,10 +96,19 @@ def item_slide(item: dict[str, Any], signal_ts: dict[str, str], week: str, tz: Z
         title=f"{item.get('competitor', '')} {page}".strip(),
         status="changed",
         lead=STATUS_LINE["changed"],
-        rows=[(item_date(item, signal_ts, tz), item["action"])],
+        rows=[(item_date(item, signal_ts, tz), slide_line(item))],
         url=url,
         footer=footer(week, url, {}, tz),
     )
+
+
+def slide_line(item: dict[str, Any]) -> str:
+    """What changed, for leadership: no "Update the … slide" instruction, no essay."""
+    text = "; ".join(item.get("change") or []) or item["action"]
+    text = text[:1].upper() + text[1:]
+    if item.get("page") == "announcement":
+        return f"Announced, not yet on the pricing page: {text}"
+    return text
 
 
 def unique_items(items) -> list[dict[str, Any]]:

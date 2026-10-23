@@ -46,7 +46,7 @@ PRICE_VERB = re.compile(
 )
 PLAN_ADDED = re.compile(
     rf"\b(introduc\w*|add(s|ed)?|launch(es|ed)?|unveil\w*|roll(s|ed)? out|new)\b[^.]{{0,40}}"
-    rf"\b(plans?|tiers?|({PLAN_NAMES}) (plan|tier))\b",
+    rf"\b((?<!all )(?<!every )(?<!each )(plans?|tiers?)|({PLAN_NAMES}) (plan|tier))\b",
     re.IGNORECASE,
 )
 PLAN_REMOVED = re.compile(
@@ -65,9 +65,13 @@ LIMITS = re.compile(
     r"\b(credits?|limits?|quotas?|requests?|messages?|usage|tokens?|seats?|minutes|builds?)\b",
     re.IGNORECASE,
 )
+# Packaging: a feature moves to or from a named plan, or becomes free ("now included in Core",
+# "moved to Pro", "now free for all users"). "Live for every plan" is a launch, not packaging.
 AVAILABILITY = re.compile(
-    rf"\b(now|is live|rolls? out|rolled out|available|included|comes with|moved)\b[^.]{{0,40}}"
-    rf"\b(all|every|each|paid|({PLAN_NAMES}))\s(plans?|tiers?|users|customers|subscribers)\b",
+    rf"\b(now|available|included|comes with|moved|unlocked)\b[^.]{{0,40}}"
+    rf"\b(in|on|to|for|with|behind|from)\s+(the\s+)?(paid|{PLAN_NAMES})"
+    rf"(\s*(,|and|or|&)\s*({PLAN_NAMES}))*\s+(plans?|tiers?|users|customers|subscribers)\b"
+    r"|\bnow free\b",
     re.IGNORECASE,
 )
 GENERIC_CHANGE = re.compile(

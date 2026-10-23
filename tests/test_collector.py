@@ -117,7 +117,7 @@ def test_deck_shows_every_page_status():
     assert [s.title for s in slides] == ["Lovable pricing", "Lovable homepage", "Bolt pricing"]
     assert [s.status for s in slides] == ["changed", "not-captured", "unchanged"]
     assert slides[0].shot == "a.jpg" and slides[1].shot is None
-    assert slides[0].rows == [("Oct 26", run_pipeline(case)["items"][0]["action"])]
+    assert slides[0].rows == [("Oct 26", "Pro: $25/month → $30/month")]
     assert slides[0].footer == "Week of Oct 26 · lovable.dev/pricing · screenshot Oct 26"
     assert "(archived copy)" in slides[2].footer
 

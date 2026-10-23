@@ -121,7 +121,9 @@ def select(signals: list[Signal], week: Week | None) -> Selection:
         if match:
             match.corroboration.append(s)  # the same change, reported by someone else
         else:
-            result.skipped.append((s, third_party_reason(s)))
+            twin = next((o for o, _ in result.skipped if o.official and same_event(s, o)), None)
+            same = f"Same event as {twin.id} ({twin.competitor}'s own source). " if twin else ""
+            result.skipped.append((s, same + third_party_reason(s)))
     return result
 
 
