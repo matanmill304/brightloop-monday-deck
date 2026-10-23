@@ -19,10 +19,10 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from brightloop.change import page_state  # noqa: E402
-from brightloop.collect.capture import Snapshot  # noqa: E402
-from brightloop.collect.events import page_events  # noqa: E402
-from brightloop.collect.run import (  # noqa: E402
+from brightloop.change import page_state
+from brightloop.collect.capture import Snapshot
+from brightloop.collect.events import page_events
+from brightloop.collect.run import (
     assemble_week,
     page_key,
     snapshot_ref,
@@ -30,7 +30,7 @@ from brightloop.collect.run import (  # noqa: E402
     to_signal,
     write_json,
 )
-from brightloop.deck import write_deck  # noqa: E402
+from brightloop.deck import write_deck
 
 TZ = ZoneInfo("Asia/Jerusalem")
 RECORDINGS = ROOT / "recordings"

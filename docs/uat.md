@@ -136,6 +136,6 @@ Legend: ✅ handled and tested · ⚠️ known limit (tested, documented) · �
 
 ## 10. Known limits
 
-- Rule-based reading: wording we didn't anticipate can be missed (relevance recall 0.85 on held-out real headlines; precision 1.00). An LLM/Jev pass is planned for the live app only.
+- Rule-based reading: wording we didn't anticipate can be missed (relevance recall 0.85 on held-out real headlines; precision 1.00). There is no LLM by design: the live app and a keyless clone run the same rules (decisions D26).
 - English pages; US date format reads as "no date".
 - Live data depends on what competitors allow: blocked pages come from the Wayback Machine, which is itself rate-limited.

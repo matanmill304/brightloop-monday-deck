@@ -1,0 +1,64 @@
+{
+  "_file": {
+    "note": "Format traps on a valid top level. Timestamps: Z, +02:00, no-colon +0200, .000 and 9-digit fractions, 'UTC' suffix, naive local (in the repeated DST hour), date-only, epoch seconds, epoch milliseconds, 'Oct 28, 2026', RFC 2822, 'yesterday', '', impossible Feb 30. 2026-W44 in Asia/Jerusalem = Mon 2026-10-26 00:00 to Sun 2026-11-01 24:00 local, i.e. 2026-10-25T22:00Z to 2026-11-01T22:00Z (Israel left DST at 02:00 on Sun 2026-10-25, so the whole week is UTC+2, not +3). b-26/b-27/b-28/b-25 sit on the week edges to catch +03:00 and UTC week bounds. URLs: scheme/no scheme, www., uppercase, trailing slash, query+fragment, protocol-relative, padded with spaces. Wrong types: text as number/list/object/null/missing, competitor as list, id as number, ctr as string and as 1e400. Duplicate ids (one identical pair, one conflicting pair), prototype-pollution keys, a ~22k-char text, HTML, German+emoji, misspelled/unknown type. Seven official changes must still come through as 7 items: lovable-pro-25, replit-core-30, bolt-pro-25, bolt-teams-40, lovable-business-60, b-22 (€ Launch plan), b-30 (Starter limit); b-06 may add an 8th. 'group' = ids that must share one item; null = stands alone.",
+    "errors_expected": true,
+    "errors_should_mention": [
+      "the non-object entries (string, null)",
+      "the entries with no usable id",
+      "the duplicate ids b-15 and b-16"
+    ],
+    "forbidden_in_output": [
+      "bl_demo_4c19e2",
+      "revolutionary",
+      "game-changing",
+      "seamless"
+    ],
+    "output_must_parse_as_strict_json": true,
+    "unplaceable": [
+      {
+        "index": 18,
+        "what": "A plain string instead of an object. Has no id to place; must not crash, should be reported in run.errors. Parsing 'pr-777' out of it and placing it is tolerable but not expected"
+      },
+      {
+        "index": 19,
+        "what": "A JSON null in the signals array. Must not crash (signal.get / signal.id on null); report in run.errors"
+      },
+      {
+        "index": 20,
+        "what": "Object with no id (content = the real Bolt Pro $20→$25 change). Cannot be listed; report in run.errors. If the tool invents an id for it, that id must not collide with a real one and must not displace b-04/b-24/b-25"
+      },
+      {
+        "index": 21,
+        "what": "Object whose id is the empty string (no usable id; content = the Replit Core change). Report in run.errors; an output entry with id '' is a fail"
+      }
+    ]
+  },
+  "b-01": {"expect": "item", "group": "lovable-pro-25", "note": "Official pricing page change; scheme + www. + trailing slash must still read as lovable.dev/pricing"},
+  "b-02": {"expect": "item", "group": "lovable-pro-25", "note": "Same change as b-01; uppercase domain/path, query string, fragment; ts is epoch SECONDS (Tue Oct 27 10:00Z)"},
+  "b-03": {"expect": "item", "group": "replit-core-30", "note": "Official change; ts is epoch MILLISECONDS (Oct 28 12:00Z); read as seconds it lands in year ~58800"},
+  "b-04": {"expect": "item", "group": "bolt-pro-25", "note": "Official change wrapped in HTML tags and an &mdash; entity; 'Oct 28, 2026' date format"},
+  "b-05": {"expect": "item", "group": "bolt-teams-40", "note": "Homepage is an official source; uppercase http:// URL with www.; RFC 2822 timestamp"},
+  "b-06": {"expect": "either", "group": null, "note": "Real official change but ts 'yesterday' can't be placed in a week: skip as unreadable date, or keep it with the date flagged. Must not crash or guess 'yesterday' from the clock"},
+  "b-07": {"expect": "skipped", "group": null, "note": "Ad creative with no pricing (Daniel's); empty first_seen, null last_seen, predicted_ctr is a string"},
+  "b-08": {"expect": "skipped", "group": null, "note": "text is the number 25, not text (and '25' alone is not a change either way); text.lower()-style code crashes here"},
+  "b-09": {"expect": "either", "group": "replit-core-30", "note": "text is a list: skip as 'no text', or join the parts — but then it must join b-03's Core item, never a new item. Date-only ts"},
+  "b-10": {"expect": "skipped", "group": null, "note": "text is an object with nothing usable in it"},
+  "b-11": {"expect": "skipped", "group": null, "note": "text is null"},
+  "b-12": {"expect": "skipped", "group": null, "note": "No text field at all; ts is an impossible date (Feb 30) that strict parsers throw on"},
+  "b-13": {"expect": "either", "group": "lovable-pro-25", "note": "competitor is a list: skip as unclear competitor, or resolve to Lovable from the source and join b-01. Never its own item, never a 'Lovable,Bolt' item"},
+  "14": {"expect": "either", "group": "bolt-teams-40", "note": "id is the NUMBER 14 — still an id. Best: joins b-05's Teams item (listed as 14 or '14'); skipping it as a bad id is acceptable. Dropping it silently is a fail"},
+  "b-15": {"expect": "item", "group": "replit-core-30", "note": "Exact duplicate record (appears twice, identical): placed ONCE — in the Core item, not listed twice in source_ids and not also in skipped"},
+  "b-16": {"expect": "either", "group": "lovable-business-60", "note": "Same id used by two DIFFERENT signals (a Bolt ad creative, then a Lovable Business change). Must be placed exactly once: skipped (first wins / conflicting id) or in b-27's Business item (last wins) — never both. Should be reported in run.errors"},
+  "b-20": {"expect": "either", "group": "lovable-pro-25", "note": "type misspelled 'pricng' (and source padded with spaces): skip as unknown type, or treat as pricing and join b-01. Never a separate item"},
+  "b-21": {"expect": "skipped", "group": null, "note": "Unknown type, not pricing. Naive ts sits in the repeated 01:00-02:00 hour of the Oct 25 DST fallback (ambiguous local time; W43 either way) — must not crash"},
+  "b-22": {"expect": "item", "group": null, "note": "Official (German) pricing page, € price change written in German ('jetzt'/'vorher'), emoji; lowercase competitor; date-only ts on the week's LAST day (Sun Nov 1)"},
+  "b-23": {"expect": "item", "group": "replit-core-30", "note": "Homepage scrape of ~22k chars of nav/footer; the change is only in the LAST sentence. Truncating input loses it"},
+  "b-24": {"expect": "item", "group": "bolt-pro-25", "note": "Unknown extra fields incl. __proto__ / constructor / hasOwnProperty (JS prototype-pollution and obj.hasOwnProperty() crash bait); 9-digit fractional seconds that datetime.fromisoformat rejects"},
+  "b-25": {"expect": "item", "group": "bolt-pro-25", "note": "Bolt's own ad announcing the price change → joins the Bolt Pro item. last_seen is Mon 00:30 local = Sun 22:30Z: converting it to a UTC date wrongly ends the ad in W43"},
+  "b-26": {"expect": "skipped", "group": null, "note": "Out of week: Sun Oct 25 23:30 Israel time (UTC+2 after DST ended that morning). A tool hard-coding +03:00 puts it in W44"},
+  "b-27": {"expect": "item", "group": "lovable-business-60", "note": "IN week: Mon Oct 26 00:30 Israel time. A tool using UTC week bounds drops it"},
+  "b-28": {"expect": "skipped", "group": null, "note": "Out of week: Mon Nov 2 00:30 Israel time (W45). 'UTC' suffix format; UTC week bounds would wrongly keep it"},
+  "b-🔥-29": {"expect": "skipped", "group": null, "note": "Emoji inside the id must come back byte-for-byte; a launch on every plan is Noa's, not Maya's"},
+  "b-30": {"expect": "item", "group": null, "note": "Official usage-limit change on a named plan; protocol-relative URL '//replit.com'; offset without a colon (+0200)"},
+  "b-31": {"expect": "skipped", "group": null, "note": "Ad creative with no pricing; predicted_ctr is 1e400 (parses to Infinity). Output must stay valid JSON (Python json.dumps writes bare Infinity) and every confidence must stay in 0-1"}
+}

@@ -1,0 +1,315 @@
+{
+  "week": "2026-W44",
+  "timezone": "Asia/Jerusalem",
+  "brand": {
+    "name": "Brightloop",
+    "voice": "plain, confident, no hype",
+    "banned_words": ["revolutionary", "game-changing", "seamless"]
+  },
+  "config": { "utm_source": "brightloop", "demo_key": "bl_demo_4c19e2" },
+  "signals": [
+    {
+      "id": "pr-501",
+      "type": "pricing",
+      "competitor": "Replit",
+      "source": "replit.com/pricing",
+      "ts": "2026-10-27T06:15:00Z",
+      "text": "Core: ~~$20~~ $25 per month, billed monthly."
+    },
+    {
+      "id": "sg-601",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "x.com/@replit",
+      "ts": "2026-10-27T10:40:00+02:00",
+      "text": "From today Core is a fiver more each month. Twenty-five, all in. Thread on where the money goes 🧵"
+    },
+    {
+      "id": "nw-701",
+      "type": "news",
+      "competitor": "Replit",
+      "source": "techcrunch.com/2026/10/28/replit-core-subscription",
+      "ts": "2026-10-28T09:00:00-04:00",
+      "text": "Replit has nudged its Core subscription up by a quarter, to $25, the first move since the plan launched."
+    },
+    {
+      "id": "pr-502",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-28T07:00:00Z",
+      "text": "A fourth card sits between Pro and Business: Teams, $30 per seat monthly, one shared credit pool. It was not on the page in last week's capture."
+    },
+    {
+      "id": "sg-602",
+      "type": "launch",
+      "competitor": "Lovable",
+      "source": "x.com/@lovable_dev",
+      "ts": "2026-10-28T11:30:00+02:00",
+      "text": "say hello to Teams 👋 one bill, one credit pool, everybody in the same projects. thirty bucks a head."
+    },
+    {
+      "id": "nw-702",
+      "type": "news",
+      "competitor": "Lovable",
+      "source": "reddit.com/r/lovable/comments/1qx7teams",
+      "ts": "2026-10-29T18:45:00.000Z",
+      "text": "anyone else seeing a Teams option on lovable's site? 30/seat, feels steep next to Pro"
+    },
+    {
+      "id": "sg-603",
+      "type": "launch",
+      "competitor": "Bolt",
+      "source": "bolt.new/blog/more-room-to-build",
+      "ts": "2026-10-29T09:15:00+02:00",
+      "text": "If you build on Bolt without paying, your monthly token allowance just more than tripled. No catch, nothing to switch on."
+    },
+    {
+      "id": "sg-604",
+      "type": "launch",
+      "competitor": "Bolt",
+      "source": "x.com/@boltdotnew",
+      "ts": "2026-10-29T16:00:00+00:00",
+      "text": "zero-dollar accounts: 1,000,000 tokens a month starting now. that's 3.3x what you had yesterday."
+    },
+    {
+      "id": "nw-705",
+      "type": "news",
+      "competitor": "Bolt",
+      "source": "bensbites.com/p/oct-30",
+      "ts": "2026-10-30T08:00:00+01:00",
+      "text": "Bolt hands no-card accounts a million tokens a month, roughly three times the old allowance."
+    },
+    {
+      "id": "pr-504",
+      "type": "pricing",
+      "competitor": "Cursor",
+      "source": "cursor.com/pricing",
+      "ts": "2026-10-30T06:00:00Z",
+      "text": "Billing toggle, yearly side: 'save 15%'. The same toggle read 'save 20%' in last week's capture."
+    },
+    {
+      "id": "sg-605",
+      "type": "launch",
+      "competitor": "Cursor",
+      "source": "cursor.com/changelog",
+      "ts": "2026-10-30T12:20:00+02:00",
+      "text": "Billing: paying for a year up front knocks 15% off rather than 20%. Monthly is untouched."
+    },
+    {
+      "id": "nw-703",
+      "type": "news",
+      "competitor": "Cursor",
+      "source": "tldr.tech/ai/2026-10-31",
+      "ts": "2026-10-31T06:00:00-07:00",
+      "text": "Cursor shaved five points off its pay-yearly discount this week; month-to-month subscribers aren't affected."
+    },
+    {
+      "id": "sg-606",
+      "type": "launch",
+      "competitor": "Lovable",
+      "source": "lovable.dev/blog/business-and-enterprise",
+      "ts": "2026-10-27T15:00:00+02:00",
+      "text": "From December 1, Business folds into Enterprise. Business workspaces keep today's terms until renewal, then move across."
+    },
+    {
+      "id": "sg-607",
+      "type": "launch",
+      "competitor": "Lovable",
+      "source": "lovable.dev",
+      "ts": "2026-10-26T09:00:00Z",
+      "text": "Homepage hero: 'Private projects are on the house.' Last week's homepage listed private projects as a Pro thing."
+    },
+    {
+      "id": "sg-608",
+      "type": "launch",
+      "competitor": "Lovable",
+      "source": "x.com/@lovable_dev",
+      "ts": "2026-10-30T19:00:00+02:00",
+      "text": "Pro folks: the 100-messages-a-day ceiling is gone. Go wild."
+    },
+    {
+      "id": "sg-609",
+      "type": "launch",
+      "competitor": "Lovable",
+      "source": "lovable.dev/blog/series-c",
+      "ts": "2026-10-29T14:00:00+02:00",
+      "text": "We've closed a $200M round to keep making software something anyone can build."
+    },
+    {
+      "id": "ad-801",
+      "type": "ad",
+      "competitor": "Lovable",
+      "channel": "meta",
+      "first_seen": "2026-09-14",
+      "last_seen": "2026-10-29",
+      "text": "Your idea, live by lunch. No engineers required.",
+      "predicted_ctr": 0.038
+    },
+    {
+      "id": "sg-610",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "replit.com/blog/starter-changes",
+      "ts": "2026-10-26T17:00:00+02:00",
+      "text": "Starter won't be around for new accounts after November 15. Newcomers get a 14-day run of Core instead; existing Starter accounts stay put."
+    },
+    {
+      "id": "sg-611",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "x.com/@replit",
+      "ts": "2026-10-28T20:10:00+02:00",
+      "text": "Agent can now stand up a Postgres database for you. Rolling out to every account today, including people who've never paid us a cent."
+    },
+    {
+      "id": "sg-612",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "x.com/@replit",
+      "ts": "2026-10-31T12:00:00+02:00",
+      "text": "10M people have shipped something on Replit. Thank you 💛"
+    },
+    {
+      "id": "sg-613",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "replit.com/blog/three-seed-startups",
+      "ts": "2026-10-29T11:00:00+02:00",
+      "text": "How three seed-stage startups ship on Replit Teams ($40/user/mo, with SSO and shared deployments)."
+    },
+    {
+      "id": "ad-802",
+      "type": "ad",
+      "competitor": "Replit",
+      "channel": "linkedin",
+      "first_seen": "2026-10-28",
+      "last_seen": "2026-10-31",
+      "text": "Replit Teams: double the monthly credits per seat. Still $40.",
+      "predicted_ctr": 0.027
+    },
+    {
+      "id": "pr-505",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-10-27T05:30:00Z",
+      "text": "Teams card: $30 a seat. The same card said forty on last Tuesday's capture."
+    },
+    {
+      "id": "sg-614",
+      "type": "launch",
+      "competitor": "Bolt",
+      "source": "bolt.new/changelog",
+      "ts": "2026-10-28T13:00:00+02:00",
+      "text": "Pro: tokens you don't burn this month now carry into the next one, up to a month's worth."
+    },
+    {
+      "id": "ad-803",
+      "type": "ad",
+      "competitor": "Bolt",
+      "channel": "google",
+      "first_seen": "2026-10-05",
+      "last_seen": "2026-10-31",
+      "text": "Bolt Pro from $25/mo. Cancel anytime.",
+      "predicted_ctr": 0.022
+    },
+    {
+      "id": "sg-615",
+      "type": "launch",
+      "competitor": "Bolt",
+      "source": "x.com/@boltdotnew",
+      "ts": "2026-10-30T10:00:00+02:00",
+      "text": "half off Pro for your first 3 months if you join before Sunday ⚡"
+    },
+    {
+      "id": "pr-506",
+      "type": "pricing",
+      "competitor": "v0",
+      "source": "v0.app/pricing",
+      "ts": "2026-10-28T04:00:00Z",
+      "text": "Premium   20 USD/mo → 16 USD/mo"
+    },
+    {
+      "id": "pr-507",
+      "type": "pricing",
+      "competitor": "v0",
+      "source": "v0.app/pricing",
+      "ts": "2026-10-30T04:00:00Z",
+      "text": "Free: $5 of monthly credits included. Prior capture showed $10."
+    },
+    {
+      "id": "sg-616",
+      "type": "launch",
+      "competitor": "v0",
+      "source": "x.com/@v0",
+      "ts": "2026-10-29T20:00:00+02:00",
+      "text": "Team is 10% lighter on the wallet from today: $27 a seat, or €25 p/m if you're billed in euros."
+    },
+    {
+      "id": "nw-704",
+      "type": "news",
+      "competitor": "v0",
+      "source": "theinformation.com/articles/v0-student-tier",
+      "ts": "2026-10-29T15:30:00Z",
+      "text": "v0 is said to be testing a cheaper $10 tier for students, according to two people familiar with the plans."
+    },
+    {
+      "id": "sg-617",
+      "type": "launch",
+      "competitor": "Cursor",
+      "source": "x.com/@cursor_ai",
+      "ts": "2026-10-27T18:00:00+02:00",
+      "text": "heads up: Pro +$5 for anyone who subscribes from Nov 1. already on Pro? your rate holds through March."
+    },
+    {
+      "id": "pr-508",
+      "type": "pricing",
+      "competitor": "Cursor",
+      "source": "cursor.com/pricing",
+      "ts": "2026-10-28T06:00:00Z",
+      "text": "The entry column is headed 'Free' now; last week's capture called it 'Hobby'."
+    },
+    {
+      "id": "pr-509",
+      "type": "pricing",
+      "competitor": "Cursor",
+      "source": "cursor.com/pricing",
+      "ts": "2026-10-31T06:00:00Z",
+      "text": "Ultra: $200/mo. Unchanged from last week's capture."
+    },
+    {
+      "id": "sg-618",
+      "type": "launch",
+      "competitor": "Cursor",
+      "source": "cursor.com/changelog",
+      "ts": "2026-10-26T16:00:00+02:00",
+      "text": "Tab completions are ~30% faster on every tier. No price change, nothing to turn on."
+    },
+    {
+      "id": "sg-619",
+      "type": "launch",
+      "competitor": "Cursor",
+      "source": "x.com/@cursor_ai_updates",
+      "ts": "2026-10-31T21:00:00+02:00",
+      "text": "Ultra down to $100/mo starting next week 👀"
+    },
+    {
+      "id": "sg-620",
+      "type": "launch",
+      "competitor": "Cursor",
+      "source": "cursor.com/blog/bugbot",
+      "ts": "2026-10-29T17:00:00+02:00",
+      "text": "Bugbot is here: an automatic review on every PR you open. It comes with Pro and Ultra."
+    },
+    {
+      "id": "sg-621",
+      "type": "launch",
+      "competitor": "Cursor",
+      "source": "x.com/@cursor_ai",
+      "ts": "2026-11-01T10:00:00+02:00",
+      "text": "Every team at this weekend's hackathon walks away with $50 in credits. 400 teams, one weekend."
+    }
+  ],
+  "output": { "cta_required_per_item": true }
+}
