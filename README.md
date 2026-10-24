@@ -2,11 +2,11 @@
 
 Every Monday, Maya (Head of Growth at Brightloop) rebuilt the same deck by hand for the 11:00 leadership meeting: screenshots of Lovable's, Replit's and Bolt's pricing pages and homepages, with what changed. Two hours, half of it cropping.
 
-This app does that job. Every day it captures those six pages and compares each with its last capture. Every change becomes a signal in the brief's input format. On Mondays, the same pipeline the graders test decides what belongs in the deck and builds it: one slide per page, the screenshot, and each change in the page's own words.
+This app does that job. Every day it captures those six pages and compares each with its last capture. Every change becomes a signal in the brief's input format. On Mondays, the same pipeline the graders test decides what belongs in the deck and builds it: a summary slide, then one slide per page with the screenshot and each change in the page's own words.
 
 **Her rule, applied throughout:** the competitor's own page is the source of truth. Press, Reddit and ads are never shown as fact.
 
-- **Live app:** [_Brightloop deck app_](https://brightloop-monday-deck.vercel.app/): the deck, a Test page for uploading `cases.json`, and Setup
+- **Live app:** [_Brightloop deck app_](https://brightloop-monday-deck.vercel.app/): What's new this week, the deck (built Monday morning, or now for the week so far), a Test page for uploading `cases.json`, and Setup with the run log
 - **Decisions:** [decisions.md](decisions.md) · **Traps we found:** [SPOTTED.md](SPOTTED.md) · **Why Maya:** [docs/why-maya.md](docs/why-maya.md) · **Every situation and its test:** [docs/uat.md](docs/uat.md)
 
 ## Run it
@@ -45,7 +45,7 @@ LIVE  GitHub Actions, daily 04:30 UTC (06:30 Israel winter, 07:30 summer)
                                     result.json → the deck (web + .pptx)
 ```
 
-**What counts as a change on a captured page:** a plan's price (compared plan by plan, in the same billing view only), a plan added or removed, any line that mentions a price, a percentage or a limit, and the top of the homepage: the headline, the line under it and the buttons next to it. The top of the page is read twice, a few seconds apart, and text that rotates on its own is left out. An archived copy is never compared with a live one, and the archive's own error pages are ignored. Menus and FAQ prose are not compared.
+**What counts as a change on a captured page:** a plan's price (compared plan by plan, in the same billing view only), a plan added or removed, any line that mentions a price, a percentage or a limit, and the top of the homepage: the headline, the line under it and the buttons next to it. The top of the page is read twice, a few seconds apart, and text that rotates on its own is left out. An archived copy is never compared with a live one, and the archive's own error pages are ignored. Menus and FAQ prose are not compared. Each changed line is labelled with the plan whose card it sits in, only when that's clear. An edit that keeps every number ("1M tokens per month" → "1M tokens/month to try Bolt") is shown as a wording edit, in grey, and doesn't count as a change on the slide.
 
 **The decision tree** (the first branch that decides, decides):
 1. **Unsafe or unusable → skipped.** Instructions aimed at an AI (in the text, source or competitor field), a different company with the same name (bolt.eu vs bolt.new), no competitor, no text.
@@ -89,6 +89,7 @@ Extra fields inside each item:
 | `competitor` | Canonical competitor name |
 | `page` | `pricing`, `home`, or `announcement` (said elsewhere: check the page) |
 | `change` | What changed, in the source's own words; `old → new` when both are known |
+| `change_detail` | Each change as `{kind, plan, old, new}`, for building slides |
 | `links` | The competitor's own page(s) |
 | `sources` | Each source id with its class (official, press, community, sponsored, …) |
 | `caveats` | Why confidence is below the maximum (e.g. "previous price not stated") |
@@ -138,7 +139,7 @@ pip install -e ".[dev,collect]" && python -m playwright install chrome
 pytest
 brightloop collect                    # capture today's pages (needs network)
 brightloop week --week 2026-W43       # the week's signals -> cases.json, result.json, deck
-python scripts/rebuild_history.py     # re-derive all days and weeks from stored captures
+python scripts/rebuild_history.py --reason "…"   # re-derive all days and weeks from stored captures
 python scripts/score_cases.py         # score the adversarial files
 python scripts/build_site.py          # the web app in public/
 ```
@@ -151,5 +152,5 @@ python scripts/build_site.py          # the web app in public/
 | `api/`, `site/`, `scripts/build_site.py` | The web app (Vercel) |
 | `recordings/days/<date>/` | Each day: captures, screenshots, that day's signals |
 | `recordings/weeks/<week>/` | Each week: `cases.json`, `result.json`, deck |
-| `recordings/runlog.jsonl` | One line per daily run and per Monday deck |
+| `recordings/runlog.jsonl` | One line per daily run, per Monday deck and per rebuild |
 | `.github/workflows/daily.yml` | The daily capture, Monday's deck, and "Run workflow" |
