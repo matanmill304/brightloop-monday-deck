@@ -50,10 +50,14 @@ def build() -> None:
             shutil.copy2(RECORDINGS / shot, PUBLIC / shot)
     runs = read_runlog()
     shutil.copy2(RECORDINGS / "runlog.jsonl", PUBLIC / "runlog.jsonl")
+    copies = slides_links(runs)
+    for week in weeks:
+        week["slides_url"] = copies.get(week["week"])
     data = {
         "default_week": default_week(weeks),
         "weeks": weeks,
         "runs": run_rows(runs),
+        "delivery": delivery(runs),
         "health": health(runs),
         "tracked": tracked(),
         "samples": samples(weeks),
@@ -116,7 +120,53 @@ def next_deck(now: datetime) -> datetime:
     return run if run > now else run + timedelta(days=7)
 
 
-RUN_NAME = {"daily": "Daily capture", "weekly": "Weekly deck", "rebuild": "Rebuild"}
+RUN_NAME = {
+    "daily": "Daily capture",
+    "weekly": "Weekly deck",
+    "rebuild": "Rebuild",
+    "delivery": "Delivery",
+}
+
+
+def short(result: str | None) -> str:
+    """A delivery result in a word or two: "posted", "skipped", "failed"."""
+    return (result or "—").split(":")[0]
+
+
+def delivery(runs: list[dict]) -> dict:
+    """Slack and Google Slides on the Setup page: connected or not, and the last result.
+    Read from the run log (the site never sees a secret)."""
+    lines = sorted((r for r in runs if r["run"] == "delivery"), key=lambda r: r["started_at"])
+    out = {}
+    for channel in ("slack", "slides"):
+        tried = [r for r in lines if not str(r.get(channel, "")).startswith("skipped")]
+        last = tried[-1] if tried else None
+        if last is None:
+            state = (
+                "not connected"
+                if lines and str(lines[-1].get(channel, "")).endswith("not connected")
+                else "not set up"
+            )
+            out[channel] = {"state": state}
+            continue
+        result = str(last.get(channel))
+        out[channel] = {
+            "state": "ok" if result in ("posted", "saved") else "failed",
+            "at": israel(last["started_at"]),
+            "week": last.get("week"),
+            "detail": result,
+            "url": last.get("slides_url") if channel == "slides" else None,
+        }
+    return out
+
+
+def slides_links(runs: list[dict]) -> dict[str, str]:
+    """Each week's latest Google Slides copy, for the Deck page."""
+    links = {}
+    for r in sorted((r for r in runs if r["run"] == "delivery"), key=lambda r: r["started_at"]):
+        if r.get("slides") == "saved" and r.get("slides_url"):
+            links[r["week"]] = r["slides_url"]
+    return links
 
 
 def run_rows(runs: list[dict]) -> list[dict]:
@@ -143,6 +193,9 @@ def run_rows(runs: list[dict]) -> list[dict]:
             partial = is_partial(r["week"], r, TZ)
             row["for"] = r["week"] + (" (so far)" if partial else "")
             row["found"] = plural(r.get("items", 0), "item", "items")
+        elif r["run"] == "delivery":
+            row["for"] = r.get("week", "")
+            row["found"] = f"Slack: {short(r.get('slack'))} · Slides: {short(r.get('slides'))}"
         else:
             weeks = r.get("weeks") or {}
             newest = max(weeks) if weeks else None
@@ -161,7 +214,9 @@ def run_rows(runs: list[dict]) -> list[dict]:
 def readable(error: str) -> str:
     """Run-log errors written before they were plain words: "Lovable home: not-captured"."""
     error = error.replace(" home:", " homepage:")
-    return error.replace(": not-captured", ": not captured").replace(": failed-capture", ": capture failed")
+    return error.replace(": not-captured", ": not captured").replace(
+        ": failed-capture", ": capture failed"
+    )
 
 
 def plural(n: int, one: str, many: str) -> str:

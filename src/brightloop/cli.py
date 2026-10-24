@@ -44,6 +44,18 @@ def main(argv: list[str] | None = None) -> int:
         "--refresh", action="store_true", help="Update the week in progress; no run-log line"
     )
 
+    deliver_cmd = sub.add_parser(
+        "deliver", help="Post a week's deck to Slack and save it to Google Slides"
+    )
+    deliver_cmd.add_argument("--week", help="ISO week, e.g. 2026-W43 (default: last complete week)")
+    deliver_cmd.add_argument("--root", type=Path, default=Path("recordings"))
+    deliver_cmd.add_argument(
+        "--force", action="store_true", help="Post again even if the week was already posted"
+    )
+    deliver_cmd.add_argument(
+        "--failed", action="store_true", help="Say in Slack that the Monday run failed"
+    )
+
     deck_cmd = sub.add_parser("deck", help="Build deck.html and deck.pptx for a recorded week")
     deck_cmd.add_argument("folder", type=Path, help="e.g. recordings/2026-W43")
 
@@ -65,6 +77,15 @@ def main(argv: list[str] | None = None) -> int:
 
         day = date.fromisoformat(args.date) if args.date else datetime.now(TZ).date()
         print(json.dumps(collect_day(day, args.root, archived=args.archived), indent=2))
+        return 0
+    if args.command == "deliver":
+        from brightloop.deliver import deliver_failure, deliver_week
+
+        if args.failed:
+            out = deliver_failure(args.week)
+        else:
+            out = deliver_week(args.week, args.root, force=args.force)
+        print(json.dumps(out, indent=2))
         return 0
     if args.command == "week":
         from brightloop.collect.run import build_week, last_complete_week

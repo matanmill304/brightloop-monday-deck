@@ -19,6 +19,9 @@ on:
       week:
         description: "Also build this ISO week's deck, e.g. 2026-W43 (empty = only on Mondays, last week)"
         required: false
+      deliver_week:
+        description: "Post this week's deck to Slack and Google Slides now, e.g. 2026-W43 (posts again if it was posted)"
+        required: false
 
 permissions:
   contents: write
@@ -77,6 +80,26 @@ jobs:
       - name: Refresh the week so far (data the app shows; no deck files until Monday)
         if: steps.done.outputs.skip != 'true'
         run: brightloop week --refresh --week "$(TZ=Asia/Jerusalem date +%G-W%V)"
+      # Slack and Google Slides, from GitHub secrets; without them it's skipped and logged.
+      - name: Deliver the Monday deck (Slack, Google Slides), or a week asked for
+        if: steps.done.outputs.skip != 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MENTION: ${{ secrets.SLACK_MENTION }}
+          GSLIDES_HOOK_URL: ${{ secrets.GSLIDES_HOOK_URL }}
+          GSLIDES_TOKEN: ${{ secrets.GSLIDES_TOKEN }}
+          DELIVER_WEEK: ${{ inputs.deliver_week }}
+          WEEK: ${{ inputs.week }}
+        run: |
+          if [ -n "$DELIVER_WEEK" ]; then
+            brightloop deliver --week "$DELIVER_WEEK" --force
+          elif [ -n "$WEEK" ]; then
+            brightloop deliver --week "$WEEK"
+          elif [ "$(TZ=Asia/Jerusalem date +%u)" = "1" ]; then
+            brightloop deliver
+          else
+            echo "not Monday: nothing to deliver"
+          fi
       - name: Build the web app (public/)
         if: steps.done.outputs.skip != 'true'
         run: python scripts/build_site.py
@@ -89,3 +112,11 @@ jobs:
           git diff --cached --quiet && echo "nothing new" && exit 0
           git commit -m "Daily run $(date -u +%Y-%m-%dT%H:%MZ)"
           git pull --rebase --autostash && git push
+      - name: On a Monday, tell Slack the run failed (so Maya doesn't wait for the deck)
+        if: failure() && steps.done.outputs.skip != 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ "$(TZ=Asia/Jerusalem date +%u)" = "1" ]; then
+            brightloop deliver --failed || echo "couldn't post the failure notice"
+          fi
