@@ -10,7 +10,8 @@
         "method": "archived",
         "snapshot": "days/2026-09-28/lovable-pricing.json",
         "screenshot": "days/2026-09-28/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260928110813/https://lovable.dev/pricing"
+        "archive_url": "https://web.archive.org/web/20260928110813/https://lovable.dev/pricing",
+        "billing": null
       },
       "previous": null,
       "status": "first-snapshot",
@@ -67,14 +68,16 @@
         "method": "archived",
         "snapshot": "days/2026-09-28/bolt-home.json",
         "screenshot": "days/2026-09-28/bolt-home.jpg",
-        "archive_url": "https://web.archive.org/web/20260928172148/https://bolt.new"
+        "archive_url": "https://web.archive.org/web/20260928172148/https://bolt.new",
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-09-24T06:04:20+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-28/bolt-home-baseline.json",
         "screenshot": "days/2026-09-28/bolt-home-baseline.jpg",
-        "archive_url": "https://web.archive.org/web/20260924060420/https://bolt.new"
+        "archive_url": "https://web.archive.org/web/20260924060420/https://bolt.new",
+        "billing": null
       },
       "status": "unchanged",
       "signal_ids": []

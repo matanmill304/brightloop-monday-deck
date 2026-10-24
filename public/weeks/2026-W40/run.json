@@ -1,7 +1,7 @@
 {
   "week": "2026-W40",
-  "started_at": "2026-10-23T14:14:44+00:00",
-  "finished_at": "2026-10-23T14:14:44+00:00",
+  "started_at": "2026-10-24T17:10:24+00:00",
+  "finished_at": "2026-10-24T17:10:24+00:00",
   "pages": [
     {
       "competitor": "Lovable",
@@ -14,14 +14,16 @@
         "method": "archived",
         "snapshot": "days/2026-10-04/lovable-pricing.json",
         "screenshot": "days/2026-10-04/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261004025205/https://lovable.dev/pricing"
+        "archive_url": "https://web.archive.org/web/20261004025205/https://lovable.dev/pricing",
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-09-28T11:08:13+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-28/lovable-pricing.json",
         "screenshot": "days/2026-09-28/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260928110813/https://lovable.dev/pricing"
+        "archive_url": "https://web.archive.org/web/20260928110813/https://lovable.dev/pricing",
+        "billing": null
       },
       "days_captured": 6
     },
@@ -36,14 +38,16 @@
         "method": "archived",
         "snapshot": "days/2026-10-03/lovable-home.json",
         "screenshot": "days/2026-10-03/lovable-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261003103314/https://lovable.dev"
+        "archive_url": "https://web.archive.org/web/20261003103314/https://lovable.dev",
+        "billing": "yearly"
       },
       "previous": {
         "captured_at": "2026-10-01T15:51:14+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-01/lovable-home.json",
         "screenshot": "days/2026-10-01/lovable-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261001155114/https://lovable.dev"
+        "archive_url": "https://web.archive.org/web/20261001155114/https://lovable.dev",
+        "billing": "yearly"
       },
       "days_captured": 3
     },
@@ -58,14 +62,16 @@
         "method": "archived",
         "snapshot": "days/2026-10-02/replit-pricing.json",
         "screenshot": "days/2026-10-02/replit-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261002132501/https://replit.com/pricing"
+        "archive_url": "https://web.archive.org/web/20261002132501/https://replit.com/pricing",
+        "billing": "yearly"
       },
       "previous": {
         "captured_at": "2026-09-29T15:28:28+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-29/replit-pricing.json",
         "screenshot": "days/2026-09-29/replit-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing"
+        "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing",
+        "billing": "yearly"
       },
       "days_captured": 2
     },
@@ -80,14 +86,16 @@
         "method": "archived",
         "snapshot": "days/2026-10-03/replit-home.json",
         "screenshot": "days/2026-10-03/replit-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261003053031/https://replit.com"
+        "archive_url": "https://web.archive.org/web/20261003053031/https://replit.com",
+        "billing": "yearly"
       },
       "previous": {
         "captured_at": "2026-10-02T05:23:48+00:00",
         "method": "archived",
         "snapshot": "days/2026-10-02/replit-home.json",
         "screenshot": "days/2026-10-02/replit-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261002052348/https://replit.com"
+        "archive_url": "https://web.archive.org/web/20261002052348/https://replit.com",
+        "billing": "yearly"
       },
       "days_captured": 2
     },
@@ -105,14 +113,16 @@
         "method": "archived",
         "snapshot": "days/2026-10-04/bolt-pricing.json",
         "screenshot": "days/2026-10-04/bolt-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261004195705/https://bolt.new/pricing"
+        "archive_url": "https://web.archive.org/web/20261004195705/https://bolt.new/pricing",
+        "billing": "monthly"
       },
       "previous": {
         "captured_at": "2026-09-29T17:26:14+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-29/bolt-pricing.json",
         "screenshot": "days/2026-09-29/bolt-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260929172614/https://bolt.new/pricing"
+        "archive_url": "https://web.archive.org/web/20260929172614/https://bolt.new/pricing",
+        "billing": "monthly"
       },
       "days_captured": 7
     },
@@ -127,14 +137,16 @@
         "method": "archived",
         "snapshot": "days/2026-10-04/bolt-home.json",
         "screenshot": "days/2026-10-04/bolt-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261004135156/https://bolt.new"
+        "archive_url": "https://web.archive.org/web/20261004135156/https://bolt.new",
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-09-24T06:04:20+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-28/bolt-home-baseline.json",
         "screenshot": "days/2026-09-28/bolt-home-baseline.jpg",
-        "archive_url": "https://web.archive.org/web/20260924060420/https://bolt.new"
+        "archive_url": "https://web.archive.org/web/20260924060420/https://bolt.new",
+        "billing": null
       },
       "days_captured": 4
     }
