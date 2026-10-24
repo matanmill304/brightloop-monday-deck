@@ -1,7 +1,7 @@
 {
   "week": "2026-W43",
-  "started_at": "2026-10-24T18:53:47+00:00",
-  "finished_at": "2026-10-24T18:53:47+00:00",
+  "started_at": "2026-10-24T19:04:18+00:00",
+  "finished_at": "2026-10-24T19:04:18+00:00",
   "pages": [
     {
       "competitor": "Lovable",
@@ -10,7 +10,7 @@
       "status": "unchanged",
       "signal_ids": [],
       "current": {
-        "captured_at": "2026-10-24T18:52:40+00:00",
+        "captured_at": "2026-10-24T19:03:11+00:00",
         "method": "live",
         "snapshot": "days/2026-10-24/lovable-pricing.json",
         "screenshot": "days/2026-10-24/lovable-pricing.jpg",
@@ -34,7 +34,7 @@
       "status": "unchanged",
       "signal_ids": [],
       "current": {
-        "captured_at": "2026-10-24T18:52:52+00:00",
+        "captured_at": "2026-10-24T19:03:23+00:00",
         "method": "live",
         "snapshot": "days/2026-10-24/lovable-home.json",
         "screenshot": "days/2026-10-24/lovable-home.jpg",
@@ -58,7 +58,7 @@
       "status": "unchanged",
       "signal_ids": [],
       "current": {
-        "captured_at": "2026-10-24T18:53:06+00:00",
+        "captured_at": "2026-10-24T19:03:37+00:00",
         "method": "live",
         "snapshot": "days/2026-10-24/replit-pricing.json",
         "screenshot": "days/2026-10-24/replit-pricing.jpg",
@@ -82,7 +82,7 @@
       "status": "unchanged",
       "signal_ids": [],
       "current": {
-        "captured_at": "2026-10-24T18:53:20+00:00",
+        "captured_at": "2026-10-24T19:03:51+00:00",
         "method": "live",
         "snapshot": "days/2026-10-24/replit-home.json",
         "screenshot": "days/2026-10-24/replit-home.jpg",
@@ -110,7 +110,7 @@
         "pr-102003"
       ],
       "current": {
-        "captured_at": "2026-10-24T18:53:35+00:00",
+        "captured_at": "2026-10-24T19:04:05+00:00",
         "method": "live",
         "snapshot": "days/2026-10-24/bolt-pricing.json",
         "screenshot": "days/2026-10-24/bolt-pricing.jpg",
@@ -134,7 +134,7 @@
       "status": "unchanged",
       "signal_ids": [],
       "current": {
-        "captured_at": "2026-10-24T18:53:47+00:00",
+        "captured_at": "2026-10-24T19:04:18+00:00",
         "method": "live",
         "snapshot": "days/2026-10-24/bolt-home.json",
         "screenshot": "days/2026-10-24/bolt-home.jpg",
