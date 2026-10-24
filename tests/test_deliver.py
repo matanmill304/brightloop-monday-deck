@@ -1,4 +1,4 @@
-"""Delivery: the Monday post in Slack and the .pptx under it (no network in these tests)."""
+"""Delivery: one Slack message with what changed and the .pptx attached (no network here)."""
 
 from __future__ import annotations
 
@@ -29,35 +29,25 @@ def texts(message: dict) -> str:
     return json.dumps(message, ensure_ascii=False)
 
 
-def buttons(message: dict) -> list[dict]:
-    return [
-        b for block in message["blocks"] if block["type"] == "actions" for b in block["elements"]
-    ]
-
-
-def test_the_post_says_what_changed_with_links():
-    message = deliver.slack_message(view("2026-W43"), SITE)
-    blob = texts(message)
-    assert "1 of 6 pages changed: Bolt pricing." in blob
-    assert "<https://bolt.new/pricing|Bolt pricing>" in blob
-    assert "300K tokens daily limit" in blob and blob.count("Plus 2 wording edits") == 1
-    assert [b["text"]["text"] for b in buttons(message)] == [
-        "Open the deck",
-        "What's new this week",
-    ]
-    assert buttons(message)[0]["url"] == f"{SITE}/#deck/2026-W43"
-    assert "archive.org" not in blob
-    assert message["text"].startswith("Competitor deck")
+def test_the_message_says_what_changed_with_links():
+    text = deliver.slack_text(view("2026-W43"), SITE)
+    lines = text.split("\n")
+    assert lines[0] == "*Competitor deck so far, for Monday, Oct 26*"
+    assert lines[1] == "*1 of 6 pages changed:* <https://bolt.new/pricing|Bolt pricing>"
+    assert "300K tokens daily limit" in lines[2] and "Plus 2 wording edits" in lines[2]
+    assert lines[3] == "The other 5 pages: no change."
+    assert f"<{SITE}/#deck/2026-W43|Open the deck>" in lines[-1]
+    assert "archive.org" not in text and len(lines) == 5
 
 
 def test_a_quiet_week_says_so_and_mentions_nobody():
-    blob = texts(deliver.slack_message(view("2026-W42"), SITE, mention="U123"))
-    assert "No changes this week." in blob and "<@U123>" not in blob
-    assert "Check by hand: All 6 screenshots come from the Wayback Machine" in blob
+    text = deliver.slack_text(view("2026-W42"), SITE, mention="U123")
+    assert "No changes this week" in text and "<@U123>" not in text
+    assert "Check by hand: All 6 screenshots come from the Wayback Machine" in text
 
 
 def test_a_real_change_mentions_maya_when_configured():
-    assert "<@U123>" in texts(deliver.slack_message(view("2026-W43"), SITE, mention="U123"))
+    assert "<@U123>" in deliver.slack_text(view("2026-W43"), SITE, mention="U123")
 
 
 def test_slack_text_is_escaped():
@@ -71,7 +61,7 @@ def copy_recordings(tmp_path: Path) -> Path:
 
 
 class FakeSlack:
-    """Slack's Web API, recorded: post, get an upload URL, receive the file, share it."""
+    """Slack's Web API, recorded: get an upload URL, receive the file, share it with the lines."""
 
     def __init__(self, fail: dict | None = None):
         self.calls: list[tuple[str, dict]] = []
@@ -106,33 +96,32 @@ def test_without_a_bot_nothing_is_sent_and_the_log_says_so(tmp_path, monkeypatch
     assert log["run"] == "delivery" and log["week"] == "2026-W42"
 
 
-def test_it_posts_then_the_pptx_and_posts_a_week_only_once(tmp_path, monkeypatch):
+def test_one_message_with_the_file_and_a_week_only_once(tmp_path, monkeypatch):
     root = copy_recordings(tmp_path)
     slack = fake(monkeypatch, FakeSlack())
     out = deliver.deliver_week("2026-W42", root, env=SLACK)
     assert (out["slack"], out["file"]) == ("posted", "uploaded")
     methods = [m for m, _ in slack.calls]
-    assert methods == [
-        "chat.postMessage",
-        "files.getUploadURLExternal",
-        "files.completeUploadExternal",
-    ]
-    assert slack.calls[0][1]["channel"] == "C0TEST" and slack.uploaded[:2] == b"PK"  # a .pptx
-    share = slack.calls[2][1]
-    assert share["channel_id"] == "C0TEST" and "File → Import slides" in share["initial_comment"]
-    assert slack.calls[1][1]["filename"] == "competitor-deck-2026-10-19.pptx"
+    assert methods == ["files.getUploadURLExternal", "files.completeUploadExternal"]
+    assert slack.uploaded[:2] == b"PK"  # a .pptx
+    share = slack.calls[1][1]
+    assert share["channel_id"] == "C0TEST"
+    assert share["initial_comment"].startswith("*Competitor deck for Monday, Oct 19*")
+    assert slack.calls[0][1]["filename"] == "competitor-deck-2026-10-19.pptx"
     again = deliver.deliver_week("2026-W42", root, env=SLACK)
-    assert again["slack"] == "skipped: already posted" and len(slack.calls) == 3
+    assert again["slack"] == "skipped: already posted" and len(slack.calls) == 2
     forced = deliver.deliver_week("2026-W42", root, env=SLACK, force=True)
-    assert forced["slack"] == "posted" and len(slack.calls) == 6
+    assert forced["slack"] == "posted" and len(slack.calls) == 4
 
 
-def test_the_post_stays_when_the_file_fails(tmp_path, monkeypatch):
+def test_without_the_file_the_lines_still_go_out(tmp_path, monkeypatch):
     root = copy_recordings(tmp_path)
-    fake(monkeypatch, FakeSlack(fail={"files.getUploadURLExternal": "missing_scope"}))
+    slack = fake(monkeypatch, FakeSlack(fail={"files.getUploadURLExternal": "missing_scope"}))
     out = deliver.deliver_week("2026-W42", root, env=SLACK)
     assert out["slack"] == "posted" and out["file"] == "failed: missing_scope"
     assert out["errors"] == ["Slack file: missing_scope"]
+    assert slack.calls[-1][0] == "chat.postMessage"
+    assert slack.calls[-1][1]["text"].startswith("*Competitor deck for Monday, Oct 19*")
 
 
 def test_a_slack_error_says_what_to_fix(monkeypatch):
