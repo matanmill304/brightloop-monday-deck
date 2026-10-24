@@ -355,7 +355,7 @@ def test_the_run_log_table_shows_the_last_14_runs():
     site = load_script("build_site")
     rows = site.run_rows(site.read_runlog())
     assert 0 < len(rows) <= 14
-    assert all(r["run"] in ("Daily capture", "Weekly deck", "Rebuild") for r in rows)
+    assert all(r["run"] in ("Daily capture", "Weekly deck", "Rebuild", "Delivery") for r in rows)
     assert all(r["pages"] is None or len(r["pages"]) == 6 for r in rows)
 
 
