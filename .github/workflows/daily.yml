@@ -19,6 +19,9 @@ on:
       week:
         description: "Also build this ISO week's deck, e.g. 2026-W43 (empty = only on Mondays, last week)"
         required: false
+      deliver_week:
+        description: "Post this week's deck to Slack now, e.g. 2026-W43 (posts again if it was posted)"
+        required: false
 
 permissions:
   contents: write
@@ -77,8 +80,31 @@ jobs:
       - name: Refresh the week so far (data the app shows; no deck files until Monday)
         if: steps.done.outputs.skip != 'true'
         run: brightloop week --refresh --week "$(TZ=Asia/Jerusalem date +%G-W%V)"
+      # Slack, from GitHub secrets (a bot's token and the channel); without them it's skipped
+      # and the run log says so.
+      - name: Deliver the Monday deck to Slack, or a week asked for
+        if: steps.done.outputs.skip != 'true'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_MENTION: ${{ secrets.SLACK_MENTION }}
+          DELIVER_WEEK: ${{ inputs.deliver_week }}
+          WEEK: ${{ inputs.week }}
+        run: |
+          if [ -n "$DELIVER_WEEK" ]; then
+            brightloop deliver --week "$DELIVER_WEEK" --force
+          elif [ -n "$WEEK" ]; then
+            brightloop deliver --week "$WEEK"
+          elif [ "$(TZ=Asia/Jerusalem date +%u)" = "1" ]; then
+            brightloop deliver
+          else
+            echo "not Monday: nothing to deliver"
+          fi
       - name: Build the web app (public/)
         if: steps.done.outputs.skip != 'true'
+        env:
+          # Whether Slack is connected (true/false), for the Setup page; never the token itself.
+          SLACK_CONNECTED: ${{ secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL != '' }}
         run: python scripts/build_site.py
       - name: Commit the recording and the app (Vercel redeploys from the repo)
         if: steps.done.outputs.skip != 'true'
@@ -89,3 +115,12 @@ jobs:
           git diff --cached --quiet && echo "nothing new" && exit 0
           git commit -m "Daily run $(date -u +%Y-%m-%dT%H:%MZ)"
           git pull --rebase --autostash && git push
+      - name: On a Monday, tell Slack the run failed (so Maya doesn't wait for the deck)
+        if: failure() && steps.done.outputs.skip != 'true'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        run: |
+          if [ "$(TZ=Asia/Jerusalem date +%u)" = "1" ]; then
+            brightloop deliver --failed || echo "couldn't post the failure notice"
+          fi

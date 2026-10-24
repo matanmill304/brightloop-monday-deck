@@ -15,6 +15,7 @@ in api/).
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 from datetime import datetime, time, timedelta
@@ -54,6 +55,7 @@ def build() -> None:
         "default_week": default_week(weeks),
         "weeks": weeks,
         "runs": run_rows(runs),
+        "delivery": delivery(runs),
         "health": health(runs),
         "tracked": tracked(),
         "samples": samples(weeks),
@@ -116,7 +118,42 @@ def next_deck(now: datetime) -> datetime:
     return run if run > now else run + timedelta(days=7)
 
 
-RUN_NAME = {"daily": "Daily capture", "weekly": "Weekly deck", "rebuild": "Rebuild"}
+RUN_NAME = {
+    "daily": "Daily capture",
+    "weekly": "Weekly deck",
+    "rebuild": "Rebuild",
+    "delivery": "Delivery",
+}
+
+
+def short(result: str | None) -> str:
+    """A delivery result in a word or two: "posted", "skipped", "failed"."""
+    return (result or "—").split(":")[0]
+
+
+def delivery(runs: list[dict]) -> dict:
+    """Slack on the Setup page: connected or not, and the last post. Whether it's connected
+    comes from the daily job (SLACK_CONNECTED, from the secrets' presence); the last result
+    from the run log. The site never sees a secret."""
+    flag = os.environ.get("SLACK_CONNECTED", "").lower()
+    lines = sorted((r for r in runs if r["run"] == "delivery"), key=lambda r: r["started_at"])
+    tried = [r for r in lines if not str(r.get("slack", "")).startswith("skipped")]
+    last = tried[-1] if tried else None
+    out: dict = {"connected": flag == "true" if flag in ("true", "false") else None}
+    if last is not None:
+        result = str(last.get("slack"))
+        out.update(
+            state="ok" if result == "posted" else "failed",
+            at=israel(last["started_at"]),
+            week=last.get("week"),
+            detail=result,
+            file=last.get("file"),
+        )
+    if out["connected"] is False:
+        out["state"] = "not connected"  # disconnected: its last post (if any) stays as history
+    elif last is None:
+        out["state"] = "not connected"
+    return {"slack": out}
 
 
 def run_rows(runs: list[dict]) -> list[dict]:
@@ -143,6 +180,9 @@ def run_rows(runs: list[dict]) -> list[dict]:
             partial = is_partial(r["week"], r, TZ)
             row["for"] = r["week"] + (" (so far)" if partial else "")
             row["found"] = plural(r.get("items", 0), "item", "items")
+        elif r["run"] == "delivery":
+            row["for"] = r.get("week", "")
+            row["found"] = f"Slack: {short(r.get('slack'))} · .pptx: {short(r.get('file'))}"
         else:
             weeks = r.get("weeks") or {}
             newest = max(weeks) if weeks else None
@@ -161,7 +201,9 @@ def run_rows(runs: list[dict]) -> list[dict]:
 def readable(error: str) -> str:
     """Run-log errors written before they were plain words: "Lovable home: not-captured"."""
     error = error.replace(" home:", " homepage:")
-    return error.replace(": not-captured", ": not captured").replace(": failed-capture", ": capture failed")
+    return error.replace(": not-captured", ": not captured").replace(
+        ": failed-capture", ": capture failed"
+    )
 
 
 def plural(n: int, one: str, many: str) -> str:
