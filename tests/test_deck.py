@@ -357,3 +357,47 @@ def test_the_run_log_table_shows_the_last_14_runs():
     assert 0 < len(rows) <= 14
     assert all(r["run"] in ("Daily capture", "Weekly deck", "Rebuild") for r in rows)
     assert all(r["pages"] is None or len(r["pages"]) == 6 for r in rows)
+
+
+# ---- The deck is built on Monday; the week in progress on request (decision D19) ---------------
+
+
+def test_only_the_monday_deck_writes_deck_files(tmp_path):
+    import shutil
+
+    from brightloop.collect.run import build_week
+
+    root = tmp_path / "recordings"
+    shutil.copytree(RECORDINGS, root)
+    folder = root / "weeks" / "2026-W43"
+    build_week("2026-W43", root, final=False)  # the daily refresh of the week so far
+    assert (folder / "run.json").exists()
+    assert not (folder / "deck.pptx").exists() and not (folder / "deck.html").exists()
+    build_week("2026-W43", root)  # Monday's final deck
+    assert (folder / "deck.pptx").exists() and (folder / "deck.html").exists()
+
+
+def test_build_deck_now_makes_the_files_on_request():
+    spec = importlib.util.spec_from_file_location("api_deck", ROOT / "api" / "deck.py")
+    api = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(api)
+    body, kind, name = api.deck_file("2026-W43", RECORDINGS, "pptx")
+    assert body[:2] == b"PK" and kind.endswith("presentationml.presentation")
+    assert name.startswith("competitor-deck-2026-10-26") and name.endswith(".pptx")
+    body, kind, name = api.deck_file("2026-W43", RECORDINGS, "html")
+    html = body.decode("utf-8")
+    assert kind.startswith("text/html") and '<a href="https://bolt.new/pricing"' in html
+    assert 'src="/days/' in html and "archive.org" not in html
+
+
+def test_the_backup_schedule_recognises_todays_scheduled_run():
+    """The workflow's backup schedules stop when today's scheduled run is in the run log."""
+    import re
+
+    workflow = (ROOT / ".github" / "workflows" / "daily.yml").read_text(encoding="utf-8")
+    assert 'grep -q "\\"date\\": \\"$today\\".*\\"trigger\\": \\"scheduled\\""' in workflow
+    lines = (RECORDINGS / "runlog.jsonl").read_text(encoding="utf-8").splitlines()
+    scheduled = [line for line in lines if '"run": "daily"' in line and '"scheduled"' in line]
+    assert scheduled
+    day = json.loads(scheduled[-1])["date"]
+    assert re.search(f'"date": "{day}".*"trigger": "scheduled"', scheduled[-1])

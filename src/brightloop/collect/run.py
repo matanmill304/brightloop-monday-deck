@@ -91,8 +91,9 @@ def collect_day(day: date, root: Path, archived: bool = False) -> dict[str, Any]
             current = capturer.live(competitor, page, url, name=key) if live else None
             if current is None:
                 if live:
+                    problem = capturer.problem or "blocked or empty"
                     entry["note"] = (
-                        "live page blocked or empty: used the Wayback Machine (not bypassed)"
+                        f"live page {problem}, twice: used the Wayback Machine (not bypassed)"
                     )
                 current = capturer.archived(competitor, page, url, day_start, day_end, name=key)
             previous, previous_ref = latest_snapshot(root, key, before=day_start)
@@ -222,9 +223,10 @@ def last_complete_week() -> str:
 
 
 def build_week(week: str, root: Path, final: bool = True) -> dict[str, Any]:
-    """Compute the week, write its files and deck. The Monday deck (final) is logged as a
-    weekly run; the daily refresh of the week in progress is part of that day's run, so it
-    adds no line to the run log."""
+    """Compute the week and write its files. The Monday deck (final) gets deck.html and
+    deck.pptx and a run-log line. The daily refresh of the week in progress writes only the
+    small JSON files the app shows (no deck files: the deck is made once, on Monday, or on
+    request from the app), and adds no run-log line: it's part of that day's run."""
     started = now_iso()
     case, result, run = assemble_week(week, root)
     run["started_at"] = started
@@ -233,7 +235,10 @@ def build_week(week: str, root: Path, final: bool = True) -> dict[str, Any]:
     write_json(folder / "cases.json", case)
     write_json(folder / "result.json", result)
     write_json(folder / "run.json", run)
-    write_deck(folder, assets_root=root)
+    if final:
+        write_deck(folder, assets_root=root)
+    else:
+        remove_deck(folder)
     summary = {
         "run": "weekly",
         "week": week,
@@ -249,6 +254,12 @@ def build_week(week: str, root: Path, final: bool = True) -> dict[str, Any]:
     if final:
         append_log(root, summary)
     return summary
+
+
+def remove_deck(folder: Path) -> None:
+    """A week in progress has no deck files: the app builds them on request."""
+    for name in ("deck.html", "deck.pptx"):
+        (folder / name).unlink(missing_ok=True)
 
 
 def assemble_week(week: str, root: Path) -> tuple[dict, dict, dict]:

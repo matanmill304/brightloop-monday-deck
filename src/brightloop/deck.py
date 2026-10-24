@@ -971,6 +971,12 @@ def meeting_label(week: str | None, short: bool = False) -> str:
     return f"{day}, {meeting:%b} {meeting.day}"
 
 
+def meeting_iso(week: str | None) -> str:
+    """'2026-W43' -> '2026-10-26': the meeting date, for file names."""
+    monday = week_monday(week)
+    return (monday + timedelta(days=7)).isoformat() if monday else ""
+
+
 def week_range(week: str | None) -> str:
     """The days the week covers: 'Oct 19–25', across months 'Sep 28–Oct 4'."""
     monday = week_monday(week)

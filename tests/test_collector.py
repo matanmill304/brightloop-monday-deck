@@ -225,3 +225,21 @@ def test_snapshots_saved_before_the_top_of_page_was_read_still_load():
         hero={"headline": "Pricing", "subheadline": "x", "buttons": ["a"]},
     )
     assert page_events(old, new, TZ) == ("unchanged", [])
+
+
+def test_a_failed_live_capture_says_what_it_saw():
+    from brightloop.collect.capture import Capturer
+
+    capturer = Capturer.__new__(Capturer)  # no browser needed to read a page's text
+    capturer._error = None
+    challenge = (
+        "lovable.dev\nPerforming security verification\nThis website uses a security service"
+    )
+    assert (
+        capturer._problem(challenge)
+        == 'showed a security check ("Performing security verification")'
+    )
+    assert capturer._problem("Loading") == "was almost empty (7 characters)"
+    assert capturer._problem("Pricing " * 50) is None
+    capturer._error = "TimeoutError"
+    assert capturer._problem(None) == "didn't load (TimeoutError)"

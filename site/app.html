@@ -498,7 +498,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
       <nav class="crumbs" aria-label="Breadcrumb"><span>What's new</span><span class="sep">/</span><span class="cur mono" id="new-crumb"></span></nav>
       <div class="actions">
         <a class="btn" id="new-open-deck" href="#deck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>Open the deck</a>
-        <a class="btn btn--primary" id="new-download" href="#" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>Download .pptx</a>
+        <a class="btn btn--primary" id="new-download" href="#" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg><span id="new-download-label">Download .pptx</span></a>
       </div>
     </div>
     <div class="main-body main-body--narrow">
@@ -507,19 +507,11 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
           <div class="eyebrow" id="new-eyebrow"></div>
           <h1 id="new-title"></h1>
           <p class="sub" id="new-sub"></p>
-          <p class="count-line" id="new-count"></p>
         </div>
       </header>
       <div class="change-list" id="new-changes"></div>
       <div class="quiet-line" id="new-quiet"></div>
       <div class="exceptions" id="new-exceptions"></div>
-      <section aria-labelledby="new-earlier-title">
-        <div class="section-head">
-          <h2 id="new-earlier-title">Earlier decks</h2>
-          <p>Every Monday's deck, newest first.</p>
-        </div>
-        <div class="deck-grid" id="new-decks"></div>
-      </section>
     </div>
   </div>
 
@@ -529,10 +521,10 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
       <nav class="crumbs" aria-label="Breadcrumb"><span>Deck</span><span class="sep">/</span><span class="cur mono" id="deck-crumb"></span></nav>
       <div class="actions">
         <div class="split" id="split">
-          <a class="btn btn--primary" id="dl-pptx" href="#" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>Download .pptx</a>
+          <a class="btn btn--primary" id="dl-pptx" href="#" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg><span id="dl-label">Download .pptx</span></a>
           <button class="btn btn--primary" id="dl-toggle" type="button" aria-label="More download formats" aria-haspopup="true" aria-expanded="false" aria-controls="dl-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
           <div class="menu" id="dl-menu" hidden>
-            <a id="menu-pptx" href="#" download><b>PowerPoint (.pptx)</b><span>Opens in Google Slides via File → Import slides</span></a>
+            <a id="menu-pptx" href="#" download><b>PowerPoint (.pptx)</b><span id="menu-pptx-note">Opens in Google Slides via File → Import slides</span></a>
             <a id="menu-pdf" href="#" target="_blank" rel="noopener"><b>PDF</b><span>Opens the print view: save as PDF</span></a>
           </div>
         </div>
@@ -748,8 +740,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
   const ICON = {
     out: svg('<path d="M7 7h10v10"/><path d="M7 17 17 7"/>'),
     chev: svg('<path d="m9 18 6-6-6-6"/>'),
-    check: svg('<path d="M20 6 9 17l-5-5"/>', 2.25),
-    bigCheck: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+    check: svg('<path d="M20 6 9 17l-5-5"/>', 2.25)
   };
   const inProgress = '<span class="badge"><span class="dot dot--progress"></span>In progress</span>';
 
@@ -760,10 +751,22 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     const monday1 = new Date(jan4.getTime() - ((jan4.getUTCDay() + 6) % 7) * 864e5);
     return new Date(monday1.getTime() + (wk * 7) * 864e5).toISOString().slice(0, 10);
   }
-  const pptxHref = (w) => 'weeks/' + w.week + '/deck.pptx';
-  const pptxName = (w) => 'competitor-deck-' + meetingIso(w.week) + '.pptx';
+  /* A finished week's deck was built on Monday morning and is stored; the week in progress
+     is built now, on request, from its captures so far (/api/deck). */
+  const pptxHref = (w) => w.partial ? 'api/deck?week=' + w.week + '&format=pptx' : 'weeks/' + w.week + '/deck.pptx';
+  const pdfHref = (w) => w.partial ? 'api/deck?week=' + w.week + '&format=html' : 'weeks/' + w.week + '/deck.html';
+  const pptxName = (w) => 'competitor-deck-' + meetingIso(w.week) + (w.partial ? '-so-far' : '') + '.pptx';
+  const pptxLabel = (w) => w.partial ? 'Build deck now' : 'Download .pptx';
   const pages = (w) => w.slides.slice(1);  // slide 0 is the summary, never counted as a page
   const wordingTotal = (w) => pages(w).reduce((a, p) => a + p.wording, 0);
+
+  /* What's new title: the answer itself, e.g. "1 of 6 pages changed" + ": Bolt pricing". */
+  function headline(w) {
+    const k = w.changes.filter((c) => c.real), m = wordingTotal(w);
+    if (k.length) return [k.length + ' of ' + w.pages_total + ' pages changed', k.length <= 2 ? ': ' + joinAnd(k.map((p) => p.name)) : ''];
+    if (m) return ['No price or limit changed', ': ' + plural(m, 'wording edit', 'wording edits')];
+    return ['No changes this week', ''];
+  }
 
   /* Count line (spec 5.5): [bold part, rest], or null when nothing changed. */
   function countParts(w) {
@@ -861,7 +864,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
   $('health-capture').textContent = D.health.last_capture || '—';
   $('health-next').textContent = D.health.next_deck;
 
-  /* ---------- Earlier decks (What's new and Deck) ---------- */
+  /* ---------- Earlier decks (Deck page) ---------- */
   function coverPages(w) {
     const moved = pages(w).filter((p) => p.status === 'changed').concat(pages(w).filter((p) => p.status === 'wording'));
     return (moved.length ? moved : pages(w).filter((p) => p.page === 'pricing')).filter((p) => p.shot).slice(0, 3);
@@ -891,10 +894,10 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     '</button>';
   }
   const earlier = () => D.weeks.filter((w, i) => i !== wi).map(deckCard).join('');
-  ['new', 'deck'].forEach((p) => $(p + '-decks').addEventListener('click', (e) => {
+  $('deck-decks').addEventListener('click', (e) => {
     const card = e.target.closest('.deck-card');
-    if (card) showWeek(p, weekIndex(card.dataset.week));
-  }));
+    if (card) showWeek('deck', weekIndex(card.dataset.week));
+  });
 
   /* ---------- What's new (spec 4.2) ---------- */
   function changeCard(c) {
@@ -921,21 +924,15 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     $('new-open-deck').href = '#deck/' + w.week;
     $('new-download').href = pptxHref(w);
     $('new-download').setAttribute('download', pptxName(w));
-    $('new-eyebrow').innerHTML = esc(w.week + ' · ' + w.range) + (w.partial ? ' ' + inProgress : '');
-    if (w.partial) {
-      $('new-title').textContent = 'This week so far';
-      $('new-sub').textContent = 'From Mon ' + w.range.split('–')[0] + ' · goes into the deck for ' + w.meeting + ' · last capture ' + (D.health.last_capture || w.built);
-    } else {
-      $('new-title').textContent = "What's new for " + w.meeting;
-      $('new-sub').textContent = 'Changes from ' + w.range + ' · ' + w.pages_total + ' pages checked · deck built ' + w.built;
-    }
-    const parts = countParts(w);
-    $('new-count').hidden = !parts;
-    $('new-count').innerHTML = parts ? '<strong>' + esc(parts[0]) + '</strong>' + (parts[1] ? ' ' + esc(parts[1]) : '') : '';
-    $('new-changes').innerHTML = w.changes.length
-      ? w.changes.map(changeCard).join('')
-      : '<div class="sheet empty"><span class="empty-icon">' + ICON.bigCheck + '</span>' +
-          '<div><b>No changes this week.</b><p>The deck still has a screenshot of every page, ready to import.</p></div></div>';
+    $('new-download-label').textContent = pptxLabel(w);
+    $('new-eyebrow').innerHTML = w.partial
+      ? esc(w.range + ' · goes into the deck for ' + w.meeting) + ' ' + inProgress
+      : esc('Deck for ' + w.meeting + ' · changes from ' + w.range);
+    const [main, rest] = headline(w);
+    $('new-title').innerHTML = esc(main) + (rest ? '<span class="quiet">' + esc(rest) + '</span>' : '');
+    $('new-sub').hidden = !!w.changes.length;
+    $('new-sub').textContent = 'The deck still has a screenshot of every page, ready to import.';
+    $('new-changes').innerHTML = w.changes.map(changeCard).join('');
     const quiet = $('new-quiet');
     quiet.hidden = !(w.changes.length && w.quiet.length);
     quiet.innerHTML = '<span class="label">No change</span><span>' + w.quiet.map((p) => extLink(p.url, p.name)).join(' · ') + '</span>';
@@ -945,7 +942,6 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
       '<div class="exception"><span class="badge badge--warn">' + esc(e.tag) + '</span><span>' + esc(e.text) +
       (e.url ? ' <a class="ext link" href="' + esc(e.url) + '" target="_blank" rel="noopener">Open the page' + ICON.out + '</a>' : '') +
       '</span></div>').join('');
-    $('new-decks').innerHTML = earlier();
   }
 
   /* ---------- Deck (spec 4.3) ---------- */
@@ -991,11 +987,17 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     const w = W();
     $('deck-crumb').textContent = w.week;
     [$('dl-pptx'), $('menu-pptx')].forEach((a) => { a.href = pptxHref(w); a.setAttribute('download', pptxName(w)); });
-    $('menu-pdf').href = 'weeks/' + w.week + '/deck.html';
+    $('dl-label').textContent = pptxLabel(w);
+    $('menu-pptx-note').textContent = w.partial
+      ? "Built now from this week's captures so far"
+      : 'Opens in Google Slides via File → Import slides';
+    $('menu-pdf').href = pdfHref(w);
     $('deck-eyebrow').hidden = !w.partial;  // only the week in progress needs its dates spelled out
     $('deck-eyebrow').innerHTML = w.partial ? esc(w.week + ' · ' + w.range) + ' ' + inProgress : '';
     $('deck-title').textContent = w.partial ? 'This week so far' : 'Deck for ' + w.meeting;
-    $('deck-sub').textContent = total() + ' slides: the summary, then one per page · built ' + w.built;
+    $('deck-sub').textContent = w.partial
+      ? total() + " slides from this week's captures so far · the final deck is built Monday morning"
+      : total() + ' slides: the summary, then one per page · built ' + w.built;
     $('films').innerHTML = filmstrip(w);
     $('deck-decks').innerHTML = earlier();
     showSlide(0);

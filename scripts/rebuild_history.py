@@ -27,12 +27,13 @@ from brightloop.collect.run import (
     append_log,
     assemble_week,
     page_key,
+    remove_deck,
     snapshot_ref,
     targets,
     to_signal,
     write_json,
 )
-from brightloop.deck import write_deck
+from brightloop.deck import is_partial, write_deck
 
 TZ = ZoneInfo("Asia/Jerusalem")
 RECORDINGS = ROOT / "recordings"
@@ -96,7 +97,10 @@ def rebuild_weeks(root: Path) -> dict[str, dict[str, int]]:
         write_json(folder / "cases.json", case)
         write_json(folder / "result.json", result)
         write_json(folder / "run.json", run)
-        write_deck(folder, assets_root=root)
+        if is_partial(folder.name, run, TZ):
+            remove_deck(folder)  # the week in progress: deck files are made on Monday
+        else:
+            write_deck(folder, assets_root=root)
         out[folder.name] = {"signals": len(case["signals"]), "items": len(result["items"])}
         print(f"{folder.name}: {len(case['signals'])} signals -> {len(result['items'])} items")
     return out

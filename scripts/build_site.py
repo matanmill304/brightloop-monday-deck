@@ -102,7 +102,7 @@ def health(runs: list[dict]) -> dict:
     fresh = bool(last) and now - parse_iso(last["started_at"]) < timedelta(days=2)
     latest = max(runs, key=lambda r: r["started_at"]) if runs else None
     return {
-        "ok": fresh and not (latest or {}).get("errors"),
+        "ok": fresh,  # a page that wasn't captured shows in the run log, not as a red light
         "last_capture": israel(last["started_at"]) if last else None,
         "last_run": israel(latest["started_at"]) if latest else None,
         "next_deck": clock(next_deck(now).astimezone(TZ)),
