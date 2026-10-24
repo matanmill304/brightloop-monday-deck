@@ -1,50 +1,53 @@
 /**
  * Competitor watch -> Google Slides.
  *
- * Saves each Monday's deck (.pptx) as a native Google Slides file in one Drive folder, and
- * answers with its link. The daily GitHub job calls it right after the deck is built.
+ * Saves each Monday's deck (.pptx) as a Google Slides file, and answers with its link. The
+ * daily GitHub job calls it right after the deck is built.
+ *
+ * It runs in the Google account of whoever deploys it, with the narrowest Drive permission
+ * Google has ("drive.file"): it can see and change only the files it created itself. It
+ * creates one folder, "Competitor watch decks", and saves the decks there. Nothing else in
+ * that Drive is visible to it, or to anyone who opens a deck's link.
  *
  * Setup (once, about 5 minutes):
- *   1. In Drive, create a folder (e.g. "Competitor watch decks") and copy its ID from the URL:
- *      drive.google.com/drive/folders/<THIS PART>
- *   2. Paste the folder ID and a token below. The token is any long random string; the same
+ *   1. script.new. Project Settings (gear) -> tick "Show appsscript.json manifest file in
+ *      editor". Paste appsscript.json from this folder over it (it turns on the Drive service
+ *      and asks only for the "drive.file" permission).
+ *   2. Paste this file over Code.gs and set TOKEN below: any long random string. The same
  *      value goes into the GitHub secret GSLIDES_TOKEN.
- *   3. Services (+) -> Drive API -> Add.
- *   4. Deploy -> New deployment -> Web app. Execute as: Me. Who has access: Anyone. Deploy and
+ *   3. Deploy -> New deployment -> Web app. Execute as: Me. Who has access: Anyone. Deploy and
  *      allow access. Copy the Web app URL into the GitHub secret GSLIDES_HOOK_URL.
- *
- * "Anyone" can reach the URL, but only a request with the token saves a file.
+ * "Anyone" can reach the URL, but only a request with the token saves a file, and the URL
+ * itself stays in GitHub's secrets.
  */
 
-const FOLDER_ID = 'PASTE_THE_FOLDER_ID';
+// Any long random string; the same value goes into the GitHub secret GSLIDES_TOKEN.
 const TOKEN = 'PASTE_THE_SAME_TOKEN_AS_THE_GITHUB_SECRET';
+const FOLDER_NAME = 'Competitor watch decks';
+const SLIDES = 'application/vnd.google-apps.presentation';
+const PPTX = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     if (!body || body.token !== TOKEN) return reply({ ok: false, error: 'wrong token' });
     const name = String(body.name || 'Competitor deck');
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(body.pptx),
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      name + '.pptx'
-    );
-    // A re-run of the same week replaces its copy (the old one goes to the trash).
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    const earlier = folder.getFilesByName(name);
-    while (earlier.hasNext()) earlier.next().setTrashed(true);
+    const folder = folderId();
 
-    let id;
-    if (Drive.Files.create) {
-      // Drive API v3: creating a Google Slides file from a .pptx converts it.
-      id = Drive.Files.create({ name: name, mimeType: MimeType.GOOGLE_SLIDES, parents: [FOLDER_ID] }, blob).id;
-    } else {
-      // Drive API v2
-      id = Drive.Files.insert({ title: name, mimeType: MimeType.GOOGLE_SLIDES, parents: [{ id: FOLDER_ID }] }, blob, { convert: true }).id;
-    }
+    // A re-run of the same week replaces its copy (the old one goes to the trash).
+    const earlier = Drive.Files.list({
+      q: "name = '" + name.replace(/'/g, "\\'") + "' and '" + folder + "' in parents and trashed = false",
+      fields: 'files(id)'
+    }).files || [];
+    earlier.forEach(function (f) { Drive.Files.update({ trashed: true }, f.id); });
+
+    // Creating a Google Slides file from a .pptx converts it.
+    const blob = Utilities.newBlob(Utilities.base64Decode(body.pptx), PPTX, name + '.pptx');
+    const id = Drive.Files.create({ name: name, mimeType: SLIDES, parents: [folder] }, blob).id;
+
+    // Anyone with the link can view this one file (the link goes into Slack and the app).
     try {
-      // Anyone with the link can view: the link goes into Slack and the app.
-      DriveApp.getFileById(id).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      Drive.Permissions.create({ role: 'reader', type: 'anyone' }, id);
     } catch (err) {
       // Some Google Workspace domains don't allow link sharing; the copy is still saved.
     }
@@ -52,6 +55,17 @@ function doPost(e) {
   } catch (err) {
     return reply({ ok: false, error: String((err && err.message) || err) });
   }
+}
+
+/** The folder this script created on its first run. With "drive.file" it can only find
+ *  folders and files it created itself, so this never picks up one of yours. */
+function folderId() {
+  const found = Drive.Files.list({
+    q: "name = '" + FOLDER_NAME + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
+    fields: 'files(id)'
+  }).files || [];
+  if (found.length) return found[0].id;
+  return Drive.Files.create({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }).id;
 }
 
 /** Open the Web app URL in a browser to check it's deployed. */
