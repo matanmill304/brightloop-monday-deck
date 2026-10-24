@@ -114,6 +114,23 @@ def test_one_message_with_the_file_and_a_week_only_once(tmp_path, monkeypatch):
     assert forced["slack"] == "posted" and len(slack.calls) == 4
 
 
+def test_a_demo_send_of_the_week_so_far_doesnt_stop_mondays_post(tmp_path, monkeypatch):
+    from brightloop.collect.run import build_week
+
+    root = copy_recordings(tmp_path)
+    fake(monkeypatch, FakeSlack())
+    demo = deliver.deliver_week("2026-W43", root, env=SLACK, force=True)
+    assert (demo["slack"], demo["deck"]) == ("posted", "so far")
+    build_week("2026-W43", root)  # Monday morning: the final deck
+    run_file = root / "weeks" / "2026-W43" / "run.json"
+    run = json.loads(run_file.read_text(encoding="utf-8"))
+    run["finished_at"] = "2026-10-26T04:31:00+00:00"
+    run_file.write_text(json.dumps(run), encoding="utf-8")
+    monday = deliver.deliver_week("2026-W43", root, env=SLACK)
+    assert (monday["slack"], monday["deck"]) == ("posted", "final")
+    assert deliver.deliver_week("2026-W43", root, env=SLACK)["slack"] == "skipped: already posted"
+
+
 def test_without_the_file_the_lines_still_go_out(tmp_path, monkeypatch):
     root = copy_recordings(tmp_path)
     slack = fake(monkeypatch, FakeSlack(fail={"files.getUploadURLExternal": "missing_scope"}))

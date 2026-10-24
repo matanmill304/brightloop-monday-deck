@@ -10,8 +10,8 @@ her 11:00 deck in Google Slides (File → Import slides). Google Slides itself i
 
 Every word comes from the same week data as the app and the slides (templates, no LLM), so
 the three can't disagree. The bot's token and channel come from the environment (GitHub
-Actions secrets); without them delivery is skipped and the run log says so. A week is posted
-once; --force posts it again.
+Actions secrets); without them delivery is skipped and the run log says so. A week's final
+deck is posted once (a demo send of the week so far doesn't count); --force posts it again.
 """
 
 from __future__ import annotations
@@ -65,15 +65,15 @@ def deliver_week(week: str | None, root: Path, force: bool = False, env=None) ->
     if not (token and channel):
         entry.update(slack="skipped: not connected", file="skipped")
         return finish(root, entry)
-    if not force and already_posted(root, week):
-        entry.update(slack="skipped: already posted", file="skipped")
-        return finish(root, entry)
-
     case, result, run = (
         json.loads((folder / name).read_text(encoding="utf-8"))
         for name in ("cases.json", "result.json", "run.json")
     )
     view = week_view(case, result, run)
+    entry["deck"] = "so far" if view["partial"] else "final"
+    if not force and entry["deck"] == "final" and already_posted(root, week):
+        entry.update(slack="skipped: already posted", file="skipped")
+        return finish(root, entry)
     text = slack_text(view, env.get("SITE_URL") or SITE, env.get("SLACK_MENTION") or None)
     try:
         upload_deck(case, result, run, root, view, token, channel, text)
@@ -117,14 +117,19 @@ def finish(root: Path, entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def already_posted(root: Path, week: str) -> bool:
-    """A week is posted once: a re-run on the same Monday doesn't post again."""
+    """A week's final deck is posted once: a re-run on the same Monday doesn't post it again.
+    Sends of the week so far (demos) don't count, so they never stop Monday's post."""
     path = root / "runlog.jsonl"
     if not path.exists():
         return False
     for line in path.read_text(encoding="utf-8").splitlines():
         if '"delivery"' in line:
             entry = json.loads(line)
-            if entry.get("week") == week and entry.get("slack") == "posted":
+            if (entry.get("week"), entry.get("slack"), entry.get("deck")) == (
+                week,
+                "posted",
+                "final",
+            ):
                 return True
     return False
 
