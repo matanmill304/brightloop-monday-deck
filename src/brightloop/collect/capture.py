@@ -23,6 +23,7 @@ UTC = timezone.utc  # datetime.UTC is 3.11+
 
 USER_AGENT = "BrightloopMondayDeck/0.1 (competitor pricing snapshots; weekly)"
 PAUSE_SECONDS = 1.5
+RETRY_SECONDS = 20  # a security check is decided per visit: one more try, a little later
 BLOCK_MARKERS = re.compile(
     r"(verify you are human|you have been blocked|just a moment|attention required|access denied"
     r"|performing security verification|enable javascript and cookies|are you a robot)",
@@ -173,6 +174,8 @@ class Capturer:
         )  # optional dependency: pip install .[collect]
 
         self.out_dir = out_dir
+        self.problem: str | None = None  # why the last live capture failed
+        self._error: str | None = None
         self._pw = sync_playwright().start()
         # Real Chrome in a window, not headless: Cloudflare blocks headless Chrome on Lovable's
         # homepage and on Replit. On a server, run under a virtual screen (xvfb-run).
@@ -189,12 +192,30 @@ class Capturer:
         self._pw.stop()
 
     def live(self, competitor: str, page: str, url: str, name: str) -> Snapshot | None:
-        """The page as it is now; None if it's blocked or empty."""
-        text, headline, hero = self._render(url)
-        if text is None or BLOCK_MARKERS.search(text[:2000]) or len(text) < 200:
-            return None
-        shot = self._screenshot(name)
-        return Snapshot(competitor, page, url, now_iso(), "live", text, headline, shot, hero=hero)
+        """The page as it is now; None if it's blocked or empty after a second try.
+        `self.problem` then says what was seen (a security check, an empty page), for the
+        run log. A security check is never bypassed: the day falls back to the Wayback copy."""
+        for attempt in (1, 2):
+            text, headline, hero = self._render(url)
+            self.problem = self._problem(text)
+            if not self.problem:
+                shot = self._screenshot(name)
+                return Snapshot(
+                    competitor, page, url, now_iso(), "live", text, headline, shot, hero=hero
+                )
+            if attempt == 1:
+                time.sleep(RETRY_SECONDS)
+        return None
+
+    def _problem(self, text: str | None) -> str | None:
+        """Why a live render isn't the page, in plain words; None when it is the page."""
+        if text is None:
+            return f"didn't load ({self._error or 'error'})"
+        if m := BLOCK_MARKERS.search(text[:2000]):
+            return f'showed a security check ("{m.group(0)}")'
+        if len(text) < 200:
+            return f"was almost empty ({len(text)} characters)"
+        return None
 
     def archived(
         self, competitor: str, page: str, url: str, after: datetime, before: datetime, name: str
@@ -225,6 +246,7 @@ class Capturer:
         )
 
     def _render(self, url: str) -> tuple[str | None, str, dict | None]:
+        self._error = None
         try:
             self._page.goto(url, wait_until="domcontentloaded", timeout=60000)
             self._page.wait_for_timeout(6000)
@@ -235,7 +257,8 @@ class Capturer:
             headline = h1.inner_text(timeout=2000) if self._page.locator("h1").count() else ""
             hero = self._stable_hero()
             return condense(text), headline.strip(), hero
-        except Exception:  # noqa: BLE001 - any capture failure means "try the next method"
+        except Exception as exc:  # noqa: BLE001 - any capture failure means "try the next method"
+            self._error = type(exc).__name__
             return None, "", None
         finally:
             time.sleep(PAUSE_SECONDS)

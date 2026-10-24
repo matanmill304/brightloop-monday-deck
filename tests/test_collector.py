@@ -113,13 +113,19 @@ def test_deck_shows_every_page_status():
         snap(PAGE), "Pro plan price changed from $25/month to $30/month.", date(2026, 10, 26), 1
     )
     case = {"week": "2026-W44", "timezone": "Asia/Jerusalem", "signals": [signal]}
-    slides = build_slides(case, run_pipeline(case), run)
+    summary, *slides = build_slides(case, run_pipeline(case), run)
+    assert summary.status == "summary" and summary.title == "1 of 3 pages changed"
     assert [s.title for s in slides] == ["Lovable pricing", "Lovable homepage", "Bolt pricing"]
     assert [s.status for s in slides] == ["changed", "not-captured", "unchanged"]
     assert slides[0].shot == "a.jpg" and slides[1].shot is None
-    assert slides[0].rows == [("Oct 26", "Pro: $25/month → $30/month")]
-    assert slides[0].footer == "Week of Oct 26 · lovable.dev/pricing · screenshot Oct 26"
-    assert "(archived copy)" in slides[2].footer
+    assert [(r["date"], r["plan"], r["tag"], r["old"], r["new"]) for r in slides[0].rows] == [
+        ("Oct 26", "Pro", "Price", "$25/month", "$30/month")
+    ]
+    assert slides[0].rows[0]["text"] == "Pro: $25/month → $30/month"
+    assert (
+        slides[0].footer == "Deck for Mon, Nov 2 · Source: lovable.dev/pricing · Screenshot Oct 26"
+    )
+    assert slides[2].footer.endswith(" · archived copy")
 
 
 def test_deck_without_run_shows_items_only():
@@ -139,7 +145,7 @@ def test_deck_without_run_shows_items_only():
     }
     slides = build_slides(case, run_pipeline(case))
     assert [(s.title, s.status) for s in slides] == [("Lovable pricing", "changed")]
-    assert slides[0].rows[0][0] == "Oct 23"
+    assert slides[0].rows[0]["date"] == "Oct 23"
 
 
 def test_the_daily_refresh_adds_no_run_log_line(tmp_path, monkeypatch):
@@ -219,3 +225,21 @@ def test_snapshots_saved_before_the_top_of_page_was_read_still_load():
         hero={"headline": "Pricing", "subheadline": "x", "buttons": ["a"]},
     )
     assert page_events(old, new, TZ) == ("unchanged", [])
+
+
+def test_a_failed_live_capture_says_what_it_saw():
+    from brightloop.collect.capture import Capturer
+
+    capturer = Capturer.__new__(Capturer)  # no browser needed to read a page's text
+    capturer._error = None
+    challenge = (
+        "lovable.dev\nPerforming security verification\nThis website uses a security service"
+    )
+    assert (
+        capturer._problem(challenge)
+        == 'showed a security check ("Performing security verification")'
+    )
+    assert capturer._problem("Loading") == "was almost empty (7 characters)"
+    assert capturer._problem("Pricing " * 50) is None
+    capturer._error = "TimeoutError"
+    assert capturer._problem(None) == "didn't load (TimeoutError)"

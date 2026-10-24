@@ -24,5 +24,28 @@ def test_rebuild_matches_the_recorded_week_and_writes_nothing():
     data = load_api("deck").deck_data(week, RECORDINGS)
     after = sorted(p.stat().st_mtime for p in RECORDINGS.rglob("*") if p.is_file())
     assert before == after
-    assert len(data["slides"]) == 6
+    # The summary, then one slide per page; the summary is never counted as a changed page.
+    assert len(data["slides"]) == 7 and data["slides"][0]["status"] == "summary"
+    assert data["changed"] == sum(s["status"] == "changed" for s in data["slides"][1:])
     assert all((RECORDINGS / s["shot"]).exists() for s in data["slides"] if s["shot"])
+
+
+@pytest.mark.skipif(not WEEKS, reason="no recorded week")
+def test_a_rebuilt_week_is_identical_to_the_stored_one():
+    """What the Test page's rebuild check compares: the stored week's slides (site data) and
+    the slides /api/deck computes again from the captures."""
+    import json
+
+    from brightloop.deck import week_view
+
+    for week in WEEKS:
+        folder = RECORDINGS / "weeks" / week
+        stored = week_view(
+            *(
+                json.loads((folder / n).read_text(encoding="utf-8"))
+                for n in ("cases.json", "result.json", "run.json")
+            )
+        )
+        fresh = load_api("deck").deck_data(week, RECORDINGS)
+        if not stored["partial"]:
+            assert fresh["slides"] == stored["slides"], week

@@ -7,6 +7,10 @@ name: daily
 on:
   schedule:
     - cron: "30 4 * * *"
+    # Backups: GitHub runs schedules "best effort" (Oct 24 started 4.5 hours late). A backup
+    # that finds today's scheduled run already done stops at the first step.
+    - cron: "30 5 * * *"
+    - cron: "30 6 * * *"
   workflow_dispatch:
     inputs:
       date:
@@ -29,14 +33,27 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: A backup schedule finds today's run already done
+        id: done
+        if: github.event_name == 'schedule'
+        run: |
+          today=$(TZ=Asia/Jerusalem date +%F)
+          if grep -q "\"date\": \"$today\".*\"trigger\": \"scheduled\"" recordings/runlog.jsonl; then
+            echo "today ($today) already ran on schedule: nothing to do"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-python@v5
+        if: steps.done.outputs.skip != 'true'
         with:
           python-version: "3.12"
       - run: pip install ".[collect]"
+        if: steps.done.outputs.skip != 'true'
       # Real Chrome on a virtual screen: Cloudflare blocks headless Chrome on some pages.
       - run: python -m playwright install --with-deps chrome
+        if: steps.done.outputs.skip != 'true'
       # Inputs reach the shell as environment variables, never pasted into the script.
       - name: Capture today's pages and compare with the day before
+        if: steps.done.outputs.skip != 'true'
         env:
           DATE: ${{ inputs.date }}
         run: |
@@ -46,6 +63,7 @@ jobs:
             xvfb-run -a brightloop collect
           fi
       - name: Monday (Israel time), or a week asked for, build the week's deck
+        if: steps.done.outputs.skip != 'true'
         env:
           WEEK: ${{ inputs.week }}
         run: |
@@ -56,11 +74,14 @@ jobs:
           else
             echo "not Monday: no final deck today"
           fi
-      - name: Refresh this week's deck so far (the app shows the week in progress)
+      - name: Refresh the week so far (data the app shows; no deck files until Monday)
+        if: steps.done.outputs.skip != 'true'
         run: brightloop week --refresh --week "$(TZ=Asia/Jerusalem date +%G-W%V)"
       - name: Build the web app (public/)
+        if: steps.done.outputs.skip != 'true'
         run: python scripts/build_site.py
       - name: Commit the recording and the app (Vercel redeploys from the repo)
+        if: steps.done.outputs.skip != 'true'
         run: |
           git config user.name "brightloop-bot"
           git config user.email "brightloop-bot@users.noreply.github.com"

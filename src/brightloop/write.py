@@ -32,6 +32,12 @@ def build_item(item_id: str, c: Candidate, cta_required: bool, tz: tzinfo) -> di
     else:
         action = f"Update the {lead.competitor} {slide} slide: {what}."
 
+    change, change_detail = [], []
+    for ch in most_specific(c.changes):
+        text = describe(ch) or first_sentence(lead.text)
+        if text not in change:
+            change.append(text)
+            change_detail.append({"kind": ch.kind, "plan": ch.plan, "old": ch.old, "new": ch.new})
     item: dict[str, Any] = {
         "id": item_id,
         "source_ids": [s.id for s in c.signals + c.corroboration],
@@ -40,9 +46,8 @@ def build_item(item_id: str, c: Candidate, cta_required: bool, tz: tzinfo) -> di
         "why": explain(c, tz),
         "competitor": lead.competitor,
         "page": lead.page if c.track != "announced" else "announcement",
-        "change": unique(
-            [describe(ch) or first_sentence(lead.text) for ch in most_specific(c.changes)]
-        ),
+        "change": change,
+        "change_detail": change_detail,  # the same changes as {kind, plan, old, new}, for slides
         "links": links,
         "sources": [
             {"id": s.id, "source": s.source or None, "class": s.source_class}

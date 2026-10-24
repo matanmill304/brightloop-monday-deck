@@ -10,14 +10,16 @@
         "method": "archived",
         "snapshot": "days/2026-09-29/lovable-pricing.json",
         "screenshot": "days/2026-09-29/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260929103339/https://lovable.dev/pricing"
+        "archive_url": "https://web.archive.org/web/20260929103339/https://lovable.dev/pricing",
+        "billing": null
       },
       "previous": {
         "captured_at": "2026-09-28T11:08:13+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-28/lovable-pricing.json",
         "screenshot": "days/2026-09-28/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260928110813/https://lovable.dev/pricing"
+        "archive_url": "https://web.archive.org/web/20260928110813/https://lovable.dev/pricing",
+        "billing": null
       },
       "status": "unchanged",
       "signal_ids": []
@@ -40,7 +42,8 @@
         "method": "archived",
         "snapshot": "days/2026-09-29/replit-pricing.json",
         "screenshot": "days/2026-09-29/replit-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing"
+        "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing",
+        "billing": "yearly"
       },
       "previous": null,
       "status": "first-snapshot",
@@ -64,7 +67,8 @@
         "method": "archived",
         "snapshot": "days/2026-09-29/bolt-pricing.json",
         "screenshot": "days/2026-09-29/bolt-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260929172614/https://bolt.new/pricing"
+        "archive_url": "https://web.archive.org/web/20260929172614/https://bolt.new/pricing",
+        "billing": "monthly"
       },
       "previous": null,
       "status": "first-snapshot",
@@ -80,7 +84,8 @@
         "method": "archived",
         "snapshot": "days/2026-09-28/bolt-home.json",
         "screenshot": "days/2026-09-28/bolt-home.jpg",
-        "archive_url": "https://web.archive.org/web/20260928172148/https://bolt.new"
+        "archive_url": "https://web.archive.org/web/20260928172148/https://bolt.new",
+        "billing": null
       },
       "status": "not-captured",
       "signal_ids": []

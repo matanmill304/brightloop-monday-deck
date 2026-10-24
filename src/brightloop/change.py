@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import difflib
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 
 from brightloop.decide import pricing_cues
@@ -59,8 +60,14 @@ PLAN_REMOVED = re.compile(
     re.IGNORECASE,
 )
 # The collector's own sentences (collect/events.py), read back exactly.
-OUR_EDIT = re.compile(r'^Changed on the (pricing page|homepage): "(.+)" → "(.+)"', re.IGNORECASE)
-OUR_LINE = re.compile(r'^(New on|No longer on) the (pricing page|homepage): "(.+)"', re.IGNORECASE)
+# "(Pro plan)" is the card the line sits in; sentences written before Oct 24 have none.
+OUR_EDIT = re.compile(
+    r'^Changed on the (pricing page|homepage)(?: \((.+?) plan\))?: "(.+)" → "(.+)"', re.IGNORECASE
+)
+OUR_LINE = re.compile(
+    r'^(New on|No longer on) the (pricing page|homepage)(?: \((.+?) plan\))?: "(.+)"',
+    re.IGNORECASE,
+)
 OUR_HEADLINE = re.compile(r'^Headline changed from "(.*)" to "(.*)"', re.IGNORECASE)
 OUR_SUBHEAD = re.compile(r'^Subheadline changed from "(.*)" to "(.*)"', re.IGNORECASE)
 OUR_BUTTONS = re.compile(r"^Top-of-page buttons changed: (.+?)\.?$", re.IGNORECASE)
@@ -240,12 +247,14 @@ class Change:
 def stated_change(text: str) -> Change | None:
     """The change a signal states about itself, or None if it only states a fact."""
     if m := OUR_EDIT.match(text):
-        return Change("line_changed", m.group(2), m.group(3), m.group(0), plan_name(m.group(3)))
+        plan = m.group(2) or plan_name(m.group(4))
+        return Change("line_changed", m.group(3), m.group(4), m.group(0), plan)
     if m := OUR_LINE.match(text):
-        quote = m.group(3)
+        quote = m.group(4)
+        plan = m.group(3) or plan_name(quote)
         if m.group(1).lower() == "new on":
-            return Change("line_added", new=quote, evidence=m.group(0), plan=plan_name(quote))
-        return Change("line_removed", old=quote, evidence=m.group(0), plan=plan_name(quote))
+            return Change("line_added", new=quote, evidence=m.group(0), plan=plan)
+        return Change("line_removed", old=quote, evidence=m.group(0), plan=plan)
     if m := OUR_HEADLINE.match(text):
         return Change("headline", m.group(1), m.group(2), m.group(0))
     if m := OUR_SUBHEAD.match(text):
@@ -365,6 +374,7 @@ class PageState:
     blocks: list[str] = field(default_factory=list)  # visible text lines, normalized
     billing: str | None = None  # monthly | yearly: which view of a toggle page was captured
     lines: list[str] = field(default_factory=list)  # whole lines with a price, a % or a limit
+    plans: dict[str, str] = field(default_factory=dict)  # line -> the plan card it sits in
     error_page: bool = False  # the archive's own error page, not the competitor's page
 
 
@@ -409,6 +419,55 @@ ARCHIVE_ERROR = re.compile(
 PLAN_LINE = re.compile(rf"(?i)({PLAN_NAMES})( plan)?")
 UNIT_LINE = re.compile(r"(?i)/ ?(mo|month|year|yr|user|seat|member)(/(mo|month))?")
 BARE_NUMBER = re.compile(r"\d{1,4}(\.\d{2})?")
+PRICE_ONLY = re.compile(rf"(?i)\s*{AMOUNT}{UNIT}\s*")
+# Where the plan cards end: the FAQ or a comparison table.
+SECTION_LINE = re.compile(
+    r"(?i)\W*(frequently asked questions|faqs?|plan comparison|compare( all)?( plans| features)?)\W*"
+)
+CARD_LINES = 25  # a plan card is at most this many lines long
+PRICE_BLOCK = 6  # its own price lines sit right under its name
+
+
+def price_under(lines: list[str], i: int, currency: str) -> str | None:
+    """The price right under a plan name at lines[i], e.g. "Pro" then "$25" then "per month"."""
+    for below in lines[i + 1 : i + 5]:
+        if PLAN_LINE.fullmatch(below):
+            return None  # the next plan started before a price showed up
+        amount = re.search(AMOUNT, below)
+        if amount or BARE_NUMBER.fullmatch(below):
+            unit = next((u for u in lines[i + 1 : i + 6] if UNIT_LINE.fullmatch(u)), "")
+            value = amount.group(0) if amount else f"{currency}{below}"
+            return clean(f"{value}{unit}")
+    return None
+
+
+def card_plans(lines: list[str], currency: str) -> dict[int, str]:
+    """Line number -> the plan whose card the line sits in.
+
+    A line gets a plan only when it is clearly inside a priced card: below a plan name that
+    has a price right under it, within CARD_LINES lines, before the next card's price and
+    before the FAQ or a comparison table. Anywhere else (a footnote under the cards, a
+    homepage section) it gets none: a wrong plan on a leadership slide is worse than none.
+    """
+    out: dict[int, str] = {}
+    plan, start = None, 0
+    for i, line in enumerate(lines):
+        if SECTION_LINE.fullmatch(line):
+            break
+        if m := PLAN_LINE.fullmatch(line):
+            plan = m.group(1).title() if price_under(lines, i, currency) else None
+            start = i
+        elif plan and (
+            i - start > CARD_LINES
+            or (
+                i - start > PRICE_BLOCK
+                and (PRICE_ONLY.fullmatch(line) or BARE_NUMBER.fullmatch(line))
+            )
+        ):
+            plan = None  # past the card, or another card's price: a card we can't name
+        elif plan:
+            out[i] = plan
+    return out
 
 
 def page_state(text: str) -> PageState:
@@ -422,18 +481,8 @@ def page_state(text: str) -> PageState:
     currency = sign.group(0) if sign else "$"
     lines = [line.strip() for line in text.splitlines()]
     for i, line in enumerate(lines):
-        if not PLAN_LINE.fullmatch(line):
-            continue
-        for below in lines[i + 1 : i + 5]:
-            if PLAN_LINE.fullmatch(below):
-                break  # the next plan started before a price showed up
-            amount = re.search(AMOUNT, below)
-            bare = BARE_NUMBER.fullmatch(below)
-            if amount or bare:
-                unit = next((u for u in lines[i + 1 : i + 6] if UNIT_LINE.fullmatch(u)), "")
-                value = amount.group(0) if amount else f"{currency}{below}"
-                prices.setdefault(line.title(), clean(f"{value}{unit}"))
-                break
+        if PLAN_LINE.fullmatch(line) and (price := price_under(lines, i, currency)):
+            prices.setdefault(line.title(), price)
     amounts = {clean(a) for a in re.findall(AMOUNT, text)}
     sentences = re.split(r"(?<=[.!?])\s+|\n+", text)
     blocks = [
@@ -443,17 +492,21 @@ def page_state(text: str) -> PageState:
         and not NOISE_LINE.search(line.strip())
         and not (SHORT_LINE.fullmatch(line.strip()) and not re.search(AMOUNT, line))
     ]
-    priced = []
-    for line in lines:
+    priced, plans = [], {}
+    in_card = card_plans(lines, currency)
+    for i, line in enumerate(lines):
         is_priced = len(line.split()) >= 3 and PRICE_OR_LIMIT.search(line)
         if is_priced and not NOISE_LINE.search(line) and line not in priced:
             priced.append(line)
+            if i in in_card:
+                plans[line] = in_card[i]
     return PageState(
         prices=prices,
         amounts=amounts,
         blocks=[b for b in blocks if b],
         billing=billing_view(text),
         lines=priced,
+        plans=plans,
         error_page=bool(ARCHIVE_ERROR.search(text[:1500])),
     )
 
@@ -488,16 +541,59 @@ def compare(
     covered = {number(v) for c in changes for v in (c.old, c.new) if v}
     added = [x for x in new.lines if x not in old.lines and not only_covered(x, covered)]
     removed = [x for x in old.lines if x not in new.lines and not only_covered(x, covered)]
-    # A line that was edited ("most powerful" -> "more powerful") is one change, not two.
-    pairs = sorted(((similarity(r, a), r, a) for r in removed for a in added), key=lambda p: -p[0])
-    for score, r, a in pairs:
-        if score >= SAME_LINE and r in removed and a in added:
-            changes.append(Change("line_changed", r, a))
+    was, now = old.plans.get, new.plans.get
+    # An edited line is one change, not two: in the same plan card and sharing a number with
+    # its unit ("Start at 10M tokens per month" -> "10M tokens/month, rollover included"), or
+    # worded almost the same ("most powerful" -> "more powerful") and not in two other cards.
+    for r, a in [(r, a) for r in removed for a in added]:
+        same_card = r in removed and a in added and was(r) and was(r) == now(a)
+        if same_card and unit_numbers(r) & unit_numbers(a):
+            changes.append(Change("line_changed", r, a, plan=now(a)))
             removed.remove(r)
             added.remove(a)
-    changes += [Change("line_added", new=x) for x in added]
-    changes += [Change("line_removed", old=x) for x in removed]
+    pairs = sorted(((similarity(r, a), r, a) for r in removed for a in added), key=lambda p: -p[0])
+    for score, r, a in pairs:
+        other_cards = was(r) and now(a) and was(r) != now(a)
+        if score >= SAME_LINE and r in removed and a in added and not other_cards:
+            changes.append(Change("line_changed", r, a, plan=now(a) or was(r)))
+            removed.remove(r)
+            added.remove(a)
+    changes += [Change("line_added", new=x, plan=now(x)) for x in added]
+    changes += [Change("line_removed", old=x, plan=was(x)) for x in removed]
     return changes
+
+
+UNIT_NUMBER = re.compile(
+    rf"({AMOUNT})(\s?(?:/|per|a)\s?(?:mo(?:nth)?|year|yr)\b)?"
+    r"|\b(\d[\d,]*(?:\.\d+)?)\s?([kmb%])(?![a-z])"
+    r"|\b(\d[\d,]*(?:\.\d+)?)\s?(credit|token|message|project|seat|request|hour|minute|domain"
+    r"|build)s?\b",
+    re.IGNORECASE,
+)
+
+
+def unit_numbers(text: str | None) -> Counter:
+    """The numbers that carry a unit, in one form: "1M tokens per month" -> {"1m"},
+    "$20 towards most powerful models" -> {"$20"}, "20 USD/month" -> {"$20/month"}."""
+    out: Counter = Counter()
+    for m in UNIT_NUMBER.finditer(prepare(text or "")):
+        if m.group(1):
+            period = re.sub(r"[^a-z]", "", (m.group(2) or "").lower()).replace("per", "")
+            period = {"mo": "month", "yr": "year", "amonth": "month", "ayear": "year"}.get(
+                period, period
+            )
+            key = m.group(1)[0] + f"{number(m.group(1)):g}" + (f"/{period}" if period else "")
+        elif m.group(3):
+            key = f"{number(m.group(3)):g}{m.group(4).lower()}"
+        else:
+            key = f"{number(m.group(5)):g} {m.group(6).lower()}"
+        out[key] += 1
+    return out
+
+
+def same_numbers(old: str | None, new: str | None) -> bool:
+    """An edit that keeps every number and its unit: the wording changed, not the offer."""
+    return unit_numbers(old) == unit_numbers(new)
 
 
 SAME_LINE = 0.6  # this similar: the same line, edited
@@ -530,12 +626,13 @@ def describe(change: Change) -> str:
         return f'subheadline: "{change.old}" → "{change.new}"'
     if change.kind == "buttons":
         return f"top-of-page buttons: {change.new}"
+    on = f"{change.plan}: " if change.plan else ""
     if change.kind == "line_changed":
-        return f'"{change.old}" → "{change.new}"'
+        return f'{on}"{change.old}" → "{change.new}"'
     if change.kind == "line_added" and change.new:
-        return f'new on the page: "{change.new}"'
+        return f'{on}new on the page: "{change.new}"'
     if change.kind == "line_removed" and change.old:
-        return f'no longer on the page: "{change.old}"'
+        return f'{on}no longer on the page: "{change.old}"'
     if change.old and change.new:
         return (
             f"{change.plan}: {change.old} → {change.new}"
