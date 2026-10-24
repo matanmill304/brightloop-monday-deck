@@ -10,6 +10,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "tzdata>=2024.1",
+    # The app's "Build now" makes .pptx files on Vercel, which installs from this list.
+    "python-pptx>=1.0",
 ]
 
 [project.optional-dependencies]
