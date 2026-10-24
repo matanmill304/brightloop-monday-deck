@@ -133,7 +133,7 @@ def run_rows(runs: list[dict]) -> list[dict]:
             "when": israel(r["started_at"]),
             "run": RUN_NAME.get(r["run"], r["run"]),
             "pages": [pages.get(key, "not-captured") for key in order] if pages else None,
-            "problems": "; ".join(e.replace(" home:", " homepage:") for e in errors) or "—",
+            "problems": "; ".join(readable(e) for e in errors) or "—",
         }
         if r["run"] == "daily":
             day = parse_iso(r["date"] + "T12:00:00+00:00")
@@ -156,6 +156,12 @@ def run_rows(runs: list[dict]) -> list[dict]:
             )
         rows.append(row)
     return rows
+
+
+def readable(error: str) -> str:
+    """Run-log errors written before they were plain words: "Lovable home: not-captured"."""
+    error = error.replace(" home:", " homepage:")
+    return error.replace(": not-captured", ": not captured").replace(": failed-capture", ": capture failed")
 
 
 def plural(n: int, one: str, many: str) -> str:
