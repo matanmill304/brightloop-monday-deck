@@ -1,50 +1,71 @@
-"""Deliver the Monday deck: a post in Slack and a native copy in Google Slides.
+"""Deliver the Monday deck in Slack: one post with what changed, and the .pptx under it.
 
     brightloop deliver [--week 2026-W43] [--force]
 
-On Monday morning, right after the deck is built, Maya gets one Slack post in
-#competitor-watch: what changed (each with its link), what didn't, what to check by hand, and
-buttons to the deck, its Google Slides copy and the .pptx. The Slides copy is the same .pptx,
-converted into a Google Slides file in a Drive folder (see integrations/google-slides/).
+On Monday morning, right after the deck is built, Maya gets one post in #competitor-watch:
+what changed (each with its link), what didn't, what to check by hand, and buttons to the
+deck. The .pptx follows right under it: she opens it, or imports it into her 11:00 deck in
+Google Slides (File → Import slides). Google Slides itself isn't connected (decision D20).
 
 Every word comes from the same week data as the app and the slides (templates, no LLM), so
-the three can't disagree. Secrets come from the environment (GitHub Actions secrets); without
-them delivery is skipped and the run log says so. A week is posted once; --force posts again.
+the three can't disagree. The bot's token and channel come from the environment (GitHub
+Actions secrets); without them delivery is skipped and the run log says so. A week is posted
+once; --force posts it again.
 """
 
 from __future__ import annotations
 
-import base64
 import json
 import os
+import re
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 from brightloop.collect.capture import now_iso
 from brightloop.collect.run import append_log, last_complete_week, trigger
-from brightloop.deck import build_slides, join_and, plural, render_pptx, week_view
+from brightloop.deck import (
+    build_slides,
+    join_and,
+    meeting_iso,
+    meeting_label,
+    render_pptx,
+    week_view,
+)
 
 SITE = "https://brightloop-monday-deck.vercel.app"
-TIMEOUT = 60  # seconds; converting a deck in Google Slides takes a few
+SLACK_API = "https://slack.com/api/"
+TIMEOUT = 60  # seconds
+
+# What a Slack error means for whoever set the bot up.
+SLACK_HINTS = {
+    "not_in_channel": "the bot isn't in the channel: /invite it there",
+    "channel_not_found": "the channel ID is wrong, or the bot can't see the channel",
+    "missing_scope": "the bot needs the chat:write and files:write scopes (then reinstall it)",
+    "invalid_auth": "the bot token is wrong or was revoked",
+    "token_revoked": "the bot token was revoked",
+    "account_inactive": "the bot token was revoked",
+}
 
 
 def deliver_week(week: str | None, root: Path, force: bool = False, env=None) -> dict[str, Any]:
-    """Post the week's deck to Slack and save it to Google Slides; one run-log line."""
+    """Post the week's deck to Slack, then the .pptx under it; one run-log line."""
     env = os.environ if env is None else env
     week = week or last_complete_week()
-    started = now_iso()
-    entry: dict[str, Any] = {"run": "delivery", "week": week, **trigger(), "started_at": started}
+    entry: dict[str, Any] = {"run": "delivery", "week": week, **trigger(), "started_at": now_iso()}
     folder = root / "weeks" / week
+    token, channel = env.get("SLACK_BOT_TOKEN"), env.get("SLACK_CHANNEL")
     if not (folder / "run.json").exists():
-        entry.update(
-            slack="skipped: no deck for this week", slides="skipped: no deck for this week"
-        )
+        entry.update(slack="skipped: no deck for this week", file="skipped")
+        return finish(root, entry)
+    if not (token and channel):
+        entry.update(slack="skipped: not connected", file="skipped")
         return finish(root, entry)
     if not force and already_posted(root, week):
-        entry.update(slack="skipped: already posted", slides="skipped: already posted")
+        entry.update(slack="skipped: already posted", file="skipped")
         return finish(root, entry)
 
     case, result, run = (
@@ -52,35 +73,20 @@ def deliver_week(week: str | None, root: Path, force: bool = False, env=None) ->
         for name in ("cases.json", "result.json", "run.json")
     )
     view = week_view(case, result, run)
-    site = env.get("SITE_URL") or SITE
+    message = slack_message(view, env.get("SITE_URL") or SITE, env.get("SLACK_MENTION") or None)
     errors: list[str] = []
-
-    slides_url = None
-    hook, token = env.get("GSLIDES_HOOK_URL"), env.get("GSLIDES_TOKEN")
-    if hook and token:
-        try:
-            slides_url = save_to_slides(case, result, run, root, slides_name(view), hook, token)
-            entry["slides"] = "saved"
-        except DeliveryError as exc:
-            entry["slides"] = f"failed: {exc}"
-            errors.append(f"Google Slides: {exc}")
-    else:
-        entry["slides"] = "skipped: not connected"
-    entry["slides_url"] = slides_url
-
-    webhook = env.get("SLACK_WEBHOOK_URL")
-    if webhook:
-        message = slack_message(view, site, slides_url, env.get("SLACK_MENTION") or None)
-        try:
-            status, body = post_json(webhook, message)
-            if status != 200:
-                raise DeliveryError(f"Slack answered {status}: {body[:80]}")
-            entry["slack"] = "posted"
-        except DeliveryError as exc:
-            entry["slack"] = f"failed: {exc}"
-            errors.append(f"Slack: {exc}")
-    else:
-        entry["slack"] = "skipped: not connected"
+    try:
+        slack_api("chat.postMessage", token, {"channel": channel, **message})
+        entry["slack"] = "posted"
+    except DeliveryError as exc:
+        entry.update(slack=f"failed: {exc}", file="skipped", errors=[f"Slack: {exc}"])
+        return finish(root, entry)
+    try:
+        upload_deck(case, result, run, root, view, token, channel)
+        entry["file"] = "uploaded"
+    except DeliveryError as exc:
+        entry["file"] = f"failed: {exc}"
+        errors.append(f"Slack file: {exc}")
     entry["errors"] = errors
     return finish(root, entry)
 
@@ -89,8 +95,8 @@ def deliver_failure(week: str | None, env=None) -> dict[str, Any]:
     """The Monday run failed before the deck: say so, so Maya doesn't wait for a post."""
     env = os.environ if env is None else env
     week = week or last_complete_week()
-    webhook = env.get("SLACK_WEBHOOK_URL")
-    if not webhook:
+    token, channel = env.get("SLACK_BOT_TOKEN"), env.get("SLACK_CHANNEL")
+    if not (token and channel):
         return {"slack": "skipped: not connected"}
     run_url = None
     if env.get("GITHUB_RUN_ID"):
@@ -98,10 +104,10 @@ def deliver_failure(week: str | None, env=None) -> dict[str, Any]:
         run_url = f"{server}/{env.get('GITHUB_REPOSITORY', '')}/actions/runs/{env['GITHUB_RUN_ID']}"
     message = failure_message(week, env.get("SITE_URL") or SITE, run_url)
     try:
-        status, _ = post_json(webhook, message)
+        slack_api("chat.postMessage", token, {"channel": channel, **message})
     except DeliveryError as exc:
         return {"slack": f"failed: {exc}"}
-    return {"slack": "posted" if status == 200 else f"failed: Slack answered {status}"}
+    return {"slack": "posted"}
 
 
 def finish(root: Path, entry: dict[str, Any]) -> dict[str, Any]:
@@ -124,12 +130,10 @@ def already_posted(root: Path, week: str) -> bool:
     return False
 
 
-# ---- Slack ---------------------------------------------------------------------------------------
+# ---- The post ------------------------------------------------------------------------------------
 
 
-def slack_message(
-    view: dict[str, Any], site: str, slides_url: str | None = None, mention: str | None = None
-) -> dict[str, Any]:
+def slack_message(view: dict[str, Any], site: str, mention: str | None = None) -> dict[str, Any]:
     """The Monday post (Slack Block Kit), filled from the week's data."""
     week = view["week"]
     pages = view["slides"][1:]
@@ -150,8 +154,8 @@ def slack_message(
             lead = f"<@{md(mention)}> {lead}"
     elif edits:
         lead = (
-            "*No price or limit changed.* "
-            + md(plural(edits, "wording edit", "wording edits"))
+            f"*No price or limit changed.* {edits} wording "
+            + ("edit" if edits == 1 else "edits")
             + ", on "
             + md(join_and([s["title"] for s in wording]))
             + "."
@@ -189,32 +193,21 @@ def slack_message(
         blocks.append(
             {"type": "context", "elements": [{"type": "mrkdwn", "text": n} for n in notes[:10]]}
         )
-
-    buttons = [button("Open the deck", f"{site}/#deck/{week}", primary=True)]
-    if slides_url:
-        buttons.append(button("Open in Google Slides", slides_url))
-    pptx = (
-        f"{site}/api/deck?week={week}&format=pptx"
-        if view["partial"]
-        else f"{site}/weeks/{week}/deck.pptx"
-    )
-    buttons.append(button("Download .pptx", pptx))
-    blocks.append({"type": "actions", "elements": buttons})
     blocks.append(
         {
-            "type": "context",
+            "type": "actions",
             "elements": [
-                {"type": "mrkdwn", "text": md(f"{summary['footer']} · built {view['built']}")}
+                button("Open the deck", f"{site}/#deck/{week}", primary=True),
+                button("What's new this week", f"{site}/#new"),
             ],
         }
     )
-    plain = lead.replace("*", "")
-    return {"text": f"{title}: {strip_links(plain)}", "blocks": blocks}
+    footer = f"{summary['footer']} · built {view['built']} · the .pptx is below"
+    blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": md(footer)}]})
+    return {"text": f"{title}: {strip_links(lead.replace('*', ''))}", "blocks": blocks}
 
 
 def failure_message(week: str, site: str, run_url: str | None) -> dict[str, Any]:
-    from brightloop.deck import meeting_label
-
     title = f"The deck for {meeting_label(week) or week} didn't build"
     text = "The Monday run stopped before the deck was built. Last week's deck is still in the app."
     buttons = [button("Open the app", f"{site}/#deck", primary=True)]
@@ -251,23 +244,21 @@ def link(url: str | None, text: str) -> str:
 
 
 def strip_links(text: str) -> str:
-    import re
-
     return re.sub(r"<[^|>]+\|([^>]+)>", r"\1", re.sub(r"<@[^>]+>\s*", "", text))
 
 
-# ---- Google Slides -------------------------------------------------------------------------------
+# ---- The file ------------------------------------------------------------------------------------
 
 
-def slides_name(view: dict[str, Any]) -> str:
-    """'Competitor deck · Mon, Oct 26': one file per week; a re-run replaces it."""
-    return f"Competitor deck · {view['meeting_short']}" + (" (so far)" if view["partial"] else "")
+def deck_file_name(view: dict[str, Any]) -> str:
+    suffix = "-so-far" if view["partial"] else ""
+    return f"competitor-deck-{meeting_iso(view['week'])}{suffix}.pptx"
 
 
-def save_to_slides(
-    case: dict, result: dict, run: dict, root: Path, name: str, hook: str, token: str
-) -> str:
-    """Send the week's .pptx to the Google Apps Script, which saves it as Google Slides."""
+def upload_deck(
+    case: dict, result: dict, run: dict, root: Path, view: dict[str, Any], token: str, channel: str
+) -> None:
+    """The week's .pptx, right under the post (Slack's upload: get a URL, send, share)."""
     slides = build_slides(case, result, run)
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "deck.pptx"
@@ -275,15 +266,26 @@ def save_to_slides(
             render_pptx(slides, root, path)
         except ImportError as exc:
             raise DeliveryError("python-pptx is not installed") from exc
-        pptx = base64.b64encode(path.read_bytes()).decode("ascii")
-    status, body = post_json(hook, {"token": token, "name": name, "pptx": pptx})
-    try:
-        answer = json.loads(body)
-    except ValueError as exc:
-        raise DeliveryError(f"the Google script answered {status} without JSON") from exc
-    if not answer.get("ok") or not answer.get("url"):
-        raise DeliveryError(f"the Google script said: {answer.get('error') or 'no link'}")
-    return str(answer["url"])
+        data = path.read_bytes()
+    name = deck_file_name(view)
+    slot = slack_api(
+        "files.getUploadURLExternal", token, {"filename": name, "length": len(data)}, form=True
+    )
+    send_bytes(slot["upload_url"], data)
+    comment = (
+        f"The deck for {view['meeting']}: open it, or import it into Google Slides "
+        "(File → Import slides)."
+    )
+    slack_api(
+        "files.completeUploadExternal",
+        token,
+        {
+            "files": json.dumps([{"id": slot["file_id"], "title": name}]),
+            "channel_id": channel,
+            "initial_comment": comment,
+        },
+        form=True,
+    )
 
 
 # ---- HTTP ----------------------------------------------------------------------------------------
@@ -293,16 +295,45 @@ class DeliveryError(Exception):
     """A delivery that didn't go through; recorded in the run log, never fatal."""
 
 
-def post_json(url: str, payload: dict[str, Any]) -> tuple[int, str]:
-    """POST JSON; follow redirects (Google Apps Script answers through one)."""
-    data = json.dumps(payload).encode("utf-8")
+def slack_api(
+    method: str, token: str, payload: dict[str, Any], form: bool = False
+) -> dict[str, Any]:
+    """Call Slack's Web API; Slack answers 200 with {"ok": false, "error": ...} on errors."""
+    if form:
+        data = urllib.parse.urlencode({k: str(v) for k, v in payload.items()}).encode("utf-8")
+        kind = "application/x-www-form-urlencoded"
+    else:
+        data = json.dumps(payload).encode("utf-8")
+        kind = "application/json; charset=utf-8"
     request = urllib.request.Request(
-        url, data=data, headers={"Content-Type": "application/json"}, method="POST"
+        SLACK_API + method,
+        data=data,
+        headers={"Content-Type": kind, "Authorization": f"Bearer {token}"},
+        method="POST",
     )
+    body = open_url(request)
+    try:
+        answer = json.loads(body)
+    except ValueError as exc:
+        raise DeliveryError(f"Slack's {method} didn't answer JSON") from exc
+    if not answer.get("ok"):
+        error = str(answer.get("error") or "unknown error")
+        raise DeliveryError(f"{error} ({SLACK_HINTS[error]})" if error in SLACK_HINTS else error)
+    return answer
+
+
+def send_bytes(url: str, data: bytes) -> None:
+    request = urllib.request.Request(
+        url, data=data, headers={"Content-Type": "application/octet-stream"}, method="POST"
+    )
+    open_url(request)
+
+
+def open_url(request: urllib.request.Request) -> str:
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-            return response.status, response.read().decode("utf-8", "replace")
+            return response.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as exc:
-        return exc.code, exc.read().decode("utf-8", "replace")
+        raise DeliveryError(f"Slack answered {exc.code}") from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise DeliveryError(f"couldn't reach the server ({type(exc).__name__})") from exc
+        raise DeliveryError(f"couldn't reach Slack ({type(exc).__name__})") from exc
