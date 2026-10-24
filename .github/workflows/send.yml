@@ -1,0 +1,32 @@
+name: send-to-slack
+
+# For demos: send a week's ready deck to Slack now. Nothing is captured or rebuilt, so it
+# takes about 30 seconds. (The Monday post comes from the daily job, right after the deck
+# is built.)
+on:
+  workflow_dispatch:
+    inputs:
+      week:
+        description: "Which week's deck, e.g. 2026-W43"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ".[deck]"
+      # The input reaches the shell as an environment variable, never pasted into the script.
+      - name: Send the deck to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          WEEK: ${{ inputs.week }}
+        run: brightloop deliver --week "$WEEK" --force
