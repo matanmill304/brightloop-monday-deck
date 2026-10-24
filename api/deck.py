@@ -10,11 +10,14 @@ in progress. It uses the captures already stored (the last daily run): Vercel ca
 the browser that captures pages.
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sys
 import tempfile
 import time
+from datetime import timedelta
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -23,7 +26,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from brightloop.collect.run import assemble_week, last_complete_week
+from brightloop.collect.run import assemble_week, last_complete_week, week_bounds
 from brightloop.deck import (
     build_slides,
     deck_title,
@@ -36,6 +39,16 @@ from brightloop.deck import (
 
 WEEK = re.compile(r"^\d{4}-W\d{2}$")
 PPTX = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+
+
+def captured_days(week: str, recordings: Path) -> list[str] | None:
+    """The days of the week that have captures; None for a week that doesn't exist (2026-W99)."""
+    try:
+        start, _end = week_bounds(week)
+    except ValueError:
+        return None
+    days = [(start + timedelta(days=n)).date().isoformat() for n in range(7)]
+    return [day for day in days if (recordings / "days" / day / "day.json").exists()]
 
 
 def deck_data(week: str, recordings: Path) -> dict:
@@ -74,6 +87,13 @@ class handler(BaseHTTPRequestHandler):
             return
         if fmt not in ("json", "pptx", "html"):
             self._send(400, {"error": "format must be json, pptx or html"})
+            return
+        days = captured_days(week, ROOT / "recordings")
+        if days is None:
+            self._send(400, {"error": f"there is no week {week}"})
+            return
+        if not days:
+            self._send(404, {"error": f"nothing was captured in {week}"})
             return
         if fmt == "json":
             self._send(200, deck_data(week, ROOT / "recordings"))
