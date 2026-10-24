@@ -4,7 +4,8 @@
 
 public/
   index.html               the app (site/app.html + this data): What's new, Deck, Test, Setup
-  weeks/<week>/            deck.html (print view / PDF), deck.pptx, cases.json, result.json, run.json
+  weeks/<week>/            deck.html (print view / PDF), competitor-deck-<Monday>.pptx, cases.json,
+                           result.json, run.json
   days/<date>/*.jpg        the screenshots the decks show
   runlog.jsonl             every daily, weekly and rebuild run (the brief's run log)
 
@@ -26,7 +27,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from brightloop import write_text
 from brightloop.collect.run import TZ, targets
-from brightloop.deck import clock, is_partial, week_label, week_view
+from brightloop.deck import clock, is_partial, meeting_iso, week_label, week_view
 from brightloop.explain import SKIP_GROUPS
 from brightloop.normalize import UTC, parse_iso
 
@@ -46,6 +47,8 @@ def build() -> None:
     weeks = [week_data(f) for f in sorted(RECORDINGS.glob("weeks/*/run.json"), reverse=True)]
     for week in weeks:
         shutil.copytree(RECORDINGS / "weeks" / week["week"], PUBLIC / "weeks" / week["week"])
+        if week["pptx"]:  # published under the name it downloads as (Vercel names it by the file)
+            (PUBLIC / "weeks" / week["week"] / "deck.pptx").rename(PUBLIC / week["pptx"])
         for shot in week.pop("shots"):
             (PUBLIC / shot).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(RECORDINGS / shot, PUBLIC / shot)
@@ -78,6 +81,8 @@ def week_data(run_file: Path) -> dict:
     view = week_view(case, result, run)
     refs = [p.get(k) for p in run["pages"] for k in ("current", "previous")]
     view["shots"] = sorted({r["screenshot"] for r in refs if r and r.get("screenshot")})
+    name = f"competitor-deck-{meeting_iso(view['week'])}.pptx"
+    view["pptx"] = f"weeks/{view['week']}/{name}" if (folder / "deck.pptx").exists() else None
     return view
 
 

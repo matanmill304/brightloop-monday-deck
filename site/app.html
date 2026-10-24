@@ -996,7 +996,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     if (!w.partial) {
       $('deck-eyebrow').hidden = true;
       $('deck-sub').textContent = w.slides.length + ' slides: the summary, then one per page · built ' + w.built;
-      showDeck(w, 'weeks/' + w.week + '/deck.pptx', 'weeks/' + w.week + '/deck.html', 'competitor-deck-' + meetingIso(w.week) + '.pptx');
+      showDeck(w, w.pptx, 'weeks/' + w.week + '/deck.html', w.pptx && w.pptx.split('/').pop());
     } else if (built[w.week]) {
       showBuilt(w);
     } else {
@@ -1008,8 +1008,9 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
   function showDeck(view, pptx, pdf, name) {
     $('deck-viewer').hidden = false;
     $('deck-actions').hidden = false;
-    $('dl-pptx').href = pptx;
-    $('dl-pptx').setAttribute('download', name);
+    $('dl-pptx').hidden = !pptx;
+    $('dl-pptx').href = pptx || '#';
+    $('dl-pptx').setAttribute('download', name || '');
     $('dl-pdf').href = pdf;
     shown = view;
     $('films').innerHTML = filmstrip(view);
