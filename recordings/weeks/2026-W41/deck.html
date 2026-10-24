@@ -1,66 +1,37 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Competitor watch · Deck for Monday, Oct 12</title>
+<title>Competitor watch · Week of Oct 5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#18181B;--ink-2:#44423E;--muted:#6B6964;--quiet:#8A8780;--line:#ECEAE5;--line-strong:#DDDAD3;
-  --wash:#F7F6F3;--accent:#FF6A00;--change-bg:#FFF1E6;--change-ink:#9A3412;--added-bg:#ECFDF3;--added-ink:#166534;
-  --warn-ink:#92400E;--danger:#B42318;--ok:#15803D;--marker:#FFD9BD;--dot-none:#D6D3CC;
-  --font-display:"Inter Tight",Inter,system-ui,sans-serif;--font-ui:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace}
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;padding:24px 16px;background:#F3F2EF;color:var(--ink);font:400 14px/1.5 var(--font-ui);-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}
-.slide-frame{container-type:inline-size;max-width:1280px;margin:0 auto 24px;border-radius:10px;overflow:hidden;background:#fff;
-  box-shadow:0 1px 2px rgba(24,24,27,.05),0 18px 40px -24px rgba(24,24,27,.35)}
-.muted{color:var(--muted)}
-.dot{display:inline-block;width:7px;height:7px;flex:none;border-radius:999px;background:var(--accent)}
-.dot--none{background:var(--dot-none)}.dot--first{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}
-.dot--missing{width:6px;height:6px;border-radius:1px;background:var(--warn-ink)}.dot--danger{background:var(--danger)}
-.dot--warn{background:var(--warn-ink)}
-.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.06em;
-  text-transform:uppercase;white-space:nowrap;background:var(--change-bg);color:var(--change-ink)}
-.tag--added{background:var(--added-bg);color:var(--added-ink)}
-.tag--wording{background:transparent;box-shadow:inset 0 0 0 1px #E8E6E1;color:var(--muted)}
-.redline s{color:var(--muted);text-decoration-thickness:1px}.redline .arrow{color:var(--quiet)}
-.redline mark{color:var(--ink);background:linear-gradient(transparent 56%,var(--marker) 56%);padding:0 1px}
-.slide{aspect-ratio:16/9;padding:5cqw 5.4cqw 3.2cqw;display:grid;grid-template-columns:31cqw minmax(0,1fr);
-  grid-template-rows:minmax(0,1fr) auto;column-gap:4.4cqw;color:var(--ink);font-family:var(--font-ui)}
-.slide--summary{grid-template-columns:minmax(0,1fr)}
-.slide-main{min-width:0;overflow:hidden}
-.slide-kicker{font-size:.95cqw;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.slide-title{margin-top:1cqw;font-family:var(--font-display);font-size:4.2cqw;font-weight:400;letter-spacing:-.045em;line-height:1.02}
-.slide--summary .slide-title{font-size:4.4cqw}
-.slide-sub{margin-top:1cqw;font-size:1.56cqw;color:var(--muted)}
-.slide-status{margin-top:1.3cqw;display:flex;align-items:flex-start;gap:.7cqw;font-size:1.45cqw;line-height:1.4;color:var(--ink-2);text-wrap:balance}
-.slide-status .dot{width:.7cqw;height:.7cqw;margin-top:.66cqw}
-.slide-rows{margin-top:3cqw}
-.slide-row{display:grid;grid-template-columns:5.4cqw 7.4cqw minmax(0,1fr);align-items:baseline;padding:1.1cqw 0;
-  border-top:1px solid var(--line);font-size:1.32cqw;line-height:1.45}
-.slide-row .tag{font-size:.78cqw;padding:.15cqw .55cqw}
-.slide-row .plan{font-weight:500}.slide-row .plan--none{color:#C9C6BF}
-.slide-row--wording{color:var(--muted)}.slide-row--wording mark{background:none;color:var(--ink-2)}
-.slide-sum-row{display:grid;grid-template-columns:1.6cqw minmax(0,15cqw) minmax(0,1fr) auto;align-items:baseline;gap:0 1cqw;
-  padding:1.4cqw 0;border-top:1px solid var(--line);font-size:1.66cqw}
-.slide-sum-row .dot{width:.8cqw;height:.8cqw}
-.slide-sum-row .more{display:block;margin-top:.3cqw;font-size:1.25cqw;color:var(--muted)}
-.slide-sum-row--quiet{font-size:1.46cqw;color:var(--ink-2)}.slide-sum-row--wording{color:var(--muted)}
-.slide-sum-row a{font-weight:500;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:.3cqw}
-.slide-shot{display:block;align-self:start;overflow:hidden;border-radius:.8cqw;box-shadow:0 0 0 1px var(--line),0 1.4cqw 3cqw -1.6cqw rgba(24,24,27,.3)}
-.slide-urlbar{display:flex;align-items:center;gap:.6cqw;height:2.3cqw;padding:0 1cqw;background:var(--wash);border-bottom:1px solid var(--line);
-  font-family:var(--font-mono);font-size:.9cqw;color:var(--muted)}
-.slide-urlbar svg{width:.9cqw;height:.9cqw}
-.slide-img{max-height:38cqw;overflow:hidden}.slide-img img{width:100%;display:block}
-.slide-foot{grid-column:1/-1;display:flex;justify-content:space-between;gap:2cqw;padding-top:1.8cqw;font-size:.92cqw;color:var(--quiet)}
-.slide-foot a{text-decoration:underline;text-underline-offset:.2cqw}
-@media print{body{background:#fff;padding:0}.slide-frame{max-width:none;margin:0;border-radius:0;box-shadow:none;break-after:page}}
+*{box-sizing:border-box}
+body{margin:0;background:#e4e4e7;padding:24px 16px;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#18181b;-webkit-font-smoothing:antialiased}
+.frame{max-width:1280px;margin:0 auto 24px;container-type:inline-size}
+.slide{--u:calc(100cqw / 1920);aspect-ratio:16/9;background:#fff;overflow:hidden;
+  border-radius:calc(8 * var(--u));box-shadow:0 1px 3px rgba(0,0,0,.08);
+  padding:calc(96 * var(--u)) calc(104 * var(--u)) calc(64 * var(--u));
+  display:grid;grid-template-columns:calc(560 * var(--u)) 1fr;grid-template-rows:1fr auto;column-gap:calc(88 * var(--u))}
+.text{display:flex;flex-direction:column;min-width:0}
+h2{margin:0;font-size:calc(72 * var(--u));font-weight:600;letter-spacing:-.025em;line-height:1.05}
+.lead{margin:calc(28 * var(--u)) 0 0;font-size:calc(32 * var(--u));line-height:1.4;color:#52525b}
+ul{list-style:none;margin:calc(64 * var(--u)) 0 0;padding:0;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+li{display:grid;grid-template-columns:calc(110 * var(--u)) 1fr;padding:calc(22 * var(--u)) 0;
+  border-top:1px solid #e4e4e7;font-size:calc(26 * var(--u));line-height:1.4}
+li:last-child{border-bottom:1px solid #e4e4e7}
+li time{color:#a1a1aa;font-weight:500}
+.shot{border-radius:calc(14 * var(--u));overflow:hidden;border:1px solid #e4e4e7;align-self:start;
+  box-shadow:0 calc(30 * var(--u)) calc(60 * var(--u)) calc(-30 * var(--u)) rgba(0,0,0,.28);
+  max-height:calc(820 * var(--u))}
+.shot img{width:100%;display:block}
+footer{grid-column:1/-1;display:flex;justify-content:space-between;gap:calc(24 * var(--u));
+  font-size:calc(18 * var(--u));color:#a1a1aa;padding-top:calc(36 * var(--u))}
+@media print{body{background:#fff;padding:0}.frame{max-width:none;margin:0;break-after:page}.slide{border-radius:0;box-shadow:none}}
 </style></head><body>
-<div class="slide-frame"><div class="slide slide--summary"><div class="slide-main"><div class="slide-kicker">Competitor pages · Oct 5–11</div><div class="slide-title">No price or limit changed</div><div class="slide-sub">Lovable, Replit and Bolt · pricing pages and homepages</div><div class="slide-rows"><div class="slide-sum-row slide-sum-row--wording"><span class="dot dot--none"></span><a href="https://replit.com/pricing" target="_blank" rel="noopener">Replit pricing</a><span>1 wording edit</span><span class="muted">Oct 7</span></div><div class="slide-sum-row slide-sum-row--wording"><span class="dot dot--none"></span><a href="https://replit.com" target="_blank" rel="noopener">Replit homepage</a><span>1 wording edit</span><span class="muted">Oct 7</span></div><div class="slide-sum-row slide-sum-row--quiet"><span class="dot dot--none"></span><span>No change</span><span><a href="https://lovable.dev/pricing" target="_blank" rel="noopener">Lovable pricing</a> · <a href="https://lovable.dev" target="_blank" rel="noopener">Lovable homepage</a> · <a href="https://bolt.new/pricing" target="_blank" rel="noopener">Bolt pricing</a> · <a href="https://bolt.new" target="_blank" rel="noopener">Bolt homepage</a></span><span></span></div><div class="slide-sum-row slide-sum-row--quiet"><span class="dot dot--warn"></span><span>Check by hand</span><span>All 6 screenshots come from the Wayback Machine (Oct 8–11), so some may be a few days old.</span><span></span></div><div class="slide-sum-row slide-sum-row--quiet"><span class="dot dot--warn"></span><span>Check by hand</span><span>The Replit pricing screenshot shows yearly prices (the archived copy can&#x27;t switch to Monthly).</span><span></span></div></div></div><div class="slide-foot"><span>Deck for Mon, Oct 12 · 6 pages · screenshots Oct 8–11 (6 archived copies)</span><span>Competitor watch</span></div></div></div>
-<div class="slide-frame"><div class="slide"><div class="slide-main"><div class="slide-kicker">Lovable · Pricing page</div><div class="slide-title">Lovable pricing</div><div class="slide-status"><span class="dot dot--none"></span>No change this week</div></div><a class="slide-shot" href="https://lovable.dev/pricing" target="_blank" rel="noopener" aria-label="Open lovable.dev/pricing"><div class="slide-urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>lovable.dev/pricing</div><div class="slide-img"><img src="../../days/2026-10-10/lovable-pricing.jpg" alt="Lovable pricing, archived copy Oct 10"></div></a><div class="slide-foot"><span>Deck for Mon, Oct 12 · Source: <a href="https://lovable.dev/pricing" target="_blank" rel="noopener">lovable.dev/pricing</a> · Screenshot Oct 10 · archived copy</span><span>Competitor watch</span></div></div></div>
-<div class="slide-frame"><div class="slide"><div class="slide-main"><div class="slide-kicker">Lovable · Homepage</div><div class="slide-title">Lovable homepage</div><div class="slide-status"><span class="dot dot--none"></span>No change this week</div></div><a class="slide-shot" href="https://lovable.dev" target="_blank" rel="noopener" aria-label="Open lovable.dev"><div class="slide-urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>lovable.dev</div><div class="slide-img"><img src="../../days/2026-10-08/lovable-home.jpg" alt="Lovable homepage, archived copy Oct 8"></div></a><div class="slide-foot"><span>Deck for Mon, Oct 12 · Source: <a href="https://lovable.dev" target="_blank" rel="noopener">lovable.dev</a> · Screenshot Oct 8 · archived copy</span><span>Competitor watch</span></div></div></div>
-<div class="slide-frame"><div class="slide"><div class="slide-main"><div class="slide-kicker">Replit · Pricing page</div><div class="slide-title">Replit pricing</div><div class="slide-status"><span class="dot dot--none"></span>Wording changed, no price or limit changed</div><div class="slide-rows"><div class="slide-row slide-row--wording"><span class="plan">Core</span><span><span class="tag tag--wording">Wording</span></span><span class="redline"><s>$20 towards most powerful models</s> <span class="arrow">→</span> <mark>$20 towards more powerful models</mark></span></div></div></div><a class="slide-shot" href="https://replit.com/pricing" target="_blank" rel="noopener" aria-label="Open replit.com/pricing"><div class="slide-urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>replit.com/pricing</div><div class="slide-img"><img src="../../days/2026-10-11/replit-pricing.jpg" alt="Replit pricing, archived copy Oct 11"></div></a><div class="slide-foot"><span>Deck for Mon, Oct 12 · Source: <a href="https://replit.com/pricing" target="_blank" rel="noopener">replit.com/pricing</a> · Screenshot Oct 11 · archived copy · yearly prices shown</span><span>Competitor watch</span></div></div></div>
-<div class="slide-frame"><div class="slide"><div class="slide-main"><div class="slide-kicker">Replit · Homepage</div><div class="slide-title">Replit homepage</div><div class="slide-status"><span class="dot dot--none"></span>Wording changed, no price or limit changed</div><div class="slide-rows"><div class="slide-row slide-row--wording"><span class="plan">Core</span><span><span class="tag tag--wording">Wording</span></span><span class="redline"><s>$20 towards most powerful models</s> <span class="arrow">→</span> <mark>$20 towards more powerful models</mark></span></div></div></div><a class="slide-shot" href="https://replit.com" target="_blank" rel="noopener" aria-label="Open replit.com"><div class="slide-urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>replit.com</div><div class="slide-img"><img src="../../days/2026-10-11/replit-home.jpg" alt="Replit homepage, archived copy Oct 11"></div></a><div class="slide-foot"><span>Deck for Mon, Oct 12 · Source: <a href="https://replit.com" target="_blank" rel="noopener">replit.com</a> · Screenshot Oct 11 · archived copy</span><span>Competitor watch</span></div></div></div>
-<div class="slide-frame"><div class="slide"><div class="slide-main"><div class="slide-kicker">Bolt · Pricing page</div><div class="slide-title">Bolt pricing</div><div class="slide-status"><span class="dot dot--none"></span>No change this week</div></div><a class="slide-shot" href="https://bolt.new/pricing" target="_blank" rel="noopener" aria-label="Open bolt.new/pricing"><div class="slide-urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>bolt.new/pricing</div><div class="slide-img"><img src="../../days/2026-10-10/bolt-pricing.jpg" alt="Bolt pricing, archived copy Oct 10"></div></a><div class="slide-foot"><span>Deck for Mon, Oct 12 · Source: <a href="https://bolt.new/pricing" target="_blank" rel="noopener">bolt.new/pricing</a> · Screenshot Oct 10 · archived copy</span><span>Competitor watch</span></div></div></div>
-<div class="slide-frame"><div class="slide"><div class="slide-main"><div class="slide-kicker">Bolt · Homepage</div><div class="slide-title">Bolt homepage</div><div class="slide-status"><span class="dot dot--none"></span>No change this week</div></div><a class="slide-shot" href="https://bolt.new" target="_blank" rel="noopener" aria-label="Open bolt.new"><div class="slide-urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>bolt.new</div><div class="slide-img"><img src="../../days/2026-10-11/bolt-home.jpg" alt="Bolt homepage, archived copy Oct 11"></div></a><div class="slide-foot"><span>Deck for Mon, Oct 12 · Source: <a href="https://bolt.new" target="_blank" rel="noopener">bolt.new</a> · Screenshot Oct 11 · archived copy</span><span>Competitor watch</span></div></div></div>
+<div class="frame"><section class="slide unchanged"><div class="text"><h2>Lovable pricing</h2><p class="lead">No change this week</p></div><div class="shot"><img src="../../days/2026-10-10/lovable-pricing.jpg" alt="Lovable pricing"></div><footer><span>Week of Oct 5 · lovable.dev/pricing · screenshot Oct 10 (archived copy)</span><span>Competitor watch</span></footer></section></div>
+<div class="frame"><section class="slide unchanged"><div class="text"><h2>Lovable homepage</h2><p class="lead">No change this week</p></div><div class="shot"><img src="../../days/2026-10-08/lovable-home.jpg" alt="Lovable homepage"></div><footer><span>Week of Oct 5 · lovable.dev · screenshot Oct 8 (archived copy)</span><span>Competitor watch</span></footer></section></div>
+<div class="frame"><section class="slide changed"><div class="text"><h2>Replit pricing</h2><p class="lead">Changed this week</p><ul><li><time>Oct 7</time><span>&quot;$20 towards most powerful models&quot; → &quot;$20 towards more powerful models&quot;</span></li></ul></div><div class="shot"><img src="../../days/2026-10-11/replit-pricing.jpg" alt="Replit pricing"></div><footer><span>Week of Oct 5 · replit.com/pricing · screenshot Oct 11 (archived copy)</span><span>Competitor watch</span></footer></section></div>
+<div class="frame"><section class="slide changed"><div class="text"><h2>Replit homepage</h2><p class="lead">Changed this week</p><ul><li><time>Oct 7</time><span>&quot;$20 towards most powerful models&quot; → &quot;$20 towards more powerful models&quot;</span></li></ul></div><div class="shot"><img src="../../days/2026-10-11/replit-home.jpg" alt="Replit homepage"></div><footer><span>Week of Oct 5 · replit.com · screenshot Oct 11 (archived copy)</span><span>Competitor watch</span></footer></section></div>
+<div class="frame"><section class="slide unchanged"><div class="text"><h2>Bolt pricing</h2><p class="lead">No change this week</p></div><div class="shot"><img src="../../days/2026-10-10/bolt-pricing.jpg" alt="Bolt pricing"></div><footer><span>Week of Oct 5 · bolt.new/pricing · screenshot Oct 10 (archived copy)</span><span>Competitor watch</span></footer></section></div>
+<div class="frame"><section class="slide unchanged"><div class="text"><h2>Bolt homepage</h2><p class="lead">No change this week</p></div><div class="shot"><img src="../../days/2026-10-11/bolt-home.jpg" alt="Bolt homepage"></div><footer><span>Week of Oct 5 · bolt.new · screenshot Oct 11 (archived copy)</span><span>Competitor watch</span></footer></section></div>
 </body></html>

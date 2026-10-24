@@ -11,8 +11,7 @@
         "method": "archived",
         "snapshot": "days/2026-09-30/lovable-pricing.json",
         "screenshot": "days/2026-09-30/lovable-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260930103606/https://lovable.dev/pricing",
-        "billing": null
+        "archive_url": "https://web.archive.org/web/20260930103606/https://lovable.dev/pricing"
       },
       "status": "not-captured",
       "signal_ids": []
@@ -26,8 +25,7 @@
         "method": "archived",
         "snapshot": "days/2026-10-01/lovable-home.json",
         "screenshot": "days/2026-10-01/lovable-home.jpg",
-        "archive_url": "https://web.archive.org/web/20261001155114/https://lovable.dev",
-        "billing": "yearly"
+        "archive_url": "https://web.archive.org/web/20261001155114/https://lovable.dev"
       },
       "previous": null,
       "status": "first-snapshot",
@@ -43,8 +41,7 @@
         "method": "archived",
         "snapshot": "days/2026-09-29/replit-pricing.json",
         "screenshot": "days/2026-09-29/replit-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing",
-        "billing": "yearly"
+        "archive_url": "https://web.archive.org/web/20260929152828/https://replit.com/pricing"
       },
       "status": "not-captured",
       "signal_ids": []
@@ -67,16 +64,14 @@
         "method": "archived",
         "snapshot": "days/2026-10-01/bolt-pricing.json",
         "screenshot": "days/2026-10-01/bolt-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20261001162125/https://bolt.new/pricing",
-        "billing": "monthly"
+        "archive_url": "https://web.archive.org/web/20261001162125/https://bolt.new/pricing"
       },
       "previous": {
         "captured_at": "2026-09-30T19:17:32+00:00",
         "method": "archived",
         "snapshot": "days/2026-09-30/bolt-pricing.json",
         "screenshot": "days/2026-09-30/bolt-pricing.jpg",
-        "archive_url": "https://web.archive.org/web/20260930191732/https://bolt.new/pricing",
-        "billing": "monthly"
+        "archive_url": "https://web.archive.org/web/20260930191732/https://bolt.new/pricing"
       },
       "status": "changed",
       "signal_ids": [
@@ -93,8 +88,7 @@
         "method": "archived",
         "snapshot": "days/2026-09-30/bolt-home.json",
         "screenshot": "days/2026-09-30/bolt-home.jpg",
-        "archive_url": "https://web.archive.org/web/20260930063516/https://bolt.new",
-        "billing": null
+        "archive_url": "https://web.archive.org/web/20260930063516/https://bolt.new"
       },
       "status": "not-captured",
       "signal_ids": []

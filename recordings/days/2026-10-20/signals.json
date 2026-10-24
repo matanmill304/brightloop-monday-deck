@@ -5,7 +5,7 @@
     "competitor": "Bolt",
     "source": "bolt.new/pricing",
     "ts": "2026-10-20T07:28:33Z",
-    "text": "Changed on the pricing page (Free plan): \"1M tokens per month\" → \"1M tokens/month to try Bolt\""
+    "text": "Changed on the pricing page: \"1M tokens per month\" → \"1M tokens/month to try Bolt\""
   },
   {
     "id": "pr-102002",
@@ -13,7 +13,7 @@
     "competitor": "Bolt",
     "source": "bolt.new/pricing",
     "ts": "2026-10-20T07:28:33Z",
-    "text": "Changed on the pricing page (Pro plan): \"Start at 10M tokens per month\" → \"10M tokens/month, rollover included\""
+    "text": "New on the pricing page: \"10M tokens/month, rollover included\""
   },
   {
     "id": "pr-102003",
@@ -21,6 +21,14 @@
     "competitor": "Bolt",
     "source": "bolt.new/pricing",
     "ts": "2026-10-20T07:28:33Z",
-    "text": "No longer on the pricing page (Free plan): \"300K tokens daily limit\""
+    "text": "No longer on the pricing page: \"300K tokens daily limit\""
+  },
+  {
+    "id": "pr-102004",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-10-20T07:28:33Z",
+    "text": "No longer on the pricing page: \"Start at 10M tokens per month\""
   }
 ]

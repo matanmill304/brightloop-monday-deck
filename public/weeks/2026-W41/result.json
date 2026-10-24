@@ -8,27 +8,12 @@
         "pr-100701"
       ],
       "confidence": 0.9,
-      "action": "Update the Replit pricing slide: Core: \"$20 towards most powerful models\" → \"$20 towards more powerful models\".",
+      "action": "Update the Replit pricing slide: \"$20 towards most powerful models\" → \"$20 towards more powerful models\".",
       "why": "Stated on Replit's own pricing page (https://replit.com/pricing) on Oct 07, 2026. Also stated by replit.com.",
       "competitor": "Replit",
       "page": "pricing",
       "change": [
-        "Core: \"$20 towards most powerful models\" → \"$20 towards more powerful models\"",
         "\"$20 towards most powerful models\" → \"$20 towards more powerful models\""
-      ],
-      "change_detail": [
-        {
-          "kind": "line_changed",
-          "plan": "Core",
-          "old": "$20 towards most powerful models",
-          "new": "$20 towards more powerful models"
-        },
-        {
-          "kind": "line_changed",
-          "plan": null,
-          "old": "$20 towards most powerful models",
-          "new": "$20 towards more powerful models"
-        }
       ],
       "links": [
         "https://replit.com",
@@ -54,7 +39,7 @@
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-23T16:33:42+00:00",
+    "started_at": "2026-10-23T14:14:45+00:00",
     "cost_usd": 0.0,
     "errors": []
   }

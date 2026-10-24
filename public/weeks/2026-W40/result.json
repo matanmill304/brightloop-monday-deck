@@ -14,14 +14,6 @@
       "change": [
         "new on the page: \"Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.\""
       ],
-      "change_detail": [
-        {
-          "kind": "line_added",
-          "plan": null,
-          "old": null,
-          "new": "Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan."
-        }
-      ],
       "links": [
         "https://bolt.new/pricing"
       ],
@@ -50,14 +42,6 @@
       "change": [
         "no longer on the page: \"Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.\""
       ],
-      "change_detail": [
-        {
-          "kind": "line_removed",
-          "plan": null,
-          "old": "Bolt Lite ($9/month, invite only during the research preview) is powered by Bolt Forge and is the only AI mode on that plan.",
-          "new": null
-        }
-      ],
       "links": [
         "https://bolt.new/pricing"
       ],
@@ -76,7 +60,7 @@
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-23T16:33:42+00:00",
+    "started_at": "2026-10-23T14:14:44+00:00",
     "cost_usd": 0.0,
     "errors": []
   }
