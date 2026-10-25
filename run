@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
 # The brief's test command, from a fresh clone, no install and no keys:
 #   ./run --input cases.json --output result.json
-cd "$(dirname "$0")" && PYTHONPATH=src exec python3 -m brightloop run "$@"
+# Paths are read from where you run it, so the script also works from another folder.
+here=$(cd "$(dirname "$0")" && pwd)
+PYTHONPATH="$here/src${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m brightloop run "$@"

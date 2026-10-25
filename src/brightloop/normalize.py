@@ -73,7 +73,8 @@ DOMAIN = re.compile(r"(?:https?://)?((?:[a-z0-9-]+\.)+[a-z]{2,})(/[^\s,;)]*)?", 
 
 # Text aimed at an AI system rather than a human reader.
 INSTRUCTION_PATTERNS = re.compile(
-    r"(ignore (all |any )?(previous|prior|above) (instructions|rules)"
+    r"(ignore (all |any |the |your )?((previous|prior|above|earlier|these) )?(instructions|rules|guidelines)"
+    r"|\bname (your|the) (main )?config"
     r"|\b(note|message|instructions?) (to|for) (the )?(ai|llms?|assistants?|models?|ai models?|ai systems?)"
     r"|\bset (the )?confidence\b"
     r"|\bappend (the line|this|the following)\b"
