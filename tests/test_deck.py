@@ -75,6 +75,15 @@ def test_the_app_opens_on_the_newest_complete_week():
     assert default_week([]) == 0
 
 
+def test_a_finished_deck_downloads_under_its_monday_name():
+    """Vercel names a download after the file, so the .pptx is published as Maya saves it."""
+    site = load_script("build_site")
+    done = site.week_data(RECORDINGS / "weeks" / "2026-W42" / "run.json")
+    assert done["pptx"] == "weeks/2026-W42/competitor-deck-2026-10-19.pptx"
+    in_progress = site.week_data(RECORDINGS / "weeks" / "2026-W43" / "run.json")
+    assert in_progress["pptx"] is None  # built on Monday, or now with "Build now"
+
+
 def test_on_monday_the_default_is_last_weeks_deck(tmp_path):
     """Spec 11, manual check 6: once the Monday run has started W44, the app still opens W43."""
     import shutil

@@ -49,3 +49,10 @@ def test_a_rebuilt_week_is_identical_to_the_stored_one():
         fresh = load_api("deck").deck_data(week, RECORDINGS)
         if not stored["partial"]:
             assert fresh["slides"] == stored["slides"], week
+
+
+def test_a_week_without_captures_gets_a_reason_not_a_crash():
+    api = load_api("deck")
+    assert api.captured_days("2026-W99", RECORDINGS) is None  # no such week: 400
+    assert api.captured_days("2026-W39", RECORDINGS) == []  # before the first capture: 404
+    assert len(api.captured_days("2026-W42", RECORDINGS)) == 7

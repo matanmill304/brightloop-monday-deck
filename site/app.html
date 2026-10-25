@@ -151,6 +151,8 @@ a { color: inherit; text-decoration: none; }
   .app { flex-direction: column; }
   .sidebar { position: static; height: auto; width: auto; padding-bottom: 0; }
   .nav { flex-direction: row; overflow-x: auto; }
+  .nav a { flex: none; gap: 6px; padding: 0 8px; white-space: nowrap; }
+  .nav-more { display: none; }
   .health { display: none; }
 }
 
@@ -228,6 +230,10 @@ a { color: inherit; text-decoration: none; }
 .change-row .plan--none { color: #C9C6BF; }
 .change-row--wording { color: var(--muted); }
 .change-row--wording .plan { font-weight: 400; }
+@media (max-width: 720px) {
+  .change-row { grid-template-columns: 52px 76px minmax(0, 1fr); }
+  .change-row .redline { grid-column: 1 / -1; margin-top: 4px; }
+}
 
 /* Redline: old struck through, new highlighted. The signature of the system. */
 .redline s { color: var(--muted); text-decoration-thickness: 1px; }
@@ -524,6 +530,8 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
 .hero-links .ext svg { color: var(--muted); }
 .result-head { margin: var(--s-8) 0 var(--s-3); font-size: 18px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
 .result-head .muted { margin-left: 4px; font-weight: 400; }
+.errors { margin: 0; padding: 14px var(--s-6); list-style: none; font-size: var(--text-small); color: var(--danger); }
+.errors li + li { margin-top: 6px; }
 .decides { margin: 0 0 var(--s-3); font-size: var(--text-small); color: var(--ink-2); }
 .decides summary { width: max-content; color: var(--muted); cursor: pointer; }
 .decides summary:hover { color: var(--ink); }
@@ -537,7 +545,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     <nav class="nav" aria-label="Main">
       <a href="#new" data-nav="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>What's new</a>
       <a href="#deck" data-nav="deck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>Deck</a>
-      <a href="#test" data-nav="test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5L14 9.5V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>Test with your cases</a>
+      <a href="#test" data-nav="test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5L14 9.5V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg><span>Test<span class="nav-more"> with your cases</span></span></a>
       <a href="#setup" data-nav="setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>Setup</a>
     </nav>
     <div class="health">
@@ -654,6 +662,9 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
         <div id="run-status"></div>
         <pre class="sheet raw" id="raw" hidden></pre>
         <div class="stat-grid" id="stats"></div>
+
+        <h3 class="result-head" id="errors-title" hidden>Errors</h3>
+        <ul class="sheet errors" id="errors" hidden></ul>
 
         <h3 class="result-head" id="items-title">Items</h3>
         <div class="stack stack--tight" id="items"></div>
@@ -985,7 +996,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     if (!w.partial) {
       $('deck-eyebrow').hidden = true;
       $('deck-sub').textContent = w.slides.length + ' slides: the summary, then one per page · built ' + w.built;
-      showDeck(w, 'weeks/' + w.week + '/deck.pptx', 'weeks/' + w.week + '/deck.html', 'competitor-deck-' + meetingIso(w.week) + '.pptx');
+      showDeck(w, w.pptx, 'weeks/' + w.week + '/deck.html', w.pptx && w.pptx.split('/').pop());
     } else if (built[w.week]) {
       showBuilt(w);
     } else {
@@ -997,8 +1008,9 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
   function showDeck(view, pptx, pdf, name) {
     $('deck-viewer').hidden = false;
     $('deck-actions').hidden = false;
-    $('dl-pptx').href = pptx;
-    $('dl-pptx').setAttribute('download', name);
+    $('dl-pptx').hidden = !pptx;
+    $('dl-pptx').href = pptx || '#';
+    $('dl-pptx').setAttribute('download', name || '');
     $('dl-pdf').href = pdf;
     shown = view;
     $('films').innerHTML = filmstrip(view);
@@ -1198,7 +1210,8 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     $('results').hidden = false;
     $('results-sub').textContent = name;
     $('run-status').innerHTML = '<div class="sheet notice"><span class="spin" aria-hidden="true"></span>Running the pipeline…</div>';
-    ['stats', 'items', 'skipped'].forEach((id) => { $(id).innerHTML = ''; });
+    ['stats', 'items', 'skipped', 'errors'].forEach((id) => { $(id).innerHTML = ''; });
+    $('errors-title').hidden = $('errors').hidden = true;
     let input = null;
     try { input = JSON.parse(text); } catch (err) { /* the pipeline reports it in run.errors */ }
     try {
@@ -1236,8 +1249,10 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     const placed = [...r.items.flatMap((i) => i.source_ids), ...r.skipped.map((s) => s.id)];
     const once = ids.every((id) => placed.filter((p) => p === id).length === 1) && placed.every((p) => ids.includes(p));
     $('results-sub').textContent = name + ' · ' + plural(ids.length, 'signal', 'signals');
-    $('run-status').innerHTML = r.run.errors.length
-      ? '<div class="sheet notice notice--bad">' + r.run.errors.map(esc).join('<br>') + '</div>' : '';
+    $('run-status').innerHTML = '';
+    $('errors-title').innerHTML = 'Errors <span class="muted">' + r.run.errors.length + '</span>';
+    $('errors').innerHTML = r.run.errors.map((e) => '<li>' + esc(e) + '</li>').join('');
+    $('errors-title').hidden = $('errors').hidden = !r.run.errors.length;
     const json = JSON.stringify(r, null, 2);
     $('raw').textContent = json;
     $('download').href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
@@ -1290,7 +1305,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     '<div class="connector-body"><b>' + esc(name) + '</b><span>' + esc(what) + '</span></div>' + badge + '</div>';
   const slack = (D.delivery || {}).slack || { state: 'not connected' };
   let slackBadge = '<span class="badge">Not connected</span>';
-  let slackWhat = 'Posts the Monday deck, with the .pptx, to #competitor-watch';
+  let slackWhat = "Posts the Monday deck, with the .pptx, to the team's Slack channel";
   if (slack.state === 'ok') slackBadge = '<span class="badge badge--ok"><span class="dot dot--ok"></span>' + esc('Last post ' + slack.at) + '</span>';
   else if (slack.state === 'failed') { slackBadge = '<span class="badge badge--danger">' + esc('Last post failed · ' + slack.at) + '</span>'; slackWhat += ' · ' + slack.detail; }
   else if (slack.at) slackWhat += ' · last post ' + slack.at + ', then disconnected';

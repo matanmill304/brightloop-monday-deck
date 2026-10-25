@@ -1,23 +1,23 @@
-"""Deliver the Monday deck in Slack: one post with what changed, and the .pptx under it.
+"""Deliver the Monday deck in Slack: one message with what changed, and the .pptx attached.
 
     brightloop deliver [--week 2026-W43] [--force]
 
-On Monday morning, right after the deck is built, Maya gets one post in #competitor-watch:
-what changed (each with its link), what didn't, what to check by hand, and buttons to the
-deck. The .pptx follows right under it: she opens it, or imports it into her 11:00 deck in
-Google Slides (File → Import slides). Google Slides itself isn't connected (decision D20).
+On Monday morning, right after the deck is built, Maya gets one message in her team's
+channel: a few short lines (what changed, with the page's link; what to check by hand; a link
+to the deck) and the week's .pptx attached right under them. She opens it, or imports it into
+her 11:00 deck in Google Slides (File → Import slides). Google Slides itself isn't connected
+(decision D20).
 
 Every word comes from the same week data as the app and the slides (templates, no LLM), so
 the three can't disagree. The bot's token and channel come from the environment (GitHub
-Actions secrets); without them delivery is skipped and the run log says so. A week is posted
-once; --force posts it again.
+Actions secrets); without them delivery is skipped and the run log says so. A week's final
+deck is posted once (a demo send of the week so far doesn't count); --force posts it again.
 """
 
 from __future__ import annotations
 
 import json
 import os
-import re
 import tempfile
 import urllib.error
 import urllib.parse
@@ -32,6 +32,7 @@ from brightloop.deck import (
     join_and,
     meeting_iso,
     meeting_label,
+    plural,
     render_pptx,
     week_view,
 )
@@ -52,7 +53,7 @@ SLACK_HINTS = {
 
 
 def deliver_week(week: str | None, root: Path, force: bool = False, env=None) -> dict[str, Any]:
-    """Post the week's deck to Slack, then the .pptx under it; one run-log line."""
+    """One Slack message: the week's lines with its .pptx attached; one run-log line."""
     env = os.environ if env is None else env
     week = week or last_complete_week()
     entry: dict[str, Any] = {"run": "delivery", "week": week, **trigger(), "started_at": now_iso()}
@@ -64,30 +65,28 @@ def deliver_week(week: str | None, root: Path, force: bool = False, env=None) ->
     if not (token and channel):
         entry.update(slack="skipped: not connected", file="skipped")
         return finish(root, entry)
-    if not force and already_posted(root, week):
-        entry.update(slack="skipped: already posted", file="skipped")
-        return finish(root, entry)
-
     case, result, run = (
         json.loads((folder / name).read_text(encoding="utf-8"))
         for name in ("cases.json", "result.json", "run.json")
     )
     view = week_view(case, result, run)
-    message = slack_message(view, env.get("SITE_URL") or SITE, env.get("SLACK_MENTION") or None)
-    errors: list[str] = []
-    try:
-        slack_api("chat.postMessage", token, {"channel": channel, **message})
-        entry["slack"] = "posted"
-    except DeliveryError as exc:
-        entry.update(slack=f"failed: {exc}", file="skipped", errors=[f"Slack: {exc}"])
+    entry["deck"] = "so far" if view["partial"] else "final"
+    if not force and entry["deck"] == "final" and already_posted(root, week):
+        entry.update(slack="skipped: already posted", file="skipped")
         return finish(root, entry)
+    text = slack_text(view, env.get("SITE_URL") or SITE, env.get("SLACK_MENTION") or None)
     try:
-        upload_deck(case, result, run, root, view, token, channel)
-        entry["file"] = "uploaded"
-    except DeliveryError as exc:
-        entry["file"] = f"failed: {exc}"
-        errors.append(f"Slack file: {exc}")
-    entry["errors"] = errors
+        upload_deck(case, result, run, root, view, token, channel, text)
+        entry.update(slack="posted", file="uploaded")
+    except DeliveryError as file_error:
+        # Without the file, the lines still go out on their own: Maya shouldn't wait for them.
+        try:
+            slack_api("chat.postMessage", token, {"channel": channel, "text": text})
+            entry.update(slack="posted", file=f"failed: {file_error}")
+            entry["errors"] = [f"Slack file: {file_error}"]
+        except DeliveryError as exc:
+            entry.update(slack=f"failed: {exc}", file=f"failed: {file_error}")
+            entry["errors"] = [f"Slack: {exc}"]
     return finish(root, entry)
 
 
@@ -118,93 +117,74 @@ def finish(root: Path, entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def already_posted(root: Path, week: str) -> bool:
-    """A week is posted once: a re-run on the same Monday doesn't post again."""
+    """A week's final deck is posted once: a re-run on the same Monday doesn't post it again.
+    Sends of the week so far (demos) don't count, so they never stop Monday's post."""
     path = root / "runlog.jsonl"
     if not path.exists():
         return False
     for line in path.read_text(encoding="utf-8").splitlines():
         if '"delivery"' in line:
             entry = json.loads(line)
-            if entry.get("week") == week and entry.get("slack") == "posted":
+            if (entry.get("week"), entry.get("slack"), entry.get("deck")) == (
+                week,
+                "posted",
+                "final",
+            ):
                 return True
     return False
 
 
-# ---- The post ------------------------------------------------------------------------------------
+# ---- The message ---------------------------------------------------------------------------------
 
 
-def slack_message(view: dict[str, Any], site: str, mention: str | None = None) -> dict[str, Any]:
-    """The Monday post (Slack Block Kit), filled from the week's data."""
+def slack_text(view: dict[str, Any], site: str, mention: str | None = None) -> str:
+    """The Monday message: a few short lines (Slack mrkdwn), filled from the week's data."""
     week = view["week"]
     pages = view["slides"][1:]
-    summary = view["slides"][0]
+    rows = [r for r in view["slides"][0]["rows"] if r["type"] == "changed"]
     changed = [s for s in pages if s["status"] == "changed"]
     wording = [s for s in pages if s["status"] == "wording"]
     quiet = [s for s in pages if s["status"] == "unchanged"]
     edits = sum(s["wording"] for s in pages)
-    if view["partial"]:
-        title = f"Competitor deck so far, for {view['meeting']}"
-    else:
-        title = f"Competitor deck for {view['meeting']} is ready"
-
+    title = f"Competitor deck {'so far, ' if view['partial'] else ''}for {view['meeting']}"
+    lines = [f"*{md(title)}*"]
     if changed:
-        names = md(join_and([s["title"] for s in changed]))
-        lead = f"*{len(changed)} of {len(pages)} pages changed: {names}.*"
-        if mention:
-            lead = f"<@{md(mention)}> {lead}"
+        names = join_and([link(s["url"], s["title"]) for s in changed])
+        lead = f"*{len(changed)} of {len(pages)} pages changed:* {names}"
+        lines.append(f"<@{md(mention)}> {lead}" if mention else lead)
+        for row in rows:
+            name = f"{md(row['name'])}, " if len(rows) > 1 else ""
+            more = f" {md(row['more'])}." if row.get("more") else ""
+            lines.append(f"• {name}{md(row['text'])} ({md(row['date'])}).{more}")
+        if wording:
+            lines.append(
+                "Wording only, no price or limit changed: "
+                + md(join_and([s["title"] for s in wording]))
+                + "."
+            )
+        if quiet:
+            lines.append(
+                f"The other {len(quiet)} {'page' if len(quiet) == 1 else 'pages'}: no change."
+            )
     elif edits:
-        lead = (
-            f"*No price or limit changed.* {edits} wording "
-            + ("edit" if edits == 1 else "edits")
-            + ", on "
+        lines.append(
+            f"*No price or limit changed.* {plural(edits, 'wording edit', 'wording edits')}, on "
             + md(join_and([s["title"] for s in wording]))
             + "."
         )
     else:
-        lead = (
-            f"*No changes this week.* All {len(pages)} pages were checked; "
-            "the deck has a screenshot of each."
+        lines.append(
+            f"No changes this week: all {len(pages)} pages checked, "
+            "each one's screenshot is in the deck."
         )
-
-    blocks: list[dict[str, Any]] = [
-        {"type": "header", "text": {"type": "plain_text", "text": title[:150]}},
-        {"type": "section", "text": {"type": "mrkdwn", "text": lead}},
-    ]
-    for row in summary["rows"]:
-        if row["type"] != "changed":
-            continue
-        line = f"• {link(row['url'], row['name'])}: {md(row['text'])} · {md(row['date'])}"
-        if row.get("more"):
-            line += f"\n      _{md(row['more'])}_"
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": line}})
-
-    notes = []
-    if wording:
-        names = ", ".join(link(s["url"], s["title"]) for s in wording)
-        notes.append(f"Wording only, no price or limit changed: {names}")
-    if quiet and (changed or wording):
-        notes.append("No change: " + " · ".join(link(s["url"], s["title"]) for s in quiet))
     for e in view["exceptions"]:
-        text = f"Check by hand: {md(e['text'])}"
-        if e.get("url"):
-            text += f" {link(e['url'], 'Open the page')}"
-        notes.append(text)
-    if notes:
-        blocks.append(
-            {"type": "context", "elements": [{"type": "mrkdwn", "text": n} for n in notes[:10]]}
-        )
-    blocks.append(
-        {
-            "type": "actions",
-            "elements": [
-                button("Open the deck", f"{site}/#deck/{week}", primary=True),
-                button("What's new this week", f"{site}/#new"),
-            ],
-        }
+        page = f" {link(e['url'], 'Open the page')}" if e.get("url") else ""
+        lines.append(f"Check by hand: {md(e['text'])}{page}")
+    lines.append(
+        f"{link(f'{site}/#deck/{week}', 'Open the deck')} · "
+        "Import into Google Slides: File → Import slides"
     )
-    footer = f"{summary['footer']} · built {view['built']} · the .pptx is below"
-    blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": md(footer)}]})
-    return {"text": f"{title}: {strip_links(lead.replace('*', ''))}", "blocks": blocks}
+    return "\n".join(lines)
 
 
 def failure_message(week: str, site: str, run_url: str | None) -> dict[str, Any]:
@@ -243,10 +223,6 @@ def link(url: str | None, text: str) -> str:
     return f"<{url}|{md(text)}>" if url else md(text)
 
 
-def strip_links(text: str) -> str:
-    return re.sub(r"<[^|>]+\|([^>]+)>", r"\1", re.sub(r"<@[^>]+>\s*", "", text))
-
-
 # ---- The file ------------------------------------------------------------------------------------
 
 
@@ -256,9 +232,17 @@ def deck_file_name(view: dict[str, Any]) -> str:
 
 
 def upload_deck(
-    case: dict, result: dict, run: dict, root: Path, view: dict[str, Any], token: str, channel: str
+    case: dict,
+    result: dict,
+    run: dict,
+    root: Path,
+    view: dict[str, Any],
+    token: str,
+    channel: str,
+    text: str,
 ) -> None:
-    """The week's .pptx, right under the post (Slack's upload: get a URL, send, share)."""
+    """One message: the lines, with the week's .pptx attached (Slack's upload: get a URL,
+    send the file, share it with the text as its comment)."""
     slides = build_slides(case, result, run)
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "deck.pptx"
@@ -272,17 +256,13 @@ def upload_deck(
         "files.getUploadURLExternal", token, {"filename": name, "length": len(data)}, form=True
     )
     send_bytes(slot["upload_url"], data)
-    comment = (
-        f"The deck for {view['meeting']}: open it, or import it into Google Slides "
-        "(File → Import slides)."
-    )
     slack_api(
         "files.completeUploadExternal",
         token,
         {
             "files": json.dumps([{"id": slot["file_id"], "title": name}]),
             "channel_id": channel,
-            "initial_comment": comment,
+            "initial_comment": text,
         },
         form=True,
     )
