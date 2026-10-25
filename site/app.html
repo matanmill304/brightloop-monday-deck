@@ -720,7 +720,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
           <section class="sheet sheet--pad" aria-labelledby="schedule-title">
             <h2 class="card-title" id="schedule-title">Schedule</h2>
             <dl class="dlist">
-              <div><dt>Capture</dt><dd>Every day at 04:30 UTC <span class="note">(06:30 Israel time in winter, 07:30 in summer)</span></dd></div>
+              <div><dt>Capture</dt><dd>Every night after midnight, Israel time <span class="note">(ready by 06:30; backups until 04:30 UTC)</span></dd></div>
               <div><dt>Deck</dt><dd>Mondays, from the week before</dd></div>
               <div><dt>Timezone</dt><dd class="mono">Asia/Jerusalem</dd></div>
               <div><dt>Last run</dt><dd class="inline"><span id="last-run"></span><a class="link" href="#setup/runlog">See the run log</a></dd></div>
@@ -914,7 +914,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
       : esc('Changes from ' + w.range + ' · in the deck for ' + w.meeting);
     $('new-title').innerHTML = esc(main) + (rest ? '<span class="quiet">' + esc(rest) + '</span>' : '');
     $('new-sub').innerHTML = w.partial
-      ? esc('Captured every morning. On ' + w.meeting + ' at 06:30 it becomes the deck.')
+      ? esc('Captured every morning. On ' + w.meeting + ' by 06:30 it becomes the deck.')
       : '<a class="link" href="#deck/' + esc(w.week) + '">Open the deck for ' + esc(w.meeting) + '</a>';
     // The latest deck: on its Monday it comes first; on a quiet week it's the thing to open.
     const latest = latestDeck();
@@ -951,7 +951,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     const shots = coverPages(w);
     const mod = shots.length === 1 ? ' deck-cover--one' : shots.length === 2 ? ' deck-cover--two' : '';
     const live = pages(w).every((p) => !p.capture || p.capture.method === 'live');
-    const body = w.partial ? 'Builds itself on Monday at 06:30. ' + soFar(w) : summaryLine(w);
+    const body = w.partial ? 'Builds itself on Monday by 06:30. ' + soFar(w) : summaryLine(w);
     const inner =
       '<span class="deck-cover' + mod + '">' +
         shots.map((p) => '<img src="' + esc(p.shot) + '" alt="" loading="lazy" decoding="async">').join('') +
@@ -1053,7 +1053,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     } else {
       body =
         '<div class="pending-head"><span class="pending-icon">' + ICON.clock + '</span><div>' +
-          '<b>' + esc('It builds itself on ' + w.meeting + ' at 06:30.') + '</b>' +
+          '<b>' + esc('It builds itself on ' + w.meeting + ' by 06:30.') + '</b>' +
           '<p>' + esc('From everything captured this week. ' + soFar(w)) + '</p></div></div>' +
         (error ? '<p class="result-bad">' + esc("Couldn't build it: " + error + '. Try again in a minute.') + '</p>' : '') +
         '<div class="pending-actions"><button class="btn btn--primary" id="build-now" type="button">Build now</button>' +
