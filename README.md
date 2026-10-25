@@ -13,7 +13,7 @@ This app does that job. Every day it captures those six pages and compares each 
 
 Fresh clone, zero keys, no install. Python 3.9+ (the `python3` that ships with macOS works).
 
-**On our data:** the signals our daily job collected from the real pages in week 43, in the brief's input format:
+**The one command that proves it works**, on our data: the signals our daily job collected from the real pages in week 43, in the brief's input format:
 
 ```bash
 ./run --input recordings/weeks/2026-W43/cases.json --output result.json
@@ -55,6 +55,8 @@ LIVE  GitHub Actions, daily from 00:15 Israel time, ready by 06:30 (backups to 0
 5. **The competitor's own blog, changelog, X account or ad announcing a pricing or packaging change → item**, at lower confidence, with "check the official pricing page". Packaging means something moved to or from a named plan, or became free. A feature launched on every plan is a launch: skipped and routed to Noa. Ad creatives are routed to Daniel.
 
 **Grouping:** one item per change, whatever the wording. "Pro plan now costs $30 per month, up from $25" and "Lovable raises Pro plan to $30/month" are one item. Different changes stay separate items, listed by date on the page's slide.
+
+**Mondays:** right after the deck is built, one Slack message goes to the team's channel: what changed, with links, and the .pptx attached (D20).
 
 ## Output
 
@@ -128,6 +130,8 @@ Extra fields inside each item:
 
 - **Rule-based reading, by design (no LLM; decision D2).** Slang and paraphrased reports ("a fiver more", "shaved five points off") can be missed. They are skipped with a reason, never shown as fact.
 - **Monthly prices only.** Yearly prices aren't tracked yet (D15).
+- **Billing views.** Plan prices are compared only within the same view; other lines are compared even across the monthly and yearly views.
+- **Some limits aren't read yet:** sizes in MB ("10MB file upload limit") and limits without a number ("No daily token limit").
 - **History before Oct 23 comes from the Wayback Machine and has gaps.** Archived Lovable pricing pages show no prices, and some days have no copy (D14). From Oct 23, all six pages are captured live every day.
 - **English pages only.** US-style dates (`10/23/2026`) are read as "no date".
 
