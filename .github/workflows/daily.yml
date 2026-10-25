@@ -2,15 +2,17 @@ name: daily
 
 # Every day: capture Maya's pages and compare them with the day before.
 # Mondays: also roll last week's signals into cases.json, result.json and the deck.
-# 04:30 UTC = 06:30 in Israel's winter time (UTC+2), 07:30 in summer time (UTC+3):
-# the deck is ready before Maya starts at 08:30 all year round.
+# GitHub starts schedules "best effort": on Oct 24 and 25 the 04:30 UTC run started ~4.5 h late.
+# So the first run starts just after midnight Israel time (22:15 UTC = 00:15 winter / 01:15
+# summer, already the new day in Israel), with backups every two hours up to 04:30 UTC. Even
+# hours late, the deck is ready by 06:30 (Israel), before Maya starts. A backup that finds
+# today's scheduled run already done stops at the first step.
 on:
   schedule:
+    - cron: "15 22 * * *"
+    - cron: "15 0 * * *"
+    - cron: "15 2 * * *"
     - cron: "30 4 * * *"
-    # Backups: GitHub runs schedules "best effort" (Oct 24 started 4.5 hours late). A backup
-    # that finds today's scheduled run already done stops at the first step.
-    - cron: "30 5 * * *"
-    - cron: "30 6 * * *"
   workflow_dispatch:
     inputs:
       date:

@@ -141,7 +141,7 @@ Legend: ⚠️ known limit (tested, documented)
 | 9.3 | Cookie banner | Hidden for the screenshot, never accepted | `collect/capture.py` |
 | 9.4 | No earlier snapshot | "First snapshot: nothing to compare yet" | first live run |
 | 9.5 | Short event signals from the collector (not page dumps) | One signal per change, in the brief's input format | `test_collector` |
-| 9.6 | Daily schedule (04:30 UTC, backups at 05:30 and 06:30 that stop if today already ran) + "Run workflow" | Captures daily; Mondays build last week's deck; each run is a run-log line | `.github/workflows/daily.yml`, `test_collector::test_the_daily_refresh_adds_no_run_log_line` |
+| 9.6 | Daily schedule (from 22:15 UTC = after midnight Israel, backups at 00:15, 02:15 and 04:30 UTC that stop if today already ran; ready by 06:30 Israel) + "Run workflow" | Captures daily; Mondays build last week's deck; each run is a run-log line | `.github/workflows/daily.yml`, `test_collector::test_the_daily_refresh_adds_no_run_log_line` |
 
 ## 10. Known limits
 

@@ -32,7 +32,7 @@ Any file gets a `result.json`. An empty, binary, non-JSON or wrongly shaped file
 ## How it works
 
 ```
-LIVE  GitHub Actions, daily 04:30 UTC (06:30 Israel winter, 07:30 summer)
+LIVE  GitHub Actions, daily from 00:15 Israel time, ready by 06:30 (backups to 04:30 UTC)
       capture 6 pages in Chrome (Wayback Machine copy if a page fails, labeled "archived")
       compare each page with its last good capture, like with like
       each change -> one signal in the brief's input shape
