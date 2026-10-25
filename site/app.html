@@ -333,7 +333,6 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .dropzone:hover { background: #FCFBF9; }
 .dropzone-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-full); background: var(--wash); color: var(--ink-2); }
 .sample { display: flex; align-items: center; gap: 10px; width: 100%; height: 44px; padding: 0 12px; border-radius: var(--r-md); text-align: left; }
-.sample:hover { background: var(--wash); }
 .sample b { flex: 1; font-weight: 500; }
 .reviewer { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: var(--s-8); padding: var(--s-6); }
 .reviewer h3 { margin: 0 0 var(--s-2); }
@@ -451,7 +450,7 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
 .samples-title { margin: 0; }
 .samples { display: grid; gap: 2px; margin: 10px -12px -8px; }
 .sample .muted { font-size: var(--text-caption); }
-.sample[aria-pressed="true"] { background: var(--wash); }
+.sample--on { background: var(--wash); }
 .raw { margin: 0 0 var(--s-4); padding: var(--s-5) var(--s-6); max-height: 360px; overflow: auto; font: 12px/1.65 var(--font-mono); color: var(--ink-2); white-space: pre; }
 .item-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
 .item-action { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; line-height: 1.45; }
@@ -877,7 +876,6 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     }
     if (page === 'new') renderNew(arg);
     if (page === 'deck') renderDecks(arg);
-    if (page === 'test') openTest();
     if (page === 'setup' && arg === 'runlog') requestAnimationFrame(() => $('runlog').scrollIntoView());
     else window.scrollTo(0, 0);
   }
@@ -1182,18 +1180,18 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
       .map(([t, u]) => '<a class="ext" href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(t) + ICON.out + '</a>').join('');
 
   $('samples').innerHTML = D.samples.map((s, i) =>
-    '<button class="sample" type="button" data-i="' + i + '" aria-pressed="false"><b>' + esc(s.name) + '</b><span class="muted">' +
-    esc(plural(s.cases.signals.length, 'signal', 'signals')) + '</span></button>').join('');
+    '<div class="sample"><b>' + esc(s.name) + '</b><span class="muted">' + esc(plural(s.cases.signals.length, 'signal', 'signals')) + '</span>' +
+    '<button class="btn btn--sm" type="button" data-i="' + i + '" aria-label="' + esc('Run ' + s.name) + '">Run</button></div>').join('');
   $('samples').addEventListener('click', (e) => {
-    const b = e.target.closest('.sample');
+    const b = e.target.closest('button[data-i]');
     if (b) runSample(Number(b.dataset.i));
   });
   function runSample(i) {
-    document.querySelectorAll('#samples .sample').forEach((b, n) => b.setAttribute('aria-pressed', String(n === i)));
+    document.querySelectorAll('#samples .sample').forEach((row, n) => row.classList.toggle('sample--on', n === i));
     const s = D.samples[i];
     runCases(JSON.stringify(s.cases), s.name);
   }
-  function pressNone() { document.querySelectorAll('#samples .sample').forEach((b) => b.setAttribute('aria-pressed', 'false')); }
+  function pressNone() { document.querySelectorAll('#samples .sample').forEach((row) => row.classList.remove('sample--on')); }
   $('file').addEventListener('change', async () => { const f = $('file').files[0]; if (f) { pressNone(); runCases(await f.text(), f.name); } });
   $('drop').addEventListener('dragover', (e) => e.preventDefault());
   $('drop').addEventListener('drop', async (e) => {
@@ -1201,10 +1199,6 @@ a.badge:hover { box-shadow: inset 0 0 0 1px rgba(21, 128, 61, .25); }
     const f = e.dataTransfer.files[0];
     if (f) { pressNone(); runCases(await f.text(), f.name); }
   });
-
-  /* The brief's sample runs once, live, the first time the page opens. */
-  let tested = false;
-  function openTest() { if (!tested && D.samples.length) { tested = true; runSample(0); } }
 
   async function runCases(text, name) {
     $('results').hidden = false;
