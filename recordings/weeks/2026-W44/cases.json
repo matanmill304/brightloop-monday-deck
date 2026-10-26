@@ -1,0 +1,20 @@
+{
+  "week": "2026-W44",
+  "timezone": "Asia/Jerusalem",
+  "brand": {
+    "name": "Brightloop",
+    "voice": "plain, confident, no hype",
+    "banned_words": [
+      "revolutionary",
+      "game-changing",
+      "seamless"
+    ]
+  },
+  "config": {
+    "utm_source": "brightloop"
+  },
+  "output": {
+    "cta_required_per_item": true
+  },
+  "signals": []
+}
