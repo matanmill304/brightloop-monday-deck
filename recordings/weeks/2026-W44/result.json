@@ -1,9 +1,46 @@
 {
   "built_for": "maya",
-  "items": [],
+  "items": [
+    {
+      "id": "maya-lovable-1",
+      "source_ids": [
+        "pr-102801"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Lovable pricing slide: New Free plan added at $0 (not on the page on Oct 27).",
+      "why": "Stated on Lovable's own pricing page (https://lovable.dev/pricing) on Oct 28, 2026.",
+      "competitor": "Lovable",
+      "page": "pricing",
+      "change": [
+        "new plan: Free $0"
+      ],
+      "change_detail": [
+        {
+          "kind": "plan_added",
+          "plan": "Free",
+          "old": null,
+          "new": "$0"
+        }
+      ],
+      "links": [
+        "https://lovable.dev/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-102801",
+          "source": "lovable.dev/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Lovable's pricing page",
+        "url": "https://lovable.dev/pricing"
+      }
+    }
+  ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-27T01:31:03+00:00",
+    "started_at": "2026-10-28T01:24:18+00:00",
     "cost_usd": 0.0,
     "errors": []
   }

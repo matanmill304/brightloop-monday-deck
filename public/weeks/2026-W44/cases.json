@@ -16,5 +16,14 @@
   "output": {
     "cta_required_per_item": true
   },
-  "signals": []
+  "signals": [
+    {
+      "id": "pr-102801",
+      "type": "pricing",
+      "competitor": "Lovable",
+      "source": "lovable.dev/pricing",
+      "ts": "2026-10-28T01:23:10Z",
+      "text": "New Free plan added at $0 (not on the page on Oct 27)."
+    }
+  ]
 }

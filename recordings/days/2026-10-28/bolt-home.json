@@ -1,0 +1,26 @@
+{
+  "competitor": "Bolt",
+  "page": "home",
+  "url": "https://bolt.new",
+  "captured_at": "2026-10-28T01:24:17+00:00",
+  "method": "live",
+  "text": "Solutions\nResources\nCareers\nPricing\nSign in\nGet Started\nWhat will you build today?\nCreate stunning apps & websites by chatting with AI.\nSelect an element on the preview\nLet's build\nPlan\nBuild now\nWebsite\nNew\nSlides\nApp\nPrototype\nor start from\nFigma\nGitHub\nTeam template\nTrusted by Google, Microsoft, Salesforce, AWS, Meta, HubSpot, Accenture, TikTok, Shopify, Chegg, Cloudflare, Netlify, FactSet, ByteDance, PwC, Mozilla, Intel, Xano, Stripe\nEmpowering product builders\nwith the\nmost powerful coding agents\nBolt does the heavy lifting for you, so you can focus on your vision instead of fighting errors.\nThe best model, every time\nBolt automatically routes to the right model for each task, balancing quality and cost. No more juggling platforms or guessing which agent to use.\nBolt Agent\nStandard\nAll users\nMax\nPro only\nHighest intelligence for complex features and large apps.\nSpeed\nLow\nIntelligence\nVery high\nToken cost\nHigh\n98%\nfewer errors\nBolt automatically tests, refactors, and iterates to reduce errors — so you can stay focused on building.\nBuild big without breaking\nBolt handles\nprojects 1,000 times larger\nthan before. Its improved built-in context management can handle complexity and keep your projects running smoothly.\nBuild with\ndesign system\nStop building from scratch. Start building on-brand.\nEverything you need to scale.\nBuilt in.\nStop stitching together platforms. Bolt Cloud gives you enterprise-grade backend infrastructure — including hosting, databases, integrations, and more.\nUnlimited databases\nEnterprise-grade\nUser Management & Authentication\nSEO optimization so your project ranks from day one.\nHosting with analytics & custom domains\nBolt gives you everything you need inside one familiar interface. No extra accounts, no steep learning curve.\nWhatever your role\nBolt gives you superpowers\nFrom idea to live product, Bolt adapts to the way you work — turning every vision into something real and fast.\nProduct managers\nGo from insight to prototype in hours and test ideas with your team before the day is over.\nEntrepreneurs\nLaunch a full business in days, not months. From landing page to product, all in one flow.\nMarketers\nSpin up high-performing campaign pages in hours, with SEO and hosting built in.\nAgencies\nMultiply your impact: deliver more projects, faster, without scaling headcount.\nStudents & builders\nLearn by doing. Take ideas from class or side projects and turn them into fully working apps.\nReady to build something amazing?\nTry it out and start building for free\nAI App Builder\nAI Website Builder\nSaaS Dev\nPrototyping\nSmall Business\nEnterprise\nBlog\nCommunity\nHelp Center\nSecurity & Trust\nTemplates\nMore\nTerms of Use\nAcceptable Use Policy\nPrivacy Policy\nConnect",
+  "headline": "What will you build today?",
+  "screenshot": "bolt-home.jpg",
+  "archive_url": null,
+  "notes": [],
+  "hero": {
+    "headline": "What will you build today?",
+    "subheadline": "Create stunning apps & websites by chatting with AI.",
+    "buttons": [
+      "Plan",
+      "Build now",
+      "Website",
+      "New Slides",
+      "App",
+      "Prototype",
+      "Figma",
+      "GitHub"
+    ]
+  }
+}
