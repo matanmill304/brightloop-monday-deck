@@ -24,6 +24,22 @@
       "source": "lovable.dev/pricing",
       "ts": "2026-10-28T01:23:10Z",
       "text": "New Free plan added at $0 (not on the page on Oct 27)."
+    },
+    {
+      "id": "sg-102901",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "replit.com",
+      "ts": "2026-10-29T01:50:18Z",
+      "text": "New on the homepage: \"Up to 30 hours of chat on Free Mode\""
+    },
+    {
+      "id": "sg-102902",
+      "type": "launch",
+      "competitor": "Replit",
+      "source": "replit.com",
+      "ts": "2026-10-29T01:50:18Z",
+      "text": "New on the homepage: \"Up to 60 projects on Free Mode\""
     }
   ]
 }

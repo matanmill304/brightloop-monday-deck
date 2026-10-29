@@ -36,11 +36,83 @@
         "text": "Open Lovable's pricing page",
         "url": "https://lovable.dev/pricing"
       }
+    },
+    {
+      "id": "maya-replit-1",
+      "source_ids": [
+        "sg-102901"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Replit homepage slide: Free: new on the page: \"Up to 30 hours of chat on Free Mode\".",
+      "why": "Stated on Replit's own homepage page (https://replit.com) on Oct 29, 2026.",
+      "competitor": "Replit",
+      "page": "home",
+      "change": [
+        "Free: new on the page: \"Up to 30 hours of chat on Free Mode\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_added",
+          "plan": "Free",
+          "old": null,
+          "new": "Up to 30 hours of chat on Free Mode"
+        }
+      ],
+      "links": [
+        "https://replit.com"
+      ],
+      "sources": [
+        {
+          "id": "sg-102901",
+          "source": "replit.com",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Replit's homepage page",
+        "url": "https://replit.com"
+      }
+    },
+    {
+      "id": "maya-replit-2",
+      "source_ids": [
+        "sg-102902"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Replit homepage slide: Free: new on the page: \"Up to 60 projects on Free Mode\".",
+      "why": "Stated on Replit's own homepage page (https://replit.com) on Oct 29, 2026.",
+      "competitor": "Replit",
+      "page": "home",
+      "change": [
+        "Free: new on the page: \"Up to 60 projects on Free Mode\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_added",
+          "plan": "Free",
+          "old": null,
+          "new": "Up to 60 projects on Free Mode"
+        }
+      ],
+      "links": [
+        "https://replit.com"
+      ],
+      "sources": [
+        {
+          "id": "sg-102902",
+          "source": "replit.com",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Replit's homepage page",
+        "url": "https://replit.com"
+      }
     }
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-10-28T01:24:18+00:00",
+    "started_at": "2026-10-29T01:50:45+00:00",
     "cost_usd": 0.0,
     "errors": []
   }
