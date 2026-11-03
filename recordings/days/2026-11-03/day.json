@@ -1,0 +1,143 @@
+{
+  "date": "2026-11-03",
+  "pages": [
+    {
+      "competitor": "Lovable",
+      "page": "pricing",
+      "url": "https://lovable.dev/pricing",
+      "current": {
+        "captured_at": "2026-11-03T03:29:03+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-03/lovable-pricing.json",
+        "screenshot": "days/2026-11-03/lovable-pricing.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "previous": {
+        "captured_at": "2026-11-02T01:30:58+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-02/lovable-pricing.json",
+        "screenshot": "days/2026-11-02/lovable-pricing.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "status": "unchanged",
+      "signal_ids": []
+    },
+    {
+      "competitor": "Lovable",
+      "page": "home",
+      "url": "https://lovable.dev",
+      "current": {
+        "captured_at": "2026-11-03T03:29:15+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-03/lovable-home.json",
+        "screenshot": "days/2026-11-03/lovable-home.jpg",
+        "archive_url": null,
+        "billing": "yearly"
+      },
+      "previous": {
+        "captured_at": "2026-11-02T01:31:10+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-02/lovable-home.json",
+        "screenshot": "days/2026-11-02/lovable-home.jpg",
+        "archive_url": null,
+        "billing": "yearly"
+      },
+      "status": "unchanged",
+      "signal_ids": []
+    },
+    {
+      "competitor": "Replit",
+      "page": "pricing",
+      "url": "https://replit.com/pricing",
+      "current": {
+        "captured_at": "2026-11-03T03:29:30+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-03/replit-pricing.json",
+        "screenshot": "days/2026-11-03/replit-pricing.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "previous": {
+        "captured_at": "2026-11-02T01:31:24+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-02/replit-pricing.json",
+        "screenshot": "days/2026-11-02/replit-pricing.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "status": "unchanged",
+      "signal_ids": []
+    },
+    {
+      "competitor": "Replit",
+      "page": "home",
+      "url": "https://replit.com",
+      "current": {
+        "captured_at": "2026-11-03T03:29:44+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-03/replit-home.json",
+        "screenshot": "days/2026-11-03/replit-home.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "previous": {
+        "captured_at": "2026-11-02T01:31:38+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-02/replit-home.json",
+        "screenshot": "days/2026-11-02/replit-home.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "status": "unchanged",
+      "signal_ids": []
+    },
+    {
+      "competitor": "Bolt",
+      "page": "pricing",
+      "url": "https://bolt.new/pricing",
+      "current": {
+        "captured_at": "2026-11-03T03:29:58+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-03/bolt-pricing.json",
+        "screenshot": "days/2026-11-03/bolt-pricing.jpg",
+        "archive_url": null,
+        "billing": "monthly"
+      },
+      "previous": {
+        "captured_at": "2026-11-02T01:31:53+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-02/bolt-pricing.json",
+        "screenshot": "days/2026-11-02/bolt-pricing.jpg",
+        "archive_url": null,
+        "billing": "monthly"
+      },
+      "status": "unchanged",
+      "signal_ids": []
+    },
+    {
+      "competitor": "Bolt",
+      "page": "home",
+      "url": "https://bolt.new",
+      "current": {
+        "captured_at": "2026-11-03T03:30:11+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-03/bolt-home.json",
+        "screenshot": "days/2026-11-03/bolt-home.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "previous": {
+        "captured_at": "2026-11-02T01:32:06+00:00",
+        "method": "live",
+        "snapshot": "days/2026-11-02/bolt-home.json",
+        "screenshot": "days/2026-11-02/bolt-home.jpg",
+        "archive_url": null,
+        "billing": null
+      },
+      "status": "unchanged",
+      "signal_ids": []
+    }
+  ]
+}
