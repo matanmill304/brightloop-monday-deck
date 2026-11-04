@@ -1,0 +1,50 @@
+[
+  {
+    "id": "pr-110401",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-11-04T02:22:11Z",
+    "text": "Subheadline changed from \"Start for free. No credit card required.\" to \"Start for free. Upgrade as you go.\"."
+  },
+  {
+    "id": "pr-110402",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-11-04T02:22:11Z",
+    "text": "Top-of-page buttons changed: now \"Monthly\"; now \"Yearly\"; now \"Start free\"; now \"Start a team\"; no longer \"YEARLY SAVE UP TO 28%\"; no longer \"MONTHLY\"; no longer \"Start Free\"; no longer \"Start a Team\"; no longer \"Book a Demo\"."
+  },
+  {
+    "id": "pr-110403",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-11-04T02:22:11Z",
+    "text": "Changed on the pricing page (Free plan): \"1M tokens/month to try Bolt\" → \"1M tokens per month\""
+  },
+  {
+    "id": "pr-110404",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-11-04T02:22:11Z",
+    "text": "Changed on the pricing page (Pro plan): \"10M tokens/month, rollover included\" → \"Start at 10M tokens per month\""
+  },
+  {
+    "id": "pr-110405",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-11-04T02:22:11Z",
+    "text": "New on the pricing page (Free plan): \"300K tokens daily limit\""
+  },
+  {
+    "id": "pr-110406",
+    "type": "pricing",
+    "competitor": "Bolt",
+    "source": "bolt.new/pricing",
+    "ts": "2026-11-04T02:22:11Z",
+    "text": "No longer on the pricing page: \"Save up to 28%\""
+  }
+]

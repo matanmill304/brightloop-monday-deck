@@ -1,9 +1,226 @@
 {
   "built_for": "maya",
-  "items": [],
+  "items": [
+    {
+      "id": "maya-bolt-1",
+      "source_ids": [
+        "pr-110401"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: subheadline: \"Start for free. No credit card required.\" → \"Start for free. Upgrade as you go.\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 04, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "subheadline: \"Start for free. No credit card required.\" → \"Start for free. Upgrade as you go.\""
+      ],
+      "change_detail": [
+        {
+          "kind": "subheadline",
+          "plan": null,
+          "old": "Start for free. No credit card required.",
+          "new": "Start for free. Upgrade as you go."
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-110401",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-2",
+      "source_ids": [
+        "pr-110402"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Top-of-page buttons changed: now \"Monthly\"; now \"Yearly\"; now \"Start free\"; now \"Start a team\"; no longer \"YEARLY SAVE UP TO 28%\"; no longer \"MONTHLY\"; no….",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 04, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "top-of-page buttons: now \"Monthly\"; now \"Yearly\"; now \"Start free\"; now \"Start a team\"; no longer \"YEARLY SAVE UP TO 28%\"; no longer \"MONTHLY\"; no longer \"Start Free\"; no longer \"Start a Team\"; no longer \"Book a Demo\""
+      ],
+      "change_detail": [
+        {
+          "kind": "buttons",
+          "plan": null,
+          "old": null,
+          "new": "now \"Monthly\"; now \"Yearly\"; now \"Start free\"; now \"Start a team\"; no longer \"YEARLY SAVE UP TO 28%\"; no longer \"MONTHLY\"; no longer \"Start Free\"; no longer \"Start a Team\"; no longer \"Book a Demo\""
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-110402",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-3",
+      "source_ids": [
+        "pr-110403"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Free: \"1M tokens/month to try Bolt\" → \"1M tokens per month\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 04, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "Free: \"1M tokens/month to try Bolt\" → \"1M tokens per month\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_changed",
+          "plan": "Free",
+          "old": "1M tokens/month to try Bolt",
+          "new": "1M tokens per month"
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-110403",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-4",
+      "source_ids": [
+        "pr-110404"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Pro: \"10M tokens/month, rollover included\" → \"Start at 10M tokens per month\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 04, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "Pro: \"10M tokens/month, rollover included\" → \"Start at 10M tokens per month\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_changed",
+          "plan": "Pro",
+          "old": "10M tokens/month, rollover included",
+          "new": "Start at 10M tokens per month"
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-110404",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-5",
+      "source_ids": [
+        "pr-110405"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Free: new on the page: \"300K tokens daily limit\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 04, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "Free: new on the page: \"300K tokens daily limit\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_added",
+          "plan": "Free",
+          "old": null,
+          "new": "300K tokens daily limit"
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-110405",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-6",
+      "source_ids": [
+        "pr-110406"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: no longer on the page: \"Save up to 28%\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 04, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "no longer on the page: \"Save up to 28%\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_removed",
+          "plan": null,
+          "old": "Save up to 28%",
+          "new": null
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-110406",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    }
+  ],
   "skipped": [],
   "run": {
-    "started_at": "2026-11-03T03:30:12+00:00",
+    "started_at": "2026-11-04T02:22:24+00:00",
     "cost_usd": 0.0,
     "errors": []
   }
