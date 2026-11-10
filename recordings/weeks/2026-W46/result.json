@@ -1,9 +1,46 @@
 {
   "built_for": "maya",
-  "items": [],
+  "items": [
+    {
+      "id": "maya-bolt-1",
+      "source_ids": [
+        "sg-111001"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt homepage slide: Top-of-page buttons changed: now \"Slides\"; no longer \"New Slides\".",
+      "why": "Stated on Bolt's own homepage page (https://bolt.new) on Nov 10, 2026.",
+      "competitor": "Bolt",
+      "page": "home",
+      "change": [
+        "top-of-page buttons: now \"Slides\"; no longer \"New Slides\""
+      ],
+      "change_detail": [
+        {
+          "kind": "buttons",
+          "plan": null,
+          "old": null,
+          "new": "now \"Slides\"; no longer \"New Slides\""
+        }
+      ],
+      "links": [
+        "https://bolt.new"
+      ],
+      "sources": [
+        {
+          "id": "sg-111001",
+          "source": "bolt.new",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's homepage page",
+        "url": "https://bolt.new"
+      }
+    }
+  ],
   "skipped": [],
   "run": {
-    "started_at": "2026-11-09T01:46:40+00:00",
+    "started_at": "2026-11-10T04:08:56+00:00",
     "cost_usd": 0.0,
     "errors": []
   }

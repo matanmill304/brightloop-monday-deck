@@ -16,5 +16,14 @@
   "output": {
     "cta_required_per_item": true
   },
-  "signals": []
+  "signals": [
+    {
+      "id": "sg-111001",
+      "type": "launch",
+      "competitor": "Bolt",
+      "source": "bolt.new",
+      "ts": "2026-11-10T04:08:56Z",
+      "text": "Top-of-page buttons changed: now \"Slides\"; no longer \"New Slides\"."
+    }
+  ]
 }
