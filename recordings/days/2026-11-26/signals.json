@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sg-112601",
+    "type": "launch",
+    "competitor": "Lovable",
+    "source": "lovable.dev",
+    "ts": "2026-11-26T04:10:49Z",
+    "text": "Headline changed from \"AI App Builder\" to \"Build something Lovable\"."
+  },
+  {
+    "id": "sg-112602",
+    "type": "launch",
+    "competitor": "Lovable",
+    "source": "lovable.dev",
+    "ts": "2026-11-26T04:10:49Z",
+    "text": "New on the homepage: \"Nursa built a new product in 48 hours and changed how its entire company ships software.\""
+  },
+  {
+    "id": "sg-112603",
+    "type": "launch",
+    "competitor": "Lovable",
+    "source": "lovable.dev",
+    "ts": "2026-11-26T04:10:49Z",
+    "text": "New on the homepage: \"The Scion Group plans to cancel $1M in SaaS contracts by turning every employee into a builder.\""
+  }
+]

@@ -1,9 +1,118 @@
 {
   "built_for": "maya",
-  "items": [],
+  "items": [
+    {
+      "id": "maya-lovable-1",
+      "source_ids": [
+        "sg-112601"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Lovable homepage slide: headline: \"AI App Builder\" → \"Build something Lovable\".",
+      "why": "Stated on Lovable's own homepage page (https://lovable.dev) on Nov 26, 2026.",
+      "competitor": "Lovable",
+      "page": "home",
+      "change": [
+        "headline: \"AI App Builder\" → \"Build something Lovable\""
+      ],
+      "change_detail": [
+        {
+          "kind": "headline",
+          "plan": null,
+          "old": "AI App Builder",
+          "new": "Build something Lovable"
+        }
+      ],
+      "links": [
+        "https://lovable.dev"
+      ],
+      "sources": [
+        {
+          "id": "sg-112601",
+          "source": "lovable.dev",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Lovable's homepage page",
+        "url": "https://lovable.dev"
+      }
+    },
+    {
+      "id": "maya-lovable-2",
+      "source_ids": [
+        "sg-112602"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Lovable homepage slide: new on the page: \"Nursa built a new product in 48 hours and changed how its entire company ships software.\".",
+      "why": "Stated on Lovable's own homepage page (https://lovable.dev) on Nov 26, 2026.",
+      "competitor": "Lovable",
+      "page": "home",
+      "change": [
+        "new on the page: \"Nursa built a new product in 48 hours and changed how its entire company ships software.\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_added",
+          "plan": null,
+          "old": null,
+          "new": "Nursa built a new product in 48 hours and changed how its entire company ships software."
+        }
+      ],
+      "links": [
+        "https://lovable.dev"
+      ],
+      "sources": [
+        {
+          "id": "sg-112602",
+          "source": "lovable.dev",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Lovable's homepage page",
+        "url": "https://lovable.dev"
+      }
+    },
+    {
+      "id": "maya-lovable-3",
+      "source_ids": [
+        "sg-112603"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Lovable homepage slide: new on the page: \"The Scion Group plans to cancel $1M in SaaS contracts by turning every employee into a builder.\".",
+      "why": "Stated on Lovable's own homepage page (https://lovable.dev) on Nov 26, 2026.",
+      "competitor": "Lovable",
+      "page": "home",
+      "change": [
+        "new on the page: \"The Scion Group plans to cancel $1M in SaaS contracts by turning every employee into a builder.\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_added",
+          "plan": null,
+          "old": null,
+          "new": "The Scion Group plans to cancel $1M in SaaS contracts by turning every employee into a builder."
+        }
+      ],
+      "links": [
+        "https://lovable.dev"
+      ],
+      "sources": [
+        {
+          "id": "sg-112603",
+          "source": "lovable.dev",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Lovable's homepage page",
+        "url": "https://lovable.dev"
+      }
+    }
+  ],
   "skipped": [],
   "run": {
-    "started_at": "2026-11-25T04:55:23+00:00",
+    "started_at": "2026-11-26T04:11:44+00:00",
     "cost_usd": 0.0,
     "errors": []
   }
