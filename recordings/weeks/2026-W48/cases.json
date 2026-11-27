@@ -40,6 +40,62 @@
       "source": "lovable.dev",
       "ts": "2026-11-26T04:10:49Z",
       "text": "New on the homepage: \"The Scion Group plans to cancel $1M in SaaS contracts by turning every employee into a builder.\""
+    },
+    {
+      "id": "pr-112701",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "Headline changed from \"Pricing\" to \"Explore plans\"."
+    },
+    {
+      "id": "pr-112702",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "Subheadline changed from \"Start for free. Upgrade as you go.\" to \"Start for free. Upgrade as you grow.\"."
+    },
+    {
+      "id": "pr-112703",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "Top-of-page buttons changed: now \"YEARLY SAVE UP TO 28%\"; now \"MONTHLY\"; no longer \"Monthly\"; no longer \"Yearly\"; no longer \"Start free\"; no longer \"Get Pro\"; no longer \"Start a team\"."
+    },
+    {
+      "id": "pr-112704",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "Changed on the pricing page (Pro plan): \"Start at 10M tokens per month\" → \"10M tokens/month with rollover\""
+    },
+    {
+      "id": "pr-112705",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "New on the pricing page: \"Save up to 28%\""
+    },
+    {
+      "id": "pr-112706",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "No longer on the pricing page (Free plan): \"300K tokens daily limit\""
+    },
+    {
+      "id": "pr-112707",
+      "type": "pricing",
+      "competitor": "Bolt",
+      "source": "bolt.new/pricing",
+      "ts": "2026-11-27T04:18:13Z",
+      "text": "No longer on the pricing page (Free plan): \"1M tokens per month\""
     }
   ]
 }

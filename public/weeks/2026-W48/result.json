@@ -108,11 +108,263 @@
         "text": "Open Lovable's homepage page",
         "url": "https://lovable.dev"
       }
+    },
+    {
+      "id": "maya-bolt-1",
+      "source_ids": [
+        "pr-112701"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: headline: \"Pricing\" → \"Explore plans\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "headline: \"Pricing\" → \"Explore plans\""
+      ],
+      "change_detail": [
+        {
+          "kind": "headline",
+          "plan": null,
+          "old": "Pricing",
+          "new": "Explore plans"
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112701",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-2",
+      "source_ids": [
+        "pr-112702"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: subheadline: \"Start for free. Upgrade as you go.\" → \"Start for free. Upgrade as you grow.\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "subheadline: \"Start for free. Upgrade as you go.\" → \"Start for free. Upgrade as you grow.\""
+      ],
+      "change_detail": [
+        {
+          "kind": "subheadline",
+          "plan": null,
+          "old": "Start for free. Upgrade as you go.",
+          "new": "Start for free. Upgrade as you grow."
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112702",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-3",
+      "source_ids": [
+        "pr-112703"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Top-of-page buttons changed: now \"YEARLY SAVE UP TO 28%\"; now \"MONTHLY\"; no longer \"Monthly\"; no longer \"Yearly\"; no longer \"Start free\"; no longer \"Get Pro\";….",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "top-of-page buttons: now \"YEARLY SAVE UP TO 28%\"; now \"MONTHLY\"; no longer \"Monthly\"; no longer \"Yearly\"; no longer \"Start free\"; no longer \"Get Pro\"; no longer \"Start a team\""
+      ],
+      "change_detail": [
+        {
+          "kind": "buttons",
+          "plan": null,
+          "old": null,
+          "new": "now \"YEARLY SAVE UP TO 28%\"; now \"MONTHLY\"; no longer \"Monthly\"; no longer \"Yearly\"; no longer \"Start free\"; no longer \"Get Pro\"; no longer \"Start a team\""
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112703",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-4",
+      "source_ids": [
+        "pr-112704"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Pro: \"Start at 10M tokens per month\" → \"10M tokens/month with rollover\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "Pro: \"Start at 10M tokens per month\" → \"10M tokens/month with rollover\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_changed",
+          "plan": "Pro",
+          "old": "Start at 10M tokens per month",
+          "new": "10M tokens/month with rollover"
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112704",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-5",
+      "source_ids": [
+        "pr-112705"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: new on the page: \"Save up to 28%\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "new on the page: \"Save up to 28%\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_added",
+          "plan": null,
+          "old": null,
+          "new": "Save up to 28%"
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112705",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-6",
+      "source_ids": [
+        "pr-112706"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Free: no longer on the page: \"300K tokens daily limit\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "Free: no longer on the page: \"300K tokens daily limit\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_removed",
+          "plan": "Free",
+          "old": "300K tokens daily limit",
+          "new": null
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112706",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
+    },
+    {
+      "id": "maya-bolt-7",
+      "source_ids": [
+        "pr-112707"
+      ],
+      "confidence": 0.9,
+      "action": "Update the Bolt pricing slide: Free: no longer on the page: \"1M tokens per month\".",
+      "why": "Stated on Bolt's own pricing page (https://bolt.new/pricing) on Nov 27, 2026.",
+      "competitor": "Bolt",
+      "page": "pricing",
+      "change": [
+        "Free: no longer on the page: \"1M tokens per month\""
+      ],
+      "change_detail": [
+        {
+          "kind": "line_removed",
+          "plan": "Free",
+          "old": "1M tokens per month",
+          "new": null
+        }
+      ],
+      "links": [
+        "https://bolt.new/pricing"
+      ],
+      "sources": [
+        {
+          "id": "pr-112707",
+          "source": "bolt.new/pricing",
+          "class": "official"
+        }
+      ],
+      "cta": {
+        "text": "Open Bolt's pricing page",
+        "url": "https://bolt.new/pricing"
+      }
     }
   ],
   "skipped": [],
   "run": {
-    "started_at": "2026-11-26T04:11:44+00:00",
+    "started_at": "2026-11-27T04:18:25+00:00",
     "cost_usd": 0.0,
     "errors": []
   }
